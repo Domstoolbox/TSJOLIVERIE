@@ -1,0 +1,2877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TEST n°004</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1c2333;--mut:#5b6478;--pri:#0b5ed7;--bd:#d9deea;--ok:#157347;--okbg:#e3f4ea;--ko:#b42318;--kobg:#fde8e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1b2030;--tx:#e8ebf3;--mut:#9aa3b8;--pri:#6ea8fe;--bd:#2d3550;--ok:#75d19b;--okbg:#14301f;--ko:#ff8a80;--kobg:#3a1a1a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1b2030;--tx:#e8ebf3;--mut:#9aa3b8;--pri:#6ea8fe;--bd:#2d3550;--ok:#75d19b;--okbg:#14301f;--ko:#ff8a80;--kobg:#3a1a1a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px}
+#quiz section.q.qscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-shadow:inset 0 -14px 12px -12px rgba(0,0,0,.25)}
+@media print{#quiz section.q.qscroll{max-height:none!important;overflow:visible}}
+@media screen{html.ios-phone main{padding-top:84px}}   /* iPhone dans Google Sites : le haut du test ne passe jamais sous le bandeau */
+@media screen{html.ios-phone #calc{top:84px;max-height:calc(100vh - 84px);max-height:calc(100dvh - 84px)}}   /* iPhone : calculatrice sous le bandeau du site */
+@media screen{html:not(.in-frame) main:has(>:is(#codewarning,#papwarning,#netwarning,#fswarning,#splitwarning,#rulewarning,#fraudwarning):not([hidden])){min-height:100vh;min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}}
+h1{font-size:1.7rem;margin:.2em 0;color:var(--pri)}
+.sub{color:var(--mut);margin:0 0 12px}
+.q{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
+.q h2{font-size:1rem;margin:0 0 8px;display:flex;gap:10px;align-items:flex-start}
+.q h2 > span:not(.n){flex:1 1 auto;min-width:0;overflow-wrap:anywhere}   /* les icônes son / calculatrice restent toujours visibles */
+@media (max-width:520px){   /* téléphone : icônes empilées à droite, plus de place pour l’énoncé */
+  .q h2{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto 1fr;column-gap:8px;row-gap:6px}
+  .q h2 > .n{grid-row:1 / span 2}
+  .q h2 > span:not(.n){grid-column:2;grid-row:1 / span 2}
+  .q h2 > button{grid-column:3;margin-left:0;align-self:start}
+}
+.tts{flex:none;margin-left:auto;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--pri);border:1px solid var(--pri);border-radius:50%}
+.tts svg{width:18px;height:18px;fill:currentColor}
+.tts.on{background:var(--pri);color:var(--bg)}
+.n{background:var(--pri);color:var(--bg);border-radius:8px;padding:0 9px;font-weight:700;flex:none}
+.hint{font-size:.85rem;color:var(--mut);margin:0 0 8px}
+label.opt{display:block;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;margin:6px 0;cursor:pointer}
+label.opt input{margin-right:8px}
+.numrow{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+.numrow input.numans{max-width:180px;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.numrow .unit{font-weight:600}
+.numrow label{display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.numrow input.numans{width:8.5em;flex:none}
+/* Texte du test non sélectionnable (sauf champs de saisie), y compris en mode enseignant */
+#test-content,#test-content *,#calc,#calc *{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
+#test-content input[type=text],#test-content select{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important}
+.calcbtn{flex:none;margin-left:auto;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--pri);border:1px solid var(--pri);border-radius:50%}
+.tts + .calcbtn{margin-left:0}
+.calcbtn svg{width:18px;height:18px;fill:currentColor}
+.calcbtn.on{background:var(--pri);color:var(--bg)}
+#calc{position:fixed;top:16px;right:16px;width:340px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);z-index:50;display:flex;flex-direction:column;overflow:hidden;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.3);user-select:none;touch-action:manipulation;outline:none}
+#calc[hidden]{display:none}
+body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-detected #calc{display:none}
+#calc .ch{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:700}
+#calc .ch .ttl{flex:1}
+#calc .ch small{color:var(--mut);font-weight:600}
+#calc .ch button{min-height:38px;padding:4px 12px;font-size:.85rem;border-radius:8px}
+#calc .ch .cx{min-width:46px;font-size:1.1rem;background:transparent;color:var(--tx);border:1px solid var(--bd)}
+#calc .ch #calcMin{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+#calcExpr{flex:none;min-height:1.4em;padding:8px 12px 0;text-align:right;font:500 1rem/1.3 ui-monospace,Consolas,monospace;color:var(--mut);word-break:break-all}
+#calcRes{flex:none;min-height:1.3em;padding:0 12px 2px;text-align:right;font:700 1.7rem/1.3 ui-monospace,Consolas,monospace;overflow-x:auto;white-space:nowrap}
+#calcMsg{flex:none;padding:0 12px 6px;min-height:1.2em;text-align:right;font-size:.8rem;color:var(--mut);white-space:pre-wrap}
+#calc .ck{flex:1 1 auto;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:0 10px 10px}
+#calc .ck button{padding:9px 0;font-size:.92rem;border-radius:8px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+#calc .ck button.num{background:var(--card);font-weight:700}
+#calc .ck button.op{background:var(--pri);color:var(--bg)}
+#calc .ck button.eq{background:var(--ok);color:#fff}
+#calc .inj{flex:none;display:block;margin:0 10px 10px;width:calc(100% - 20px);background:#6f42c1;color:#fff}
+#calc.min .ck{display:none}
+@media (min-width:900px){body.calc-open{padding-right:372px}}
+@media (max-width:899px), (max-height:520px){
+  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  body.calc-open{padding-bottom:0;padding-right:0}
+  #calcMin,#calcFx,#calcKeys{display:none!important}
+  #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
+  #calc .ck.bk button{padding:0;font-size:.95rem;border-radius:7px}
+  #calc .ck.bk .eq{grid-column:span 3}
+  #calcQtxt{display:block}
+  #calc .ch{padding:4px 8px}
+  #calc .ch button{min-height:32px;padding:2px 10px}
+  #calcExpr{min-height:1.1em;padding-top:4px;font-size:.85rem}
+  #calcRes{font-size:1.3rem}
+  #calcMsg{padding-bottom:2px;min-height:1em;font-size:.72rem}
+  #calc .inj{margin:0 8px 8px;padding:8px;font-size:.9rem;width:calc(100% - 16px)}
+}
+/* Téléphone / petit écran : calculatrice DANS la page, sous la question (et non fixée à l'écran). Dans une page Google Sites,
+   « fixé en haut » = haut du cadre du test, qui peut être au-dessus de l'écran du téléphone : la croix était alors masquée. */
+@media (max-width:899px), (max-height:520px){
+  #calc.inflow{position:relative!important;top:auto!important;left:auto;right:auto;bottom:auto;width:100%;max-height:none!important;margin:12px 0;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:auto;scroll-margin-top:96px}
+}
+#calcQtxt{flex:none;padding:6px 12px 0;font-size:.82rem;line-height:1.3;color:var(--mut)}
+#calcQtx{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#calcQtxt.open #calcQtx{display:block;-webkit-line-clamp:unset;max-height:38vh;max-height:38dvh;overflow-y:auto}
+#calcQmore{display:block;border:0;background:none;color:var(--pri);font:inherit;font-size:.78rem;font-weight:600;padding:2px 0;margin:0;cursor:pointer;text-decoration:underline}
+@media (min-width:900px) and (min-height:521px){#calc .ck.bk,#calcQtxt,#calcFx{display:none!important}}
+/* téléphone en mode paysage : affichage à gauche, clavier à droite (tient dans une hauteur d'environ 250 px) */
+@media (max-height:520px) and (orientation:landscape){
+  #calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-template-areas:"h k" "q k" "e k" "r k" "m k" "i k";grid-template-rows:auto auto auto auto 1fr auto}
+  #calc .ch{grid-area:h}
+  #calcQtxt{grid-area:q}
+  #calcExpr{grid-area:e}
+  #calcRes{grid-area:r}
+  #calcMsg{grid-area:m}
+  #calc .inj{grid-area:i;align-self:end}
+  #calc .ck.bk{grid-area:k;align-self:center;grid-auto-rows:30px;padding:6px 8px}
+}
+@media (max-height:620px){
+  #calc .ck{gap:4px;padding:0 8px 8px}
+  #calc .ck button{padding:6px 0;font-size:.82rem}
+  #calcRes{font-size:1.3rem}
+  #calcExpr{min-height:1.1em;padding-top:4px}
+  #calc .ch{padding:4px 8px}
+}
+#rulewarning{background-color:#ea580c;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;padding:clamp(20px,4vw,30px) clamp(12px,3vw,24px);margin:16px 0;position:relative}
+#rulewarning h2{font-size:clamp(1.2rem,3.2vw,1.6rem);margin:0 0 12px 0}
+#rulewarning ul{list-style:none;margin:0 auto 20px;padding:0;display:block;width:fit-content;max-width:100%;text-align:left;font-size:1.15rem;line-height:1.9}
+#rulewarning p{margin:0 0 16px 0}
+#rulewarning button.go{display:block;margin:0 auto;background:#fff;color:#ea580c;font-size:1.1rem;font-weight:700;padding:12px 30px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+body.need-rules #test-content,body.need-rules #calc{display:none!important}
+#codewarning h2,#papwarning h2,#fswarning h2,#netwarning h2,#papwarning{container-type:inline-size}
+#papwarning h2#papTitle{padding:0 40px;font-size:clamp(1rem,2.9cqw,1.45rem)}
+@media(min-width:560px){#papwarning h2#papTitle{white-space:nowrap}}
+#rulewarning h2{padding:0 44px;box-sizing:border-box;text-wrap:balance}
+.sayBtn{position:absolute;top:10px;right:10px;width:38px;height:38px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#1c2333;border:0;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.sayBtn svg{width:20px;height:20px;fill:currentColor}
+.nw{white-space:nowrap}
+h2.balance{text-wrap:balance}
+@media (max-width:640px){
+  .sayBtn{position:static;display:flex;margin:0 0 8px auto}
+  #codewarning h2,#papwarning h2,#fswarning h2,#netwarning h2,#rulewarning h2,#papwarning h2#papTitle{padding:0!important}
+}
+.sayBtn.on{background:#ffd60a}
+#codewarning,#papwarning,#fswarning,#netwarning,#soundbanner{position:relative}
+#fswarning{background-color:#0f766e;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;padding:clamp(20px,4vw,30px) clamp(12px,3vw,24px);margin:16px 0}
+#fswarning h2{font-size:clamp(1.2rem,3.2vw,1.6rem);margin:0 0 10px 0}
+#fswarning p{margin:0 0 14px 0}
+#fswarning #fsBtn{background:#fff;color:#0f766e;font-size:1.1rem;padding:12px 26px}
+#fsMsg{margin-top:10px;font-size:.9rem}
+body.need-fs #test-content,body.need-split #test-content{display:none!important}
+#splitwarning{background-color:#b45309;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;padding:clamp(20px,4vw,30px) clamp(12px,3vw,24px);margin:16px 0}
+#splitwarning h2{font-size:clamp(1.2rem,3.2vw,1.6rem);margin:0 0 10px 0}
+#splitwarning p{margin:0}
+.optrow{display:flex;align-items:center;gap:8px;margin:6px 0}
+.optrow label.opt{flex:1;margin:0}
+.tts.sm{width:30px;height:30px}
+.tts.sm svg{width:16px;height:16px}
+input[type=text], input[type=password]{width:100%;max-width:260px;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.res{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:.92rem}
+.ok{background:var(--okbg);color:var(--ok)}.ko{background:var(--kobg);color:var(--ko)}
+button{font:inherit;font-weight:600;background:var(--pri);color:var(--bg);border:0;border-radius:10px;padding:10px 18px;cursor:pointer}
+button.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+#ident[hidden]{display:none}
+#codeCredit small{opacity:.7;font-size:.72rem}
+#codeCredit{text-align:center;font-size:.8rem;color:var(--mut);margin:-4px 0 12px}
+#codewarning[hidden] + #codeCredit{display:none}
+#test-content h1{display:none}
+#quiz section.q{display:none}
+#quiz section.q.cur{display:block}
+#subtitle{font-weight:700;color:var(--tx);margin:0 0 6px}
+#qbar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden;margin:0 0 6px}
+#qbar i{display:block;height:100%;width:0;background:#0b5ed7;border-radius:3px;transition:width .25s}
+#bar1{justify-content:flex-end}
+#bar1 [hidden]{display:none!important}
+#nextBtn,#bar1 #val{font-size:1.05rem;font-weight:700;padding:12px 26px;min-width:210px;text-align:center;box-sizing:border-box}
+#bar1 #val{background:#157347}
+#score{font-size:1.3rem;font-weight:700;margin:10px 0}
+select{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);width:100%;max-width:260px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center}
+.big{width:100%;padding:28px 16px;font-size:1.4rem;font-weight:800;line-height:1.3}
+#bar2{display:none}
+#qrstep{display:none}
+
+#netwarning, #codewarning, #soundbanner, #fraudwarning {
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+}
+
+#netwarning {
+  background-color: #dc3545;
+  color: #ffffff;
+  padding: clamp(20px, 4vw, 35px) clamp(12px, 3vw, 24px);
+  margin: 16px 0;
+}
+#netwarning h2 {
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+#netwarning p {
+  font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+  margin: 0;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+#soundbanner {
+  background-color: #157347;
+  color: #ffffff;
+  padding: clamp(12px, 3vw, 18px) clamp(12px, 3vw, 20px);
+  margin: 16px 0;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+#codewarning {
+  background-color: #0b5ed7;
+  color: #ffffff;
+  padding: clamp(20px, 4vw, 30px) clamp(12px, 3vw, 24px);
+  margin: 16px 0;
+}
+#codewarning h2 {
+  font-size: clamp(1.3rem, 3.2vw, 1.6rem);
+  margin: 0 0 8px 0;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+#codewarning p {
+  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+  margin: 0 0 12px 0;
+  opacity: 0.95;
+  line-height: 1.4;
+}
+
+.code-input-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.code-input-group input {
+  text-transform: uppercase;
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  min-width: 160px;
+  letter-spacing: 2px;
+}
+
+.code-input-group button {
+  background: #fff;
+  color: #0b5ed7;
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+@keyframes blinkWarning {
+  0% { background-color: #dc3545; opacity: 1; transform: scale(1); }
+  50% { background-color: #842029; opacity: 0.85; transform: scale(0.99); }
+  100% { background-color: #dc3545; opacity: 1; transform: scale(1); }
+}
+
+#fraudwarning {
+  color: #ffffff;
+  padding: clamp(25px, 5vw, 40px) clamp(15px, 3vw, 20px);
+  margin: 20px 0;
+  animation: blinkWarning 0.8s infinite ease-in-out;
+  border: 4px solid #ffc107;
+}
+#fraudExit{text-align:center;margin:0 0 20px}
+#fraudExit a{display:inline-block;font-weight:700;font-size:1.1rem;background:#198754;color:#fff;text-decoration:none;border-radius:12px;padding:14px 28px}
+#fraudwarning h2 {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+
+#papwarning {
+  background-color: #6f42c1;
+  color: #ffffff;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  padding: clamp(20px, 4vw, 30px) clamp(12px, 3vw, 24px);
+  margin: 16px 0;
+}
+#papwarning h2 {
+  font-size: clamp(1.2rem, 3.2vw, 1.6rem);
+  margin: 0 0 14px 0;
+  line-height: 1.3;
+}
+.pap-choices { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.pap-opt {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: #fff; color: #6f42c1; font-weight: 800; font-size: 1.2rem;
+  padding: 12px 26px; border-radius: 10px; cursor: pointer; user-select: none;
+}
+.pap-opt input { width: 22px; height: 22px; margin: 0; cursor: pointer; accent-color: #6f42c1; }
+
+.timer-box {
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 10px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.blurred-content {
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.3s ease;
+}
+
+body.online-blocked #test-content,
+body.fraud-detected #test-content { display: none !important; }
+
+@media screen{
+.done #quiz,.done #ident,.done .sub,.done #qbar,.done #score,.done #bar1,.done h1{display:none}
+.done #bar2{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;min-height:70vh}
+#donebox{width:100%;background:#ffb703;color:#3d2600;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.15);text-align:center;padding:clamp(12px,3vw,24px);font-size:clamp(1.1rem,4vw,1.6rem);font-weight:800;line-height:1.3}
+#donebox div{margin:4px 0}
+#prt{font-size:1rem;padding:10px 26px}
+#mailNote{margin:0;max-width:440px;font-size:.9rem;line-height:1.4;color:var(--mut);text-align:center}
+#mailNote b{color:var(--tx);white-space:nowrap}
+/* Écran QR code après la validation (classe « qrstep » sur main) puis petit QR code sur la page de fin */
+.done.qrstep #bar2{display:none!important}
+.done.qrstep #qrstep{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;min-height:70vh;text-align:center}
+#qrbig{width:min(82vw,62vh,420px);background:#fff;padding:10px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+#qrbig svg,#qrsmall svg{display:block;width:100%;height:auto}
+#qrmsg{margin:0;max-width:440px;font-weight:800;font-size:clamp(1.05rem,4.2vw,1.4rem);line-height:1.3}
+#qrnext{font-size:1rem;padding:10px 32px}
+#qrsmall{width:clamp(110px,30vw,150px);background:#fff;padding:6px;border-radius:8px}
+#mailNote .warn{display:block;text-wrap:balance;margin-top:8px;color:#b42318;font-weight:800;font-size:.95rem}
+#ph{display:none}
+}
+@media print{
+.tts,.calcbtn,#calc{display:none!important}
+@page{size:A4 portrait;margin:8mm}
+:root{--bg:#fff;--card:#fff;--tx:#000;--mut:#333;--pri:#000;--bd:#999;padding:0}
+body{font-size:7.5pt;line-height:1.25;background:#fff;color:#000}
+main{max-width:none;padding:0}
+h1{font-size:12pt;margin:0}
+.bar,#ident,#idmsg,#netwarning,#fraudwarning,#codewarning,#soundbanner{display:none!important}
+.ponly{display:block;font-weight:700;font-size:9pt;margin:2px 0 4px}
+#quiz{column-count:2;column-gap:6mm}
+.q{break-inside:avoid;padding:4px 6px;margin:0 0 4px;border-radius:4px}
+.q h2{font-size:7.5pt;margin:0 0 2px}
+label.opt{padding:1px 4px;margin:1px 0}
+.res{padding:2px 4px;margin-top:2px;font-size:7pt;border:1px solid #999}
+#score{font-size:10pt;margin:4px 0}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.qimg{display:block;width:100%;max-width:620px;height:auto;margin:10px 0 4px;border-radius:6px;border:1px solid rgba(128,128,128,.3);background:#fff;-webkit-user-drag:none;user-select:none}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* qrcode-generator 2.0.4 - MIT License */
+// Copyright (c) 2009 Kazuhiko Arase
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+<script>try{if(window.self!==window.top)document.documentElement.classList.add('in-frame')}catch(e){document.documentElement.classList.add('in-frame')}</script>
+</head>
+<body class="online-blocked">
+<main>
+  <div id="codewarning" hidden>
+    <h2>🔑 TEST n°004</h2>
+        <div class="code-input-group">
+      <input type="password" id="accessCodeInput" placeholder="CODE D'ACCÈS" autocomplete="off">
+      <button type="button" id="accessCodeBtn">Valider</button>
+    </div>
+    <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
+  </div>
+
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 06/11/2026 - 16h39</small></div>
+
+  <div id="papwarning" hidden>
+    <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
+    <div class="pap-choices">
+      <label class="pap-opt"><input type="checkbox" id="papYes"> Oui</label>
+      <label class="pap-opt"><input type="checkbox" id="papNo"> Non</label>
+    </div>
+  </div>
+
+  <div id="fswarning" hidden>
+    <h2>🖥️ Plein écran obligatoire</h2>
+    <p>Pour afficher le test, passe en plein écran. Si tu quittes le plein écran ou si tu modifies la taille de la fenêtre pendant le test, une alarme sera déclenchée.</p>
+    <button type="button" id="fsBtn">Passer en plein écran</button>
+    <div id="fsMsg"></div>
+  </div>
+
+  <div id="splitwarning" hidden>
+    <h2>📱 Écran partagé interdit</h2>
+    <p>Ferme l'écran partagé ou la fenêtre flottante et affiche le navigateur sur tout l'écran : le test apparaîtra ensuite.</p>
+  </div>
+
+  <div id="rulewarning" hidden>
+    <h2>📏 Barème du test</h2>
+    <ul id="rulesList"></ul>
+    <button type="button" class="go" id="rulesBtn">Commencer le test</button>
+  </div>
+
+  <div id="netwarning" hidden>
+    <h2>⚠️ Connexion à internet !</h2>
+    <p>Veuillez désactiver votre connexion réseau / Wi-Fi pour faire apparaître le test.</p>
+  </div>
+
+  <div id="soundbanner" hidden>
+    🔊 Active le son pour faire le test !
+  </div>
+
+  <div id="fraudwarning" hidden>
+    <h2>⚠️ TENTATIVE DE FRAUDE</h2>
+    <div class="timer-box" id="timer">10</div>
+  </div>
+  <div id="fraudExit" hidden><a href="https://sites.google.com/view/domstoolbox" target="_blank" rel="noopener">Retour au site Domstoolbox</a></div>
+
+  <div id="test-content">
+    <h1>TEST n°004</h1>
+    <p class="sub" id="subtitle"></p>
+    <div id="qbar"><i></i></div>
+    <div id="ph" class="ponly"></div>
+    
+    <div id="code-blur-zone" class="blurred-content">
+      <div class="q" id="ident">
+        <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+          <label>NOM<br><input type="text" id="nom" autocomplete="family-name"></label>
+          <label>PRÉNOM<br><input type="text" id="prenom" autocomplete="given-name"></label>
+          <label>CLASSE<br>
+            <select id="classe">
+              <option value="">— Choisir —</option>
+              <option>1STI2D-1</option>
+              <option>1STI2D-2</option>
+              <option>1STI2D-3</option>
+              <option>1STI2D-4</option>
+            </select>
+          </label>
+        </div>
+        <div class="res ko" id="idmsg" hidden>Renseigne ton NOM, ton PRÉNOM et ta classe avant de valider !</div>
+      </div>
+
+      <div id="questions-blur-zone" class="blurred-content">
+        <div id="quiz"></div>
+        <div class="bar" id="bar1"><button id="nextBtn" type="button">Question suivante</button><button id="val" hidden>Valider le test</button></div>
+        <div id="score"></div>
+      </div>
+    </div>
+
+    <div id="qrstep">
+      <div id="qrbig"></div>
+      <p id="qrmsg">Montre ce QR-CODE à ton enseignant avant de continuer !</p>
+      <button id="qrnext" type="button">Suivant</button>
+    </div>
+
+    <div class="bar" id="bar2">
+      <div id="donebox"></div>
+      <button id="prt" type="button">GÉNÉRER TA COPIE EN PDF</button>
+      <p id="mailNote">Envoie ce PDF par mail à <b>copieurs@la-joliverie.com</b> pour pouvoir l'imprimer sur n'importe quelle imprimante du lycée avec ton code personnel d'impression.<br><strong class="warn">Attention ! Il faut impérativement envoyer le fichier AVEC TON ADRESSE MAIL DE LA JOLIVERIE !</strong></p>
+      <div id="qrsmall"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+let testSubmitted = false;
+let testStarted = false;
+let codeValidated = false;
+let fraudTriggered = false;
+let alarmPlaying = false;
+let adminMode = false;
+let answerStartedAt = null;   // 1re réponse réellement cochée
+let validatedAt = null;       // clic sur « Valider le test »
+let usedCode = '';            // code d'accès saisi pour lancer le test
+let questionsShownAt = null;  // moment où les questions apparaissent réellement à l'écran
+let usedAudio = false;        // lecture audio d'une question / réponse utilisée
+let usedCalc = false;         // calculatrice ouverte
+// Détecte l'instant où les questions deviennent visibles (après les encarts de consigne)
+setInterval(() => {
+  if (questionsShownAt || testSubmitted || typeof Q === 'undefined' || !Q.length) return;
+  const qz = document.getElementById('quiz');
+  if (qz && qz.offsetParent !== null && qz.getBoundingClientRect().height > 0 && !document.hidden) questionsShownAt = new Date();
+}, 250);
+// Durée en français : « 4 minutes et 45 secondes », « 5 secondes », « 1 heure, 2 minutes et 3 secondes »
+function fmtDuree(ms) {
+  let t = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60;
+  const parts = [];
+  if (h) parts.push(h + (h > 1 ? ' heures' : ' heure'));
+  if (m) parts.push(m + (m > 1 ? ' minutes' : ' minute'));
+  if (sec || !parts.length) parts.push(sec + (sec > 1 ? ' secondes' : ' seconde'));
+  return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' et ' + parts[parts.length - 1] : parts[0];
+}
+
+function markAnswerStart() {
+  if (!answerStartedAt) answerStartedAt = new Date();
+}
+function fmtDT(d) {
+  return d ? d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR') : 'Aucune réponse';
+}
+
+const FILE_KEY = 'tb_' + encodeURIComponent(window.location.pathname.split('/').pop() || 'test');
+const LOGS_KEY = FILE_KEY + '_logs';
+const REFRESH_KEY = FILE_KEY + '_refreshes';
+
+function getLogs() {
+  try {
+    return JSON.parse(localStorage.getItem(LOGS_KEY) || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+function logIncident(msg) {
+  const now = new Date();
+  const dateTimeStr = now.toLocaleDateString('fr-FR') + ' ' + now.toLocaleTimeString('fr-FR');
+  const fullLog = `[${dateTimeStr}] ${msg}`;
+  const logs = getLogs();
+  logs.push(fullLog);
+  try {
+    localStorage.setItem(LOGS_KEY, JSON.stringify(logs));
+  } catch(e) {}
+}
+
+// Plus de compteur d'ouvertures/rechargements : rien n'est enregistré à ce sujet.
+const refreshCount = 0;
+
+function getExpectedCode() {
+  const now = new Date();
+  const dayNum = now.getDate();
+  const monthNum = now.getMonth() + 1;
+
+  const days = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+
+  const firstDayChar = days[now.getDay()];
+  const firstMonthChar = months[now.getMonth()];
+
+  return (dayNum * 10).toString() + (monthNum * 10).toString() + firstDayChar + firstMonthChar;
+}
+
+// Dès que NOM, PRÉNOM et CLASSE sont renseignés (champ quitté / classe choisie), le bandeau disparaît
+function hideIdentityIfDone() {
+  const ok = ['nom', 'prenom'].every(id => (document.getElementById(id)?.value.trim() || '') !== '') && (document.getElementById('classe')?.value || '') !== '';
+  const id = document.getElementById('ident');
+  if (ok && id && !id.hidden) {
+    id.hidden = true;
+    if (typeof viewTest === 'function') viewTest();
+  }
+}
+
+function checkIdentityAndUnblur() {
+  const nomv = document.getElementById('nom')?.value.trim() || '';
+  const prenomv = document.getElementById('prenom')?.value.trim() || '';
+  const clv = document.getElementById('classe')?.value || '';
+
+  if (nomv !== '' && prenomv !== '' && clv !== '') {
+    document.getElementById('questions-blur-zone').classList.remove('blurred-content');
+  } else {
+    document.getElementById('questions-blur-zone').classList.add('blurred-content');
+  }
+}
+
+// Suffixe ajouté au code du jour -> nombre de questions du test
+const CODE_LEVELS = { A: 10, B: 20, C: 30 };
+// Codes enseignant (sans aucune sécurité) -> nombre de questions
+const ADMIN_LEVELS = { A: 10, B: 20, C: 30 };
+// Période de développement : sans code, « Valider » lance un test de 10 questions en conditions élève.
+// Cesse automatiquement de fonctionner après le 1er novembre 2026 à 23 h 59 (heure locale de l'appareil).
+const DEV_START = new Date(2026, 9, 19, 0, 0, 0), DEV_END = new Date(2026, 10, 1, 23, 59, 59);
+function devWindowOpen(now) { now = now || new Date(); return now >= DEV_START && now <= DEV_END; }
+const WRONG_PENALTY = 0.25;   // points retirés pour une mauvaise réponse (barème : +1 / −WRONG_PENALTY / 0)
+const PAP_RATIO = 0.7;     // PAP : 30 % de questions en moins
+let levelN = 0;            // nombre de questions du test « normal »
+let isPap = false;
+let papChosen = false;
+
+function showCodeMsg(text, ok) {
+  const m = document.getElementById('codeMsg');
+  m.textContent = text;
+  m.style.background = ok ? '#e3f4ea' : '#fde8e6';
+  m.style.color = ok ? '#157347' : '#b42318';
+  m.hidden = false;
+}
+
+document.getElementById('accessCodeBtn').onclick = () => {
+  const input = document.getElementById('accessCodeInput');
+  const entered = input.value.trim().toUpperCase();
+  const base = getExpectedCode();
+
+  // Mot de passe administrateur : génère le PDF corrigé (30 questions)
+  if (entered === '#@') {
+    input.value = '';
+    document.getElementById('codeMsg').hidden = true;
+    generateAnswerKeyPDF();
+    return;
+  }
+
+  // Version papier : <code du jour><A|B|C>COPIE[PAP] -> PDF à imprimer (10 / 20 / 30 questions, -30 % avec PAP)
+  const paper = entered.startsWith(base) ? entered.slice(base.length).match(/^([ABC])COPIE(PAP)?$/) : null;
+  if (paper) {
+    input.value = '';
+    document.getElementById('codeMsg').hidden = true;
+    generatePaperPDF(CODE_LEVELS[paper[1]], !!paper[2]);   // ...COPIEPAP : 30 % de questions en moins (PAP)
+    return;
+  }
+
+  let n = 0, admin = false, exempt = false;
+  const adm = entered.match(/^#@([ABC])$/);
+  if (adm) {
+    n = ADMIN_LEVELS[adm[1]]; admin = true;     // test enseignant : sécurités désactivées
+  } else if (entered.length === base.length + 1 && entered.startsWith(base) && CODE_LEVELS[entered.slice(-1)]) {
+    n = CODE_LEVELS[entered.slice(-1)];
+  } else if (entered.length === base.length + 2 && entered.startsWith(base) && entered.endsWith('W') && CODE_LEVELS[entered.charAt(base.length)]) {
+    n = CODE_LEVELS[entered.charAt(base.length)];   // ...W : même test, réseau non exigé
+    exempt = true;
+  } else if (entered === '' && new Date() <= DEV_END) {
+    n = 10; exempt = true;                      // aucun code saisi = équivalent de <code du jour>AW (10 questions, réseau non exigé)
+  }
+
+  if (n) {
+    codeValidated = true;
+    adminMode = admin;
+    netExempt = exempt;
+    usedCode = entered || 'SANS CODE';
+    levelN = n;
+    document.getElementById('codeMsg').hidden = true;
+    logIncident(admin
+      ? `Mode enseignant activé : sécurités désactivées (code ${entered})`
+      : (entered ? `Code d'accès validé avec succès (${entered})` : "Test lancé sans code (équivalent AW)"));
+    checkNetworkState();          // le bleu disparaît, le violet (question PAP) apparaît
+  } else {
+    logIncident("Code d'accès saisie incorrecte");
+    showCodeMsg('Code incorrect.', false);
+  }
+};
+
+// Réponse à la question PAP : construit le test puis laisse checkNetworkState gérer le réseau
+function choosePap(pap) {
+  if (papChosen) return;
+  papChosen = true;
+  isPap = pap;
+  const n = pap ? Math.round(levelN * PAP_RATIO) : levelN;
+  logIncident(`PAP : ${pap ? 'Oui' : 'Non'} (test de ${n} questions)`);
+  startTest(n);
+  document.getElementById('code-blur-zone').classList.remove('blurred-content');
+  checkNetworkState();
+  updateRulesGate();
+}
+document.getElementById('papYes').onchange = e => { if (e.target.checked) choosePap(true); };
+document.getElementById('papNo').onchange = e => { if (e.target.checked) choosePap(false); };
+
+// Contexte audio de l'alarme, créé et « déverrouillé » dès le premier clic/touche de l'élève :
+// sans cela, un son lancé depuis un événement (sortie du plein écran, perte de focus) reste muet.
+let ALARM_CTX = null;
+function getAlarmCtx() {
+  try {
+    if (!ALARM_CTX) ALARM_CTX = new (window.AudioContext || window.webkitAudioContext)();
+    if (ALARM_CTX.state !== 'running') ALARM_CTX.resume();
+  } catch(e) {}
+  return ALARM_CTX;
+}
+['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+  window.addEventListener(ev, function unlock() {
+    const c = getAlarmCtx();
+    try {   // son muet d'une fraction de seconde pour valider le déverrouillage
+      const b = c.createBufferSource(); b.buffer = c.createBuffer(1, 1, 22050);
+      b.connect(c.destination); b.start(0);
+    } catch(e) {}
+    if (c && c.state === 'running') ['pointerdown', 'keydown', 'touchstart'].forEach(x => window.removeEventListener(x, unlock, true));
+  }, true));
+
+// ===== MODE OBSERVATION : ouverture probable de Siri sur iPhone (aucune alarme, simple relevé dans la copie élève) =====
+// Siri (appui long sur le bouton latéral) s'affiche par-dessus Safari sans changer d'onglet : « visibilitychange » ne voit rien.
+// Mais Siri prend le micro et le haut-parleur : iOS interrompt alors le son de la page. Un son inaudible est donc joué
+// pendant le test ; une interruption du son (ou un affichage figé) est notée avec l'heure et la question en cours.
+const OBS = [];
+let obsLastSpeak = 0, obsKeep = null, obsLastState = '', obsLastRaf = 0;
+function obsNote(kind, label) {
+  if (adminMode || !detectorsArmed() || testSubmitted || fraudTriggered || alarmPlaying) return;
+  if (Date.now() - obsLastSpeak < 2500) return;   // lecture vocale de la question en cours : interruption normale
+  const last = OBS[OBS.length - 1];
+  if (last && last.kind === kind && Date.now() - last.at < 4000) return;   // un seul relevé par épisode
+  OBS.push({ kind, label, at: Date.now(), q: questionsShownAt ? curQ + 1 : 0 });
+}
+setInterval(() => {
+  if ('speechSynthesis' in window && (speechSynthesis.speaking || speechSynthesis.pending)) obsLastSpeak = Date.now();
+  const c = ALARM_CTX;
+  if (!c) return;
+  if (!obsKeep && c.state === 'running' && detectorsArmed() && !testSubmitted) {
+    try {   // son continu inaudible : maintient la session audio de la page active
+      const o = c.createOscillator(), g = c.createGain();
+      g.gain.value = 0.00001; o.frequency.value = 40;
+      o.connect(g); g.connect(c.destination); o.start(); obsKeep = o;
+    } catch (e) {}
+  }
+  const s = c.state;
+  if (obsKeep && obsLastState === 'running' && s !== 'running' && !document.hidden)
+    obsNote('audio', 'son de la page interrompu par le téléphone (Siri, assistant vocal ou appel ?)');
+  obsLastState = s;
+}, 250);
+// après une interruption, le son est relancé au prochain toucher (iOS le relance aussi tout seul après Siri)
+['pointerdown', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, () => {
+  if (ALARM_CTX && ALARM_CTX.state !== 'running' && !alarmPlaying) { try { ALARM_CTX.resume(); } catch (e) {} }
+}, true));
+(function obsRaf(now) {
+  if (obsLastRaf && now - obsLastRaf > 1500 && !document.hidden && IS_TOUCH())
+    obsNote('gel', `affichage de la page figé pendant ${Math.round((now - obsLastRaf) / 1000)} s (fenêtre du système par-dessus le test ?)`);
+  obsLastRaf = now;
+  requestAnimationFrame(obsRaf);
+})(0);
+
+function playAlarmSound() {
+  if (alarmPlaying) return;
+  alarmPlaying = true;
+
+  const duration = 10;
+  let timeLeft = duration;
+  const timerEl = document.getElementById('timer');
+  if (timerEl) timerEl.textContent = timeLeft;
+
+  const countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timerEl) timerEl.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      // Décompte à 0 : bouton de retour au site sous l'encart rouge
+      const ex = document.getElementById('fraudExit');
+      if (ex) ex.hidden = false;
+    }
+  }, 1000);
+
+  // Annonce vocale façon bande-annonce de film (synthèse vocale du navigateur, hors ligne) :
+  // phrases courtes et rapides ponctuées d'impacts sonores ; sirène d'origine si pas de synthèse vocale.
+  const ANNONCE = [
+    "Alerte !",
+    "Tentative de fraude détectée !",
+    "Votre évaluation est verrouillée !"
+  ];
+  const PAUSES = [150, 200];
+  const PITCH  = [0.3, 0.15, 0.1];
+  const RATE   = [1.0, 1.25, 1.2];
+  const HIT    = [true, true, true];   // impact au début de la phrase
+  const audioCtx = getAlarmCtx();
+  const ttsOk = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+  if (!ttsOk) {
+    try {
+      let startTime = audioCtx.currentTime;
+      let oscillator = audioCtx.createOscillator();
+      let gainNode = audioCtx.createGain();
+      oscillator.type = 'sawtooth';
+      for (let t = 0; t < duration; t += 0.5) {
+        oscillator.frequency.setValueAtTime(800, startTime + t);
+        oscillator.frequency.setValueAtTime(1200, startTime + t + 0.25);
+      }
+      gainNode.gain.setValueAtTime(0.4, startTime);
+      gainNode.gain.setValueAtTime(0, startTime + duration);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    } catch(e) {}
+    return;
+  }
+
+  // Grondement grave et inquiétant sous la voix (deux notes basses légèrement désaccordées)
+  let droneGain = null;
+  try {
+    const t0 = audioCtx.currentTime;
+    droneGain = audioCtx.createGain();
+    droneGain.gain.setValueAtTime(0, t0);
+    droneGain.gain.linearRampToValueAtTime(0.10, t0 + 0.4);
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 220;
+    [55, 55.8, 82.4].forEach(f => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sawtooth'; o.frequency.value = f;
+      o.connect(lp); o.start(t0); o.stop(t0 + 25);
+    });
+    lp.connect(droneGain); droneGain.connect(audioCtx.destination);
+  } catch(e) {}
+  // Impact « boum » de bande-annonce : basse qui plonge + souffle filtré
+  const hit = (strength) => {
+    try {
+      const t = audioCtx.currentTime, g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.9 * strength, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      g.connect(audioCtx.destination);
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(110, t);
+      o.frequency.exponentialRampToValueAtTime(32, t + 0.9);
+      o.connect(g); o.start(t); o.stop(t + 1.2);
+      const n = audioCtx.createBufferSource(), len = audioCtx.sampleRate * 0.5;
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      n.buffer = buf;
+      const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+      const ng = audioCtx.createGain(); ng.gain.value = 0.5 * strength;
+      n.connect(f); f.connect(ng); ng.connect(audioCtx.destination); n.start(t);
+    } catch(e) {}
+  };
+  // Montée de tension (souffle qui grimpe) juste avant la première phrase
+  const riser = () => {
+    try {
+      const t = audioCtx.currentTime, len = audioCtx.sampleRate * 0.6;
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const n = audioCtx.createBufferSource(); n.buffer = buf;
+      const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 4;
+      f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(4000, t + 0.6);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.01, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.58); g.gain.setValueAtTime(0, t + 0.6);
+      n.connect(f); f.connect(g); g.connect(audioCtx.destination); n.start(t);
+    } catch(e) {}
+  };
+  const endDrone = () => {
+    try { const t = audioCtx.currentTime; droneGain.gain.cancelScheduledValues(t);
+          droneGain.gain.setValueAtTime(droneGain.gain.value, t);
+          droneGain.gain.linearRampToValueAtTime(0, t + 1.5); } catch(e) {}
+  };
+
+  // Choix d'une voix française, masculine de préférence (plus grave)
+  const pickVoice = () => {
+    const fr = window.speechSynthesis.getVoices().filter(x => /^fr/i.test(x.lang));
+    return fr.find(x => /thomas|paul|henri|claude|mathieu|daniel|nicolas|jacques|male|homme|masculin/i.test(x.name))
+        || fr.find(x => /fr-FR/i.test(x.lang)) || fr[0] || null;
+  };
+  window.speechSynthesis.cancel();
+  const say = k => {
+    if (k >= ANNONCE.length) { endDrone(); return; }
+    const u = new SpeechSynthesisUtterance(ANNONCE[k]);
+    u.lang = 'fr-FR';
+    const v = pickVoice(); if (v) u.voice = v;
+    u.pitch = PITCH[k];                 // très grave
+    u.rate = RATE[k];                   // rapide et nerveux
+    u.volume = 1;
+    u.onstart = () => { if (HIT[k]) hit(k === 0 ? 1 : 0.7); };
+    u.onend = () => {
+      if (k + 1 < ANNONCE.length) setTimeout(() => say(k + 1), PAUSES[k] || 0);
+      else { endDrone(); setTimeout(siren, 150); }   // nouveau coup de sirène pour finir
+    };
+    u.onerror = () => endDrone();
+    window.speechSynthesis.speak(u);
+  };
+  // Coup de sirène d'alarme (1,5 s) avant la voix ; on attend que le contexte audio tourne vraiment
+  const SIREN = 1.5;
+  const siren = () => {
+  try {
+    const t0 = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sawtooth';
+    for (let t = 0; t < SIREN; t += 0.5) {
+      o.frequency.setValueAtTime(800, t0 + t);
+      o.frequency.setValueAtTime(1200, t0 + t + 0.25);
+    }
+    g.gain.setValueAtTime(0.4, t0);
+    g.gain.setValueAtTime(0.4, t0 + SIREN - 0.05);
+    g.gain.linearRampToValueAtTime(0, t0 + SIREN);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0 + SIREN);
+  } catch(e) {}
+  };
+  const go = () => {
+  siren();
+  setTimeout(riser, SIREN * 1000);                  // puis montée de tension
+  setTimeout(() => say(0), SIREN * 1000 + 600);     // la voix tombe pile à la fin de la montée
+  };
+  let started = false;
+  const start = () => { if (!started) { started = true; go(); } };
+  try {
+    if (audioCtx.state === 'running') start();
+    else { audioCtx.resume().then(start, start); setTimeout(start, 400); }   // au pire, la voix part quand même
+  } catch(e) { start(); }
+}
+
+// Détecteurs armés : dès que l'élève a commencé à remplir ou répondre, OU dès qu'il a cliqué sur « Commencer le test »
+function detectorsArmed() { return !adminMode && ((testStarted && hasStudentStarted()) || rulesOk); }
+function hasStudentStarted() {
+  const nomv = document.getElementById('nom')?.value.trim() || '';
+  const prenomv = document.getElementById('prenom')?.value.trim() || '';
+  const clv = document.getElementById('classe')?.value || '';
+  const checkedOpts = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"].mq:checked').length + [...document.querySelectorAll('input.numans')].filter(e => e.value.trim()).length;
+  return nomv !== '' || prenomv !== '' || clv !== '' || checkedOpts > 0;
+}
+
+function triggerFraud(reasonLog) {
+  if (adminMode || testSubmitted || fraudTriggered) return;
+  fraudTriggered = true;
+
+  logIncident(`🚨 ALERTE / ALARME DÉCLENCHÉE : ${reasonLog}`);
+
+  const quizEl = document.getElementById('quiz');
+  if (quizEl) quizEl.innerHTML = '';
+
+  document.getElementById('codewarning').hidden = true;
+  document.getElementById('soundbanner').hidden = true;
+  document.getElementById('netwarning').hidden = true;
+  document.getElementById('papwarning').hidden = true;
+  document.getElementById('fswarning').hidden = true;
+  document.getElementById('splitwarning').hidden = true;
+  document.getElementById('rulewarning').hidden = true;
+  document.body.classList.remove('need-fs', 'need-split', 'need-rules');
+  stopSpeaking();
+  closeCalc();
+  document.body.classList.remove('online-blocked');
+  document.body.classList.add('fraud-detected');
+  document.getElementById('fraudwarning').hidden = false;
+
+  playAlarmSound();
+}
+
+// ===== Plein écran obligatoire, détection de sortie / redimensionnement =====
+const FS_ROOT = document.documentElement;
+const FS_SUPPORTED = !!(FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen);   // non disponible sur iPhone
+function inFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function exitFs() {
+  try { if (inFullscreen()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+}
+let fsSkipped = false;   // plein écran refusé / indisponible sur cet appareil : l'étape est ignorée
+function fsAvailable() {
+  if (!FS_SUPPORTED || fsSkipped) return false;
+  const en = (document.fullscreenEnabled !== undefined) ? document.fullscreenEnabled : document.webkitFullscreenEnabled;
+  return en !== false;   // le navigateur annonce que le plein écran n'est pas autorisé -> étape ignorée d'emblée
+}
+// Code se terminant par W (ex. 210100MOAW) : test identique, mais la coupure du réseau n'est pas exigée
+let netExempt = false;
+const netCut = () => !navigator.onLine || netExempt;
+function fsRequired() { return fsAvailable() && papChosen && !adminMode && !testSubmitted && !fraudTriggered; }
+function updateFsGate() {
+  const need = fsRequired() && netCut() && !inFullscreen();
+  document.body.classList.toggle('need-fs', need);
+  document.getElementById('fswarning').hidden = !need;
+  updateRulesGate();
+  stopSpeakingIfBoxHidden();
+}
+
+// Encart « barème » : affiché après le réseau et le plein écran, avant le test
+let rulesOk = false;
+function buildRulesList() {
+  const ul = document.getElementById('rulesList');
+  if (ul.children.length) return;
+  [['✔', 'Bonne réponse : +1 point'], ['✘', 'Mauvaise réponse : −' + fmtNote(WRONG_PENALTY) + ' point'], ['–', 'Pas de réponse : 0 point']].forEach(r => {
+    const li = document.createElement('li');
+    li.textContent = r[0] + '  ' + r[1];
+    ul.appendChild(li);
+  });
+}
+function updateRulesGate() {
+  buildRulesList();
+  // État calculé directement (et non lu dans les classes CSS) : réseau d'abord, puis plein écran, puis barème
+  const netBlocked = !adminMode && !netExempt && navigator.onLine;
+  const fsBlocked = fsRequired() && netCut() && !inFullscreen();
+  const need = papChosen && !rulesOk && !netBlocked && !fsBlocked && !splitBlocked() && !testSubmitted && !fraudTriggered;
+  document.body.classList.toggle('need-rules', need);
+  document.getElementById('rulewarning').hidden = !need;
+}
+// Filet de sécurité : l'affichage du barème est revérifié régulièrement et à chaque interaction
+setInterval(updateRulesGate, 700);
+['pointerdown', 'keydown', 'focus', 'online', 'offline', 'resize'].forEach(ev => window.addEventListener(ev, () => setTimeout(updateRulesGate, 0), true));
+document.getElementById('rulesBtn').onclick = () => { rulesOk = true; updateRulesGate(); stopSpeaking(); };
+
+// ===== Écran partagé / fenêtre flottante sur téléphone ou tablette =====
+// La fenêtre du navigateur doit occuper presque tout l'écran. Mesure faite sur la fenêtre du navigateur (outerWidth/outerHeight),
+// valable aussi quand le test est intégré dans Google Sites. Le clavier virtuel est ignoré (champ de saisie actif).
+const IS_TOUCH = () => !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+let splitState = false;
+function measureSplit() {
+  const ow = window.outerWidth, oh = window.outerHeight, sw = screen.width, sh = screen.height;
+  if (!ow || !oh || !sw || !sh) return false;
+  const big = Math.max(ow, oh) / Math.max(sw, sh), small = Math.min(ow, oh) / Math.min(sw, sh);
+  return big < 0.8 || small < 0.8 || (ow * oh) / (sw * sh) < 0.7;
+}
+function splitBlocked() {
+  if (!IS_TOUCH() || adminMode || !papChosen || testSubmitted || fraudTriggered || !netCut()) return false;
+  const a = document.activeElement;
+  if (!(a && a.closest && a.closest('input,textarea,select'))) splitState = measureSplit();   // clavier ouvert : on garde l'état précédent
+  return splitState;
+}
+function updateSplitGate() {
+  if (!document.getElementById('splitwarning')) return;
+  const blocked = splitBlocked();
+  if (blocked && detectorsArmed()) { triggerFraud("Écran partagé ou fenêtre flottante pendant le test"); return; }
+  document.body.classList.toggle('need-split', blocked);
+  document.getElementById('splitwarning').hidden = !blocked;
+}
+setInterval(updateSplitGate, 500);
+window.addEventListener('resize', updateSplitGate);
+window.addEventListener('orientationchange', () => setTimeout(updateSplitGate, 600));
+
+let fsBaseSize = null, fsSettleUntil = 0;
+function fsMeasure() { const d = window.devicePixelRatio || 1; return { w: window.innerWidth * d, h: window.innerHeight * d }; }
+function fsRebase() {
+  fsSettleUntil = Date.now() + 1200;
+  setTimeout(() => { fsBaseSize = fsMeasure(); }, 1200);
+}
+function onFsChange() {
+  if (inFullscreen()) { fsRebase(); updateFsGate(); return; }
+  if (fsRequired() && detectorsArmed()) { triggerFraud('Sortie du mode plein écran'); return; }
+  updateFsGate();
+}
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
+
+window.addEventListener('resize', () => {
+  if (!fsRequired() || !inFullscreen() || !fsBaseSize || Date.now() < fsSettleUntil) return;
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;   // téléphone/tablette : le clavier virtuel change la hauteur
+  if (!detectorsArmed()) return;
+  const m = fsMeasure();
+  if (Math.abs(m.w - fsBaseSize.w) > fsBaseSize.w * 0.04 || Math.abs(m.h - fsBaseSize.h) > fsBaseSize.h * 0.04) {
+    triggerFraud('Redimensionnement de la fenêtre (écran partagé possible)');
+  }
+});
+
+document.getElementById('fsBtn').onclick = () => {
+  const req = FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen;
+  // Plein écran refusé (ou sans effet) : on saute cette étape de sécurité au lieu de bloquer l'élève
+  const skip = () => {
+    if (inFullscreen() || fsSkipped) return;
+    fsSkipped = true;
+    logIncident('Plein écran indisponible sur cet appareil : étape ignorée');
+    updateFsGate();
+  };
+  try {
+    const pr = req.call(FS_ROOT);
+    if (pr && pr.catch) pr.catch(skip);
+  } catch (e) { skip(); return; }
+  setTimeout(() => { if (!inFullscreen() && fsRequired()) skip(); }, 1500);   // le navigateur n'a pas réagi
+};
+
+// ===== Blocage du copier-coller, du clic droit et des raccourcis d'outils développeur (sauf mode enseignant) =====
+function secBlock(e) { if (!adminMode) e.preventDefault(); }
+document.addEventListener('contextmenu', secBlock);
+// Sélection et glisser-déposer du texte bloqués (sauf dans les champs NOM / PRÉNOM / CLASSE), y compris en mode enseignant
+const isField = t => t && t.closest && t.closest('input,textarea,select');
+document.addEventListener('selectstart', e => { if (!isField(e.target)) e.preventDefault(); }, true);
+document.addEventListener('dragstart', e => { e.preventDefault(); }, true);
+// Firefox : empêche le début d'une sélection à la souris sur le texte (les champs, boutons et cases restent utilisables)
+document.addEventListener('mousedown', e => {
+  if (isField(e.target) || (e.target.closest && e.target.closest('button,a'))) return;
+  if (e.detail > 1 || e.button === 0) e.preventDefault();
+}, true);
+// Dernier filet : toute sélection hors champ de saisie est effacée en continu
+setInterval(() => {
+  if (isField(document.activeElement)) return;
+  const sel = window.getSelection && window.getSelection();
+  if (sel && !sel.isCollapsed) sel.removeAllRanges();
+}, 150);
+document.addEventListener('selectionchange', () => {
+  const a = document.activeElement;
+  if (isField(a)) return;
+  const sel = window.getSelection && window.getSelection();
+  if (sel && !sel.isCollapsed) sel.removeAllRanges();
+});
+['copy', 'cut', 'paste'].forEach(t => document.addEventListener(t, secBlock));
+document.addEventListener('keydown', e => {
+  if (adminMode) return;
+  const ctrl = e.ctrlKey || e.metaKey, c = e.code;
+  const blocked = c === 'F12'
+    || (ctrl && e.shiftKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyK'].includes(c))     // outils développeur
+    || (e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyU'].includes(c))   // Mac
+    || (ctrl && ['KeyU', 'KeyS', 'KeyP', 'KeyC', 'KeyV', 'KeyX'].includes(c))    // source, enregistrer, imprimer, copier/coller
+    || (ctrl && c === 'Insert') || (e.shiftKey && (c === 'Insert' || c === 'Delete'));
+  if (blocked) { e.preventDefault(); e.stopPropagation(); }
+}, true);
+
+function checkNetworkState() {
+  if (fraudTriggered) return;
+  const netWarn = document.getElementById('netwarning');
+  const soundBanner = document.getElementById('soundbanner');
+  const codeWarn = document.getElementById('codewarning');
+  const papWarn = document.getElementById('papwarning');
+
+  // Étapes 1 et 2 : seul l'encart bleu (code) puis l'encart violet (PAP) sont affichés
+  if (!papChosen) {
+    document.body.classList.add('online-blocked');
+    netWarn.hidden = true;
+    soundBanner.hidden = true;
+    codeWarn.hidden = codeValidated;
+    papWarn.hidden = !codeValidated;
+    return;
+  }
+
+  codeWarn.hidden = true;
+  papWarn.hidden = true;
+
+  if (adminMode) {
+    document.body.classList.remove('online-blocked');
+    netWarn.hidden = true;
+    soundBanner.hidden = true;
+    updateFsGate();
+    return;
+  }
+
+  // Étape 3 : encarts rouge + vert tant que le réseau n'est pas désactivé
+  if (navigator.onLine && !netExempt) {
+    if (detectorsArmed()) {
+      triggerFraud("Activation/réactivation d'Internet ou du Wi-Fi pendant le test");
+    } else {
+      document.body.classList.add('online-blocked');
+      netWarn.hidden = false;
+      soundBanner.hidden = false;
+    }
+  } else {
+    document.body.classList.remove('online-blocked');
+    netWarn.hidden = true;
+    soundBanner.hidden = true;
+  }
+  updateFsGate();
+}
+
+window.addEventListener('online', checkNetworkState);
+window.addEventListener('offline', checkNetworkState);
+window.addEventListener('DOMContentLoaded', checkNetworkState);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && detectorsArmed() && !testSubmitted && !fraudTriggered) {
+    triggerFraud("Changement d'onglet ou réduction de la fenêtre");
+  }
+});
+
+// Perte de focus : le test est intégré dans une page (Google Sites). Un clic sur la page du site, en dehors du cadre du test,
+// fait aussi perdre le focus : ce n'est pas de la triche. On suit donc la position du pointeur :
+//  - pointeur sorti du cadre du test avant la perte de focus  -> clic sur la page du site : aucune alarme
+//  - pointeur resté dans le test (Alt+Tab, autre fenêtre au clavier) -> alarme
+//  - écran tactile : la perte de focus est ignorée (le changement d'application est détecté par « visibilitychange »)
+const IN_FRAME = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+let pointerInside = true;
+const markIn = () => { pointerInside = true; };
+const markOut = () => { pointerInside = false; };
+document.documentElement.addEventListener('mouseenter', markIn);
+document.documentElement.addEventListener('mouseleave', markOut);
+window.addEventListener('mouseover', markIn, true);
+window.addEventListener('mouseout', e => { if (!e.relatedTarget) markOut(); }, true);
+window.addEventListener('blur', () => {
+  if (!(detectorsArmed() && !testSubmitted && !fraudTriggered)) return;
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+  // Tolérance « clic sur la page du site » : uniquement quand le test est intégré dans une autre page (Google Sites).
+  // Test ouvert seul dans l'onglet : toute perte de focus est une vraie sortie du test -> alarme.
+  if (IN_FRAME) return;   // dans une page de site : délai de grâce géré par le contrôle régulier ci-dessous
+  triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+});
+
+// Filet de sécurité : vérifie régulièrement que la page est visible et (test ouvert seul) qu'elle a le focus
+setInterval(() => {
+  if (!detectorsArmed() || testSubmitted || fraudTriggered) return;
+  if (document.hidden) { triggerFraud("Changement d'onglet ou réduction de la fenêtre"); return; }
+  if (IN_FRAME) {
+    // Test intégré (Google Sites) : un clic sur la page du site retire brièvement le focus au test (toléré 1 s).
+    // Au-delà, ou si le focus est parti vers une autre fenêtre / un autre navigateur : alarme, quelle que soit la position de la souris.
+    // Même règle sur téléphone / tablette (écran partagé : toucher l'autre fenêtre retire le focus au test).
+    if (document.hasFocus && document.hasFocus()) window._hadFocus = true;
+    if (document.hasFocus && !document.hasFocus() && (window._hadFocus || !IS_TOUCH())) {
+      if (!window._noFocusSince) window._noFocusSince = Date.now();
+      else {
+        const d = Date.now() - window._noFocusSince;
+        if (d >= 500 && !window._epCounted) { window._epCounted = true; window._focusEpisodes = (window._focusEpisodes || 0) + 1; }
+        // une absence longue (1 s) ou la 3e sortie répétée (« je regarde et je reviens ») déclenche l'alarme
+        if (d >= 1000 || window._focusEpisodes >= 3) triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+      }
+    } else { window._noFocusSince = 0; window._epCounted = false; }
+    return;
+  }
+  if (IS_TOUCH()) {
+    // Téléphone / tablette, test ouvert seul : tolérance de 1 s (notification, clavier...)
+    if (document.hasFocus && document.hasFocus()) { window._hadFocus = true; window._noFocusSince = 0; return; }
+    if (!window._hadFocus) return;
+    if (!window._noFocusSince) window._noFocusSince = Date.now();
+    else if (Date.now() - window._noFocusSince >= 1000) triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+    return;
+  }
+  if (document.hasFocus && !document.hasFocus()) triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+}, 500);
+
+['nom', 'prenom', 'classe'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){
+    el.addEventListener('input', () => { 
+      testStarted = true; 
+      checkIdentityAndUnblur();
+    });
+    el.addEventListener('change', () => { 
+      testStarted = true; 
+      checkIdentityAndUnblur();
+      hideIdentityIfDone();
+    });
+  }
+});
+
+// BANQUE DE 30 QUESTIONS DE CULTURE GÉNÉRALE
+const ALL_QUESTIONS = [
+  {t:"Une énergie peut s’exprimer en WATTHEURE ou en JOULE.",o:["VRAI","FAUX"],a:[0],e:"Le joule (J) et le wattheure (Wh) sont deux unités d’énergie (1 Wh = 3600 J).",fixed:true},
+  {t:"L’unité de l’énergie dans le Système International est le JOULE.",o:["VRAI","FAUX"],a:[0],e:"L’unité SI de l’énergie est le joule (J).",fixed:true},
+  {t:"E<sub>1</sub> = 1,230 kJ est un résultat numérique écrit avec 4 chiffres significatifs.",o:["VRAI","FAUX"],a:[0],e:"1,230 comporte 4 chiffres significatifs (le zéro final compte).",fixed:true},
+  {t:"Le symbole de l’unité KILOJOULE est \"kJ\".",o:["VRAI","FAUX"],a:[0],e:"k minuscule pour kilo, J majuscule pour joule : kJ.",fixed:true},
+  {t:"L’énergie ABSORBÉE par une éolienne est de nature \"MÉCANIQUE\".",o:["VRAI","FAUX"],a:[0],e:"Une éolienne absorbe l’énergie mécanique (cinétique) du vent.",fixed:true},
+  {t:"L’énergie UTILE d’un four électrique est de nature \"THERMIQUE\".",o:["VRAI","FAUX"],a:[0],e:"Le four absorbe de l’énergie électrique et fournit de l’énergie thermique (utile).",fixed:true},
+  {t:"L’énergie ABSORBÉE par les moteurs du TGV est de nature \"MÉCANIQUE\".",o:["VRAI","FAUX"],a:[1],e:"Les moteurs du TGV absorbent de l’énergie ÉLECTRIQUE et fournissent de l’énergie mécanique.",fixed:true},
+  {t:"Dans une pile, l’énergie est stockée sous forme \"CHIMIQUE\".",o:["VRAI","FAUX"],a:[0],e:"Une pile stocke de l’énergie chimique et la convertit en énergie électrique.",fixed:true},
+  {t:"L’énergie PERDUE par un panneau photovoltaïque est de nature \"ÉLECTRIQUE\".",o:["VRAI","FAUX"],a:[1],e:"L’énergie électrique est l’énergie UTILE du panneau ; l’énergie perdue est thermique.",fixed:true},
+  {t:"L’énergie PERDUE par un alternateur est de nature \"MÉCANIQUE\".",o:["VRAI","FAUX"],a:[1],e:"L’alternateur absorbe de l’énergie mécanique ; l’énergie perdue est THERMIQUE.",fixed:true},
+  {t:"L’énergie UTILE fournie par un moteur est de nature \"CHIMIQUE\".",o:["VRAI","FAUX"],a:[1],e:"Un moteur fournit de l’énergie MÉCANIQUE (mouvement).",fixed:true},
+  {t:"Le VENT est une source d’énergie non renouvelable.",o:["VRAI","FAUX"],a:[1],e:"Le vent se renouvelle en permanence : c’est une source renouvelable.",fixed:true},
+  {t:"Le SOLEIL est une source d’énergie renouvelable.",o:["VRAI","FAUX"],a:[0],e:"Le Soleil est une source d’énergie renouvelable (inépuisable à notre échelle).",fixed:true},
+  {t:"Le CARBURANT appelé E10 est une source d’énergie renouvelable.",o:["VRAI","FAUX"],a:[1],e:"L’E10 est de l’essence (d’origine pétrolière) contenant seulement 10 % d’éthanol : il est majoritairement non renouvelable.",fixed:true},
+  {t:"Si un dispositif dégage une PUISSANCE THERMIQUE de 1230 W, cela signifie que chaque seconde, une ÉNERGIE de 1230 J est cédée.",o:["VRAI","FAUX"],a:[0],e:"1 W = 1 J par seconde : 1230 W correspondent à 1230 J cédés chaque seconde.",fixed:true},
+  {t:"On peut écrire Wh ou W/h pour le symbole de l’unité WATTHEURE.",o:["VRAI","FAUX"],a:[1],e:"Le wattheure est un produit (W × h) : son symbole est Wh, jamais W/h.",fixed:true},
+  {t:"La chaleur se déplace toujours du milieu à T<sub>1</sub> vers le milieu à T<sub>2</sub> avec T<sub>2</sub> < T<sub>1</sub>.",o:["VRAI","FAUX"],a:[0],e:"La chaleur va toujours du milieu le plus chaud (T<sub>1</sub>) vers le milieu le plus froid (T<sub>2</sub>).",fixed:true},
+  {t:"Une PUISSANCE peut s’exprimer en WATT ou en KILOWATT.",o:["VRAI","FAUX"],a:[0],e:"Le watt (W) et le kilowatt (kW) sont des unités de puissance.",fixed:true},
+  {t:"Un dispositif qui consomme 1000 J d’électricité toutes les 2 s, consomme 500 W.",o:["VRAI","FAUX"],a:[0],e:"P = E / Δt = 1000 / 2 = 500 W.",fixed:true},
+  {t:"Un dispositif qui consomme 4000 J d’électricité toutes les 0,5 s, consomme 2000 W.",o:["VRAI","FAUX"],a:[1],e:"P = E / Δt = 4000 / 0,5 = 8000 W.",fixed:true},
+  {t:"Le symbole de l’unité MÉGAWATT est \"MW\".",o:["VRAI","FAUX"],a:[0],e:"M majuscule pour méga (10<sup>6</sup>), W pour watt : MW.",fixed:true},
+  {t:"Il y a 1000 WATTS dans 1 KILOWATT.",o:["VRAI","FAUX"],a:[0],e:"1 kW = 1000 W.",fixed:true},
+  {t:"Il y a 1000 JOULES dans 1 MILLIJOULE.",o:["VRAI","FAUX"],a:[1],e:"C’est l’inverse : 1 J = 1000 mJ.",fixed:true},
+  {t:"P<sub>1</sub> = 0,560 Wh est un résultat numérique écrit avec 3 chiffres significatifs.",o:["VRAI","FAUX"],a:[0],e:"0,560 comporte 3 chiffres significatifs (5, 6 et le zéro final).",fixed:true},
+  {t:"Une durée de 2,5 heures équivaut à 190 minutes.",o:["VRAI","FAUX"],a:[1],e:"2,5 h = 2,5 × 60 = 150 min.",fixed:true},
+  {t:"Une durée de 2 heures et 35 minutes équivaut à 195 minutes.",o:["VRAI","FAUX"],a:[1],e:"2 h 35 min = 120 + 35 = 155 min.",fixed:true},
+  {t:"Le vent, le soleil et le charbon sont des sources d’énergie renouvelables.",o:["VRAI","FAUX"],a:[1],e:"Le charbon est une énergie fossile, non renouvelable.",fixed:true},
+  {t:"La capacité d’une batterie de vélo électrique est généralement indiquée en Wh.",o:["VRAI","FAUX"],a:[0],e:"La capacité (énergie stockée) d’une batterie est généralement indiquée en wattheures (Wh).",fixed:true},
+  {t:"On peut écrire un rendement de \"18 %\" ou de \"0,18\", c’est la même chose.",o:["VRAI","FAUX"],a:[0],e:"18 % = 18 / 100 = 0,18.",fixed:true},
+  {t:"Un radiateur électrique domestique peut fournir une puissance thermique de 1 kW.",o:["VRAI","FAUX"],a:[0],e:"Un radiateur domestique fournit environ 1 à 2 kW.",fixed:true}
+];
+
+// Mélange les propositions A/B/C d'une question (copie : la banque d'origine reste intacte).
+// Les questions de type « Toutes les réponses… / Aucune… » (ou marquées fixed:true) ne sont pas mélangées.
+// Question à valeur numérique : {t, n: valeur attendue, u: unité, tol: tolérance relative (défaut 1 %)}
+const isNumQ = q => q && typeof q.n === 'number';
+// Question à plusieurs bonnes réponses (cases à cocher) : {t, o: [...], a: [indices], m: true} — notée tout juste ou faux
+const isMultiQ = q => q && q.m === true;
+// Image sous l'énoncé (écran + PDF)
+const QIMG_PAD = 4;
+const qImgH = (q, colW) => q && q.img ? (colW - 2 * QIMG_PAD) * q.imgR + 2 : 0;
+function drawQImg(doc, q, x, y, colW) {
+  if (!q || !q.img) return;
+  const w = colW - 2 * QIMG_PAD;
+  try { doc.addImage(q.img, 'JPEG', x + QIMG_PAD, y + 1, w, w * q.imgR); } catch (e) { console.warn(e); }
+}
+// Range les cartes de questions (2 colonnes ; une carte « wide » à image occupe toute la largeur).
+// Si une ligne ne tient pas en bas de page, une ligne plus courte qui y tient est avancée : pas de grand vide.
+function packPdfRows(cards, y0, top, bottom, gapY) {
+  const pend = cards.slice(), rows = [];
+  const rowAt = s => {
+    const c = pend[s];
+    if (c.wide) return [c];
+    const j = pend.findIndex((d, k) => k > s && !d.wide);
+    return j < 0 ? [c] : [c, pend[j]];
+  };
+  const hOf = r => Math.max(...r.map(c => c.h));
+  let y = y0;
+  while (pend.length) {
+    let row = rowAt(0), br = false;
+    if (y + hOf(row) > bottom) {
+      let alt = null;
+      for (let s = 1; s < pend.length && !alt; s++) { const r = rowAt(s); if (y + hOf(r) <= bottom) alt = r; }
+      if (alt) row = alt; else { br = true; y = top; }
+    }
+    row.forEach(c => pend.splice(pend.indexOf(c), 1));
+    rows.push({ cards: row, h: hOf(row), br });
+    y += hOf(row) + gapY;
+  }
+  return rows;
+}
+const letters = arr => arr.map(j => String.fromCharCode(65 + j)).join(', ');
+const fmtNum = v => String(Number(Number(v).toPrecision(10))).replace('.', ',');
+const numShow = q => q.d || fmtNum(q.n);   // valeur affichée comme réponse attendue (q.d si résultat arrondi)
+// Réponse tapée -> écriture normalisée « 1.8E3 » (accepte 1,8E3 · 1,8×10^3 · 1,8x10^3 · 1,8.10^3 · 1,8×10³ ; unité finale ignorée)
+function normNumAnswer(s) {
+  const SUP = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-' };
+  s = String(s || '').trim().replace(/\s+/g, '').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, m => '^' + [...m].map(c => SUP[c]).join(''))
+    .replace(/[−–]/g, '-').replace(/,/g, '.');
+  s = s.replace(/[a-zA-Zµ\/°%]+$/, m => /^E[-+]?$/i.test(m) || /^E/i.test(m) && /\d$/.test(m) ? m : '');   // unité tapée à la fin : ignorée
+  s = s.replace(/(\d)(?:[×x*·]|\.(?=10\^))10\^?([-+]?\d+)$/i, '$1E$2');
+  if (s === '' || !/^[-+]?(\d+\.?\d*|\.\d+)(E[-+]?\d+)?$/i.test(s)) return null;
+  return s.toUpperCase();
+}
+function parseNumAnswer(s) { const n = normNumAnswer(s); return n === null ? null : Number(n); }
+// sf: [2, 3] -> seule la valeur exacte arrondie à 2 ou 3 chiffres significatifs est acceptée ; sinon tolérance relative tol (défaut 1 %)
+function numAnswerOk(q, v, raw) {
+  if (v === null) return false;
+  if (Array.isArray(q.sf)) return q.sf.some(s => Math.abs(v - Number(q.n.toPrecision(s))) <= Math.abs(q.n) * 1e-9);   // valeur exacte arrondie (1800 ou 1,8E3 acceptés)
+  return Math.abs(v - q.n) <= Math.abs(q.n) * (q.tol === undefined ? 0.01 : q.tol) + 1e-12;
+}
+function shuffleOptions(q) {
+  if (isNumQ(q)) return Object.assign({}, q);
+  const idx = q.o.map((_, i) => i);
+  const keep = q.fixed === true || q.o.some(o => /^\s*(toutes|tous|aucune|aucun|les deux)\b/i.test(o));
+  if (!keep) {
+    for (let i = idx.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+  }
+  return Object.assign({}, q, { o: idx.map(i => q.o[i]), a: q.a.map(x => idx.indexOf(x)) });
+}
+
+function getRandomQuestions(n) {
+  const shuffled = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, n).map(shuffleOptions);
+}
+
+// --- Lecture à voix haute de la question (synthèse vocale du navigateur, fonctionne hors ligne) ---
+const TTS_OK = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const TTS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+let ttsBtn = null;
+let ttsTimer = null;
+
+function stopSpeaking() {
+  clearTimeout(ttsTimer);
+  if (TTS_OK) window.speechSynthesis.cancel();
+  if (ttsBtn) { ttsBtn.classList.remove('on'); ttsBtn = null; }
+}
+
+// Lit un texte, ou une suite de morceaux séparés par un court silence (pause en ms)
+function speakText(btn, parts, pause) {
+  if (!TTS_OK) return;
+  if (!Array.isArray(parts)) parts = [parts];
+  const wasThis = (ttsBtn === btn);
+  stopSpeaking();
+  if (wasThis) return;                      // second clic = arrêt
+  ttsBtn = btn;
+  btn.classList.add('on');
+  const finish = () => { if (ttsBtn === btn) { btn.classList.remove('on'); ttsBtn = null; } };
+  const say = k => {
+    if (ttsBtn !== btn) return;             // arrêté entre-temps
+    const u = new SpeechSynthesisUtterance(parts[k]);
+    u.lang = 'fr-FR';
+    const v = window.speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang));
+    if (v) u.voice = v;
+    u.rate = 0.95;
+    u.onend = () => {
+      if (ttsBtn !== btn) return;
+      if (k + 1 < parts.length) ttsTimer = setTimeout(() => say(k + 1), pause || 0);
+      else finish();
+    };
+    u.onerror = finish;
+    window.speechSynthesis.speak(u);
+  };
+  say(0);
+}
+
+function speakQuestion(i, btn) {
+  usedAudio = true;
+  speakText(btn, btn.parentElement.querySelector('span:not(.n)').textContent);
+}
+
+function speakOption(btn) {
+  usedAudio = true;
+  // « A : Le Nil »  ->  « A » … courte pause … « Le Nil »
+  const m = btn.previousElementSibling.textContent.match(/^\s*([A-Z])\s*:\s*([\s\S]*)$/);
+  speakText(btn, m ? [m[1], m[2].trim()] : btn.previousElementSibling.textContent, 500);
+}
+
+// ===== Calculatrice scientifique (hors ligne, sans dépendance) =====
+const CALC = { expr: '', lastExpr: '', result: null, ans: 0, justEval: false, err: false, mem: 0, deg: true, q: null, btn: null, built: false, note: '' };
+
+const CALC_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v4h10V4H7zm1 6.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8 14.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8 18.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/></svg>';
+
+// Format normalisé des réponses numériques : 1.45E5, 4.78E-4 (1 chiffre avant le point, E majuscule, N chiffres significatifs, arrondi « au plus proche »)
+function toNormalized(x, sig) {
+  sig = Math.min(14, Math.max(1, Math.round(sig) || 3));
+  if (!isFinite(x)) return null;
+  if (x === 0) return (sig > 1 ? '0.' + '0'.repeat(sig - 1) : '0') + 'E0';
+  const neg = x < 0;
+  const parts = Math.abs(x).toExponential(14).split('e');     // 15 chiffres exacts
+  const digits = parts[0].replace('.', '').split('').map(Number);
+  let exp = parseInt(parts[1], 10);
+  const keep = digits.slice(0, sig);
+  if (digits[sig] >= 5) {
+    let i = sig - 1;
+    while (i >= 0) { if (keep[i] === 9) { keep[i] = 0; i--; } else { keep[i]++; break; } }
+    if (i < 0) { keep.unshift(1); keep.pop(); exp++; }
+  }
+  const mant = keep[0] + (sig > 1 ? '.' + keep.slice(1).join('') : '');
+  return (neg ? '-' : '') + mant + 'E' + exp;
+}
+
+function calcFormat(x) {
+  if (x === null || !isFinite(x)) return 'Erreur';
+  const v = Number(x.toPrecision(12));
+  if (v === 0) return '0';
+  const a = Math.abs(v);
+  if (a >= 1e10 || a < 1e-6) return v.toExponential().replace('e+', 'E').replace('e-', 'E-');
+  return String(v);
+}
+
+function calcFn(f, a, deg) {
+  const toRad = x => deg ? x * Math.PI / 180 : x;
+  const fromRad = x => deg ? x * 180 / Math.PI : x;
+  const clean = v => Math.abs(v) < 1e-15 ? 0 : v;
+  const bad = () => { throw new Error('domain'); };
+  switch (f) {
+    case 'sin': return clean(Math.sin(toRad(a)));
+    case 'cos': return clean(Math.cos(toRad(a)));
+    case 'tan': if (Math.abs(Math.cos(toRad(a))) < 1e-15) bad(); return clean(Math.tan(toRad(a)));
+    case 'asin': if (Math.abs(a) > 1) bad(); return fromRad(Math.asin(a));
+    case 'acos': if (Math.abs(a) > 1) bad(); return fromRad(Math.acos(a));
+    case 'atan': return fromRad(Math.atan(a));
+    case 'ln': if (a <= 0) bad(); return Math.log(a);
+    case 'log': if (a <= 0) bad(); return Math.log10(a);
+    case 'sqrt': if (a < 0) bad(); return Math.sqrt(a);
+  }
+  throw new Error('syntax');
+}
+
+function calcTokenize(src) {
+  const out = [];
+  let i = 0;
+  while (i < src.length) {
+    const ch = src[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    const rest = src.slice(i);
+    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/);
+    if (m) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    m = rest.match(/^(asin|acos|atan|sin|cos|tan|ln|log|Ans)/);
+    if (m) { out.push({ t: m[0] === 'Ans' ? 'ans' : 'fn', v: m[0] }); i += m[0].length; continue; }
+    if (ch === 'π') { out.push({ t: 'num', v: Math.PI, c: true }); i++; continue; }
+    if (ch === 'e') { out.push({ t: 'num', v: Math.E, c: true }); i++; continue; }
+    if (ch === '√') { out.push({ t: 'fn', v: 'sqrt' }); i++; continue; }
+    if ('+-−×*÷/^()'.indexOf(ch) >= 0) {
+      out.push({ t: 'op', v: ch === '−' ? '-' : ch === '×' ? '*' : ch === '÷' ? '/' : ch });
+      i++; continue;
+    }
+    throw new Error('syntax');
+  }
+  return out;
+}
+
+// Évaluation sans eval() : + − × ÷ ^ (), multiplication implicite, parenthèses auto-fermées
+function calcEval(src, deg, ans) {
+  const toks = calcTokenize(src);
+  let open = 0;
+  toks.forEach(t => { if (t.t === 'op') { if (t.v === '(') open++; else if (t.v === ')') open--; } });
+  while (open-- > 0) toks.push({ t: 'op', v: ')' });
+  let p = 0;
+  const isOp = v => toks[p] && toks[p].t === 'op' && toks[p].v === v;
+  const startsPrimary = t => t && (t.t === 'num' || t.t === 'fn' || t.t === 'ans' || (t.t === 'op' && t.v === '('));
+  const expr = () => {
+    let v = term();
+    while (isOp('+') || isOp('-')) { const o = toks[p++].v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
+  };
+  const term = () => {
+    let v = unary();
+    for (;;) {
+      if (isOp('*') || isOp('/')) {
+        const o = toks[p++].v; const r = unary();
+        if (o === '/' && r === 0) throw new Error('div0');
+        v = o === '*' ? v * r : v / r;
+      } else if (startsPrimary(toks[p]) && !(toks[p].t === 'num' && !toks[p].c)) { v *= unary(); }
+      else break;
+    }
+    return v;
+  };
+  const unary = () => {
+    if (isOp('-')) { p++; return -unary(); }
+    if (isOp('+')) { p++; return unary(); }
+    return power();
+  };
+  const power = () => {
+    const b = primary();
+    if (isOp('^')) { p++; return Math.pow(b, unary()); }
+    return b;
+  };
+  const paren = () => {
+    if (!isOp('(')) throw new Error('syntax');
+    p++; const v = expr();
+    if (!isOp(')')) throw new Error('syntax');
+    p++; return v;
+  };
+  const primary = () => {
+    const t = toks[p];
+    if (!t) throw new Error('syntax');
+    if (t.t === 'num') { p++; return t.v; }
+    if (t.t === 'ans') { p++; return ans; }
+    if (t.t === 'op' && t.v === '(') return paren();
+    if (t.t === 'fn') { p++; return calcFn(t.v, paren(), deg); }
+    throw new Error('syntax');
+  };
+  const v = expr();
+  if (p < toks.length || !isFinite(v)) throw new Error('syntax');
+  return v;
+}
+
+const CALC_KEYS = [
+  ['sin','fn','sin('],['cos','fn','cos('],['tan','fn','tan('],['ln','fn','ln('],['log','fn','log('],['π','fn','π'],
+  ['asin','fn','asin('],['acos','fn','acos('],['atan','fn','atan('],['eˣ','fn','e^('],['10ˣ','fn','10^('],['e','fn','e'],
+  ['x²','fn','^2'],['xʸ','fn','^'],['x⁻¹','fn','^(−1)'],['√','fn','√('],['(','fn','('],[')','fn',')'],
+  ['7','num','7'],['8','num','8'],['9','num','9'],['÷','op','÷'],['DEL','act','del'],['AC','act','ac'],
+  ['4','num','4'],['5','num','5'],['6','num','6'],['×','op','×'],['MC','act','mc'],['MR','act','mr'],
+  ['1','num','1'],['2','num','2'],['3','num','3'],['−','op','−'],['M+','act','m+'],['M−','act','m-'],
+  ['0','num','0'],['.','num','.'],['×10ˣ','num','E'],['+','op','+'],['Ans','act','ans'],['=','eq','=']
+];
+
+function calcBuild() {
+  if (CALC.built) return;
+  CALC.built = true;
+  const el = document.createElement('div');
+  el.id = 'calc';
+  el.hidden = true;
+  el.tabIndex = -1;
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-label', 'Calculatrice scientifique');
+  el.innerHTML =
+    '<div class="ch" id="calcHead"><span class="ttl">Calculatrice <small id="calcQ"></small></span>' +
+    '<button type="button" id="calcFx" title="Fonctions scientifiques">fx</button>' +
+    '<button type="button" id="calcMode" title="Degrés / radians">DEG</button>' +
+    '<button type="button" id="calcMin" aria-label="Réduire ou agrandir" title="Réduire / agrandir">▾</button>' +
+    '<button type="button" class="cx" id="calcClose" aria-label="Fermer">✕</button></div>' +
+    '<div id="calcQtxt"><div id="calcQtx"></div><button type="button" id="calcQmore" hidden onclick="calcQToggle()">▾ Lire toute la question</button></div><div id="calcExpr"></div><div id="calcRes">0</div><div id="calcMsg"></div>' +
+    '<div class="ck bk" id="calcKeysB"></div>' +
+    '<div class="ck" id="calcKeys"></div>' +
+    '<button type="button" class="inj" id="calcInject">Utiliser cette valeur comme réponse</button>';
+  document.body.appendChild(el);
+
+  const keys = el.querySelector('#calcKeys');
+  CALC_KEYS.forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = k[0];
+    b.className = k[1];
+    b.dataset.k = k[2];
+    b.dataset.kind = k[1];
+    keys.appendChild(b);
+  });
+  // Clavier de base (téléphone) : 4 lignes de grandes touches
+  const keysB = el.querySelector('#calcKeysB');
+  [['sin','fn','sin('],['cos','fn','cos('],['tan','fn','tan('],['ln','fn','ln('],['log','fn','log('],['π','fn','π'],
+   ['x²','fn','^2'],['xʸ','fn','^'],['√','fn','√('],['eˣ','fn','e^('],['10ˣ','fn','10^('],['x⁻¹','fn','^(−1)'],
+   ['7','num','7'],['8','num','8'],['9','num','9'],['÷','op','÷'],['(','fn','('],[')','fn',')'],
+   ['4','num','4'],['5','num','5'],['6','num','6'],['×','op','×'],['DEL','act','del'],['AC','act','ac'],
+   ['1','num','1'],['2','num','2'],['3','num','3'],['−','op','−'],['×10ˣ','num','E'],['Ans','act','ans'],
+   ['0','num','0'],['.','num','.'],['+','op','+'],['=','eq','=']].forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = k[0]; b.className = k[1]; b.dataset.k = k[2]; b.dataset.kind = k[1];
+    keysB.appendChild(b);
+  });
+  const onKey = e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    calcPress(b.dataset.kind, b.dataset.k);
+  };
+  keys.addEventListener('click', onKey);
+  keysB.addEventListener('click', onKey);
+  el.querySelector('#calcFx').onclick = () => {
+    el.classList.toggle('full');
+    el.querySelector('#calcFx').textContent = el.classList.contains('full') ? '123' : 'fx';
+  };
+  el.querySelector('#calcClose').onclick = closeCalc;
+  el.querySelector('#calcMode').onclick = () => {
+    CALC.deg = !CALC.deg;
+    el.querySelector('#calcMode').textContent = CALC.deg ? 'DEG' : 'RAD';
+    calcRender();
+  };
+  el.querySelector('#calcMin').onclick = () => {
+    el.classList.toggle('min');
+    el.querySelector('#calcMin').textContent = el.classList.contains('min') ? '▴' : '▾';
+  };
+  el.querySelector('#calcInject').onclick = calcInject;
+
+  // Hauteur du panneau -> marge basse de la page (téléphone) pour que rien ne soit masqué
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => document.body.style.setProperty('--calc-h', el.offsetHeight + 'px')).observe(el);
+  }
+
+  // Clavier (quand la calculatrice a le focus)
+  el.addEventListener('keydown', e => {
+    const k = e.key;
+    if (/^[0-9.]$/.test(k)) calcPress('num', k);
+    else if (k === '+') calcPress('op', '+');
+    else if (k === '-') calcPress('op', '−');
+    else if (k === '*') calcPress('op', '×');
+    else if (k === '/') calcPress('op', '÷');
+    else if (k === '^') calcPress('fn', '^');
+    else if (k === '(' || k === ')') calcPress('fn', k);
+    else if (k === 'Enter' || k === '=') calcPress('eq', '=');
+    else if (k === 'Backspace') calcPress('act', 'del');
+    else if (k === 'Delete') calcPress('act', 'ac');
+    else if (k === 'Escape') closeCalc();
+    else return;
+    e.preventDefault();
+  });
+}
+
+function calcSay(t) { CALC.note = t || ''; calcRender(); }
+
+function calcRender() {
+  if (!CALC.built) return;
+  const g = id => document.getElementById(id);
+  if (CALC.justEval && !CALC.err) { g('calcExpr').textContent = CALC.lastExpr + ' ='; g('calcRes').textContent = calcFormat(CALC.result); }
+  else if (CALC.err) { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = 'Erreur'; }
+  else { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = CALC.expr ? '' : '0'; }
+  g('calcMsg').textContent = (CALC.mem !== 0 ? 'M = ' + calcFormat(CALC.mem) + '   ' : '') + CALC.note;
+}
+
+function calcValueNow() {            // valeur du résultat affiché (évalue l'expression en cours si besoin)
+  if (CALC.justEval && !CALC.err && CALC.result !== null) return CALC.result;
+  if (!CALC.expr.trim()) return null;
+  try { return calcEval(CALC.expr, CALC.deg, CALC.ans); } catch (e) { return null; }
+}
+
+function calcPress(kind, k) {
+  CALC.note = '';
+  if (kind === 'eq') {
+    if (!CALC.expr.trim()) return;
+    if (CALC.justEval && !CALC.err) return;
+    try {
+      const v = calcEval(CALC.expr, CALC.deg, CALC.ans);
+      CALC.result = v; CALC.ans = v; CALC.lastExpr = CALC.expr; CALC.justEval = true; CALC.err = false;
+    } catch (e) { CALC.result = null; CALC.err = true; CALC.justEval = false; }
+    calcRender(); return;
+  }
+  if (kind === 'act') {
+    if (k === 'ac') { CALC.expr = ''; CALC.result = null; CALC.justEval = false; CALC.err = false; }
+    else if (k === 'del') {
+      if (CALC.justEval) { CALC.expr = ''; CALC.justEval = false; }
+      CALC.expr = CALC.expr.replace(/(asin\(|acos\(|atan\(|sin\(|cos\(|tan\(|ln\(|log\(|√\(|Ans|[\s\S])$/, '');
+      CALC.err = false;
+    }
+    else if (k === 'mc') CALC.mem = 0;
+    else if (k === 'm+' || k === 'm-') {
+      const v = calcValueNow();
+      if (v === null) { CALC.note = 'Rien à mémoriser'; }
+      else {
+        if (!CALC.justEval) { CALC.result = v; CALC.ans = v; CALC.lastExpr = CALC.expr; CALC.justEval = true; CALC.err = false; }
+        CALC.mem += (k === 'm+' ? v : -v);
+      }
+    }
+    else if (k === 'mr') { const lit = calcFormat(CALC.mem); calcInsert(CALC.mem < 0 ? '(' + lit + ')' : lit); return; }
+    else if (k === 'ans') { calcInsert('Ans'); return; }
+    calcRender(); return;
+  }
+  calcInsert(k);
+}
+
+function calcInsert(tok) {
+  if (CALC.justEval) {
+    CALC.expr = /^[+−×÷^]/.test(tok) ? 'Ans' : '';
+    CALC.justEval = false;
+  }
+  CALC.err = false;
+  CALC.expr += tok;
+  calcRender();
+}
+
+// --- Lecture d'un nombre dans le texte d'une proposition : 2,50 A  |  1.45E5  |  3,0 × 10⁸ m/s ---
+const SUPERS = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', '⁺': '+' };
+function parseOptionNumber(txt) {
+  const s = String(txt).replace(/[\u00a0\u202f]/g, ' ').replace(/−/g, '-');
+  const m = s.match(/([+-]?)(\d+(?:[.,]\d+)?|[.,]\d+)/);
+  if (!m) return null;
+  const mant = m[2].replace(',', '.');
+  const sign = m[1] === '-' ? '-' : '';
+  const after = s.slice(m.index + m[0].length);
+  const em = after.match(/^\s*(?:[eE]\s*([+-]?\d+)|[×x*·⋅]\s*10\s*(?:\^\s*)?([+-]?\d+|[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]+))/);
+  let exp = '0';
+  if (em) exp = (em[1] || em[2]).replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, c => SUPERS[c]);
+  const v = parseFloat(sign + mant + 'e' + exp);
+  const digits = m[2].replace(/[.,]/, '').replace(/^0+/, '');       // chiffres significatifs écrits
+  return { v, sig: Math.max(1, digits.length) };
+}
+
+// Proposition dont la valeur correspond au résultat, en arrondissant le résultat au même nombre de chiffres significatifs
+function matchOption(value, opts) {
+  let best = -1, bestD = Infinity;
+  opts.forEach((t, j) => {
+    const p = parseOptionNumber(t);
+    if (!p) return;
+    const norm = toNormalized(value, Math.min(p.sig, 14));
+    const rounded = norm === null ? NaN : Number(norm.replace('E', 'e'));
+    const tol = Math.abs(p.v) * 1e-9;
+    if (Math.abs(value - p.v) <= tol || Math.abs(rounded - p.v) <= tol) {
+      const d = Math.abs(value - p.v);
+      if (d < bestD) { best = j; bestD = d; }
+    }
+  });
+  return best;
+}
+
+function calcRefreshTarget() {
+  document.getElementById('calcQ').textContent = CALC.q === null ? '' : '· Q' + String(CALC.q + 1).padStart(2, '0');
+}
+
+// « Utiliser cette valeur comme réponse » : champ numérique (format 1.45E5) ou sélection de la proposition correspondante (QCM)
+function calcInject() {
+  if (CALC.q === null) return;
+  const v = calcValueNow();
+  if (v === null) { calcSay('Calcule d’abord une valeur'); return; }
+  const sec = document.querySelector(`#quiz section.q[data-i="${CALC.q}"]`);
+  if (!sec) return;
+
+  const num = sec.querySelector('input.numans');
+  if (num) {
+    const s = num.classList.contains('plain') ? calcFormat(v).replace('.', ',') : toNormalized(v, parseInt(num.dataset.sig, 10) || 3);
+    if (s === null) { calcSay('Résultat impossible à utiliser'); return; }
+    num.value = s;
+    num.dispatchEvent(new Event('input', { bubbles: true }));
+    num.dispatchEvent(new Event('change', { bubbles: true }));
+    calcSay('✔ Réponse saisie : ' + s);
+    return;
+  }
+
+  const opts = (Q[CALC.q] && Q[CALC.q].o) || [];
+  const j = matchOption(v, opts);
+  if (j < 0) {
+    calcSay(opts.some(o => parseOptionNumber(o)) ? 'Aucune proposition ne correspond à ' + calcFormat(v) : 'Les propositions de cette question ne sont pas des valeurs numériques');
+    return;
+  }
+  const r = sec.querySelector(`input[name="q${CALC.q}"][value="${j}"]`);
+  if (!r) return;
+  r.checked = true;
+  r.dispatchEvent(new Event('change', { bubbles: true }));
+  calcSay('✔ Proposition ' + String.fromCharCode(65 + j) + ' sélectionnée');
+}
+
+// Bandeau de la question dans la calculatrice : bouton « Lire toute la question » seulement si l'énoncé est coupé
+function calcQCheck() {
+  const qt = document.getElementById('calcQtxt'), tx = document.getElementById('calcQtx'), b = document.getElementById('calcQmore');
+  if (!qt || !tx || !b) return;
+  if (qt.classList.contains('open')) { b.hidden = false; return; }
+  b.hidden = !(tx.scrollHeight > tx.clientHeight + 2);
+  b.textContent = '▾ Lire toute la question';
+}
+function calcQToggle() {
+  const qt = document.getElementById('calcQtxt'), b = document.getElementById('calcQmore');
+  const open = qt.classList.toggle('open');
+  b.textContent = open ? '▴ Réduire' : '▾ Lire toute la question';
+  if (!open) calcQCheck();
+  const el = document.getElementById('calc');
+  if (el) document.body.style.setProperty('--calc-h', el.offsetHeight + 'px');
+}
+window.addEventListener('resize', () => setTimeout(calcQCheck, 50));
+function openCalc(i, btn) {
+  usedCalc = true;
+  calcBuild();
+  const el = document.getElementById('calc');
+  if (!el.hidden && CALC.q === i) { closeCalc(); return; }       // 2e clic sur la même icône = fermer
+  if (CALC.btn) CALC.btn.classList.remove('on');
+  CALC.q = i; CALC.btn = btn;
+  btn.classList.add('on');
+  CALC.note = '';
+  calcRefreshTarget();
+  const qt = document.getElementById('calcQtxt');
+  if (qt && Q[i]) {   // énoncé complet (indices, exposants) : 2 lignes, puis « Lire toute la question » si l'énoncé est coupé
+    qt.classList.remove('open');
+    document.getElementById('calcQtx').innerHTML = 'Q' + String(i + 1).padStart(2, '0') + ' · ' + noBreak(Q[i].t);
+    requestAnimationFrame(calcQCheck);
+  }
+  calcPlace();
+  el.hidden = false;
+  document.body.classList.add('calc-open');
+  document.body.style.setProperty('--calc-h', el.offsetHeight + 'px');
+  calcRender();
+  const small = calcSmall();
+  if (!IOS_PHONE && !small) { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } }   // iPhone : pas de focus (Safari ramènerait la page dessus à chaque défilement)
+  // Téléphone / petit écran : le HAUT de la calculatrice (avec la croix) est amené à l'écran
+  if (small) {
+    const show = () => {
+      if (IOS_FRAME) viewEl(el);
+      else { try { el.scrollIntoView({ block: 'start', inline: 'nearest' }); } catch (e) {} }
+    };
+    show();
+    setTimeout(show, 150);
+  }
+}
+// Petit écran : calculatrice placée dans la page juste sous la question ; grand écran : panneau fixé à droite
+function calcSmall() { return !!(window.matchMedia && window.matchMedia('(max-width: 899px), (max-height: 520px)').matches); }
+function calcPlace() {
+  const el = document.getElementById('calc'), bar = document.getElementById('bar1');
+  if (!el) return;
+  if (calcSmall() && bar) {
+    if (el.nextElementSibling !== bar) bar.parentNode.insertBefore(el, bar);   // hors de #quiz (vidé en cas de fraude)
+    el.classList.add('inflow');
+  } else {
+    if (el.parentNode !== document.body) document.body.appendChild(el);
+    el.classList.remove('inflow');
+  }
+}
+window.addEventListener('resize', () => { const el = document.getElementById('calc'); if (el && !el.hidden) calcPlace(); });
+
+function closeCalc() {
+  if (!CALC.built) return;
+  document.getElementById('calc').hidden = true;
+  document.body.classList.remove('calc-open');
+  document.body.style.removeProperty('--calc-h');
+  if (CALC.btn) { CALC.btn.classList.remove('on'); CALC.btn = null; }
+}
+
+// --- Haut-parleur sur les encarts de consigne (pas sur l'encart de fraude) ---
+const SAY_BOXES = ['codewarning', 'papwarning', 'fswarning', 'rulewarning', 'netwarning', 'soundbanner'];
+function stopSpeakingIfBoxHidden() {
+  if (ttsBtn && ttsBtn.dataset.box && document.getElementById(ttsBtn.dataset.box).hidden) stopSpeaking();
+}
+function speakBox(btn) {
+  buildRulesList();
+  const box = document.getElementById(btn.dataset.box);
+  const c = box.cloneNode(true);
+  c.querySelectorAll('button,input,.res,script').forEach(e => e.remove());
+  c.querySelectorAll('h2,p,li').forEach(e => e.append('. '));
+  const txt = c.textContent
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu, ' ')
+    .replace(/−/g, 'moins ').replace(/\+(\d)/g, 'plus $1')
+    .replace(/(^|\s)[–—](?=\s)/g, ' ')
+    .replace(/\s+/g, ' ').replace(/\s+\./g, '.').replace(/([.:?!])\s*\./g, '$1').trim();
+  speakText(btn, txt);
+}
+function addSayButtons() {
+  if (!TTS_OK) return;
+  SAY_BOXES.forEach(id => {
+    const box = document.getElementById(id);
+    if (!box || box.querySelector('.sayBtn')) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sayBtn';
+    b.dataset.box = id;
+    b.title = 'Lire à voix haute';
+    b.setAttribute('aria-label', 'Lire la consigne à voix haute');
+    b.innerHTML = TTS_ICON;
+    b.onclick = () => speakBox(b);
+    box.insertBefore(b, box.firstChild);
+  });
+}
+addSayButtons();
+
+let Q = [];
+
+const quiz = document.getElementById('quiz');
+const RES = [];
+
+function startTest(n) {
+  Q = getRandomQuestions(n);
+  RES.length = 0;
+  quiz.innerHTML = '';
+  Q.forEach((q, i) => {
+    let body = isNumQ(q) ? `<div class="numrow"><label>Réponse : <input type="text" class="numans plain" inputmode="decimal" autocomplete="off" name="q${i}" data-sig="3" placeholder="valeur" oninput="testStarted=true;markAnswerStart()"></label>${q.u ? `<span class="unit">${q.u}</span>` : ''}</div>` : q.o.map((o, j) => `<div class="optrow"><label class="opt"><input type="${isMultiQ(q) ? 'checkbox' : 'radio'}"${isMultiQ(q) ? ' class="mq"' : ''} name="q${i}" value="${j}" onchange="testStarted=true;markAnswerStart()">${String.fromCharCode(65 + j)} : ${o}</label>${TTS_OK ? `<button type="button" class="tts sm" aria-label="Lire la réponse ${String.fromCharCode(65 + j)}" title="Lire la réponse" onclick="speakOption(this)">${TTS_ICON}</button>` : ''}</div>`).join("");
+    quiz.insertAdjacentHTML('beforeend', `<section class="q" data-i="${i}"><h2><span class="n">${String(i + 1).padStart(2, '0')}</span><span>${noBreak(q.t)}${q.img ? `<img class="qimg" src="${q.img}" alt="Graphiques du document" draggable="false">` : ''}</span>${TTS_OK ? `<button type="button" class="tts" aria-label="Lire la question à voix haute" title="Lire la question" onclick="speakQuestion(${i}, this)">${TTS_ICON}</button>` : ''}${q.calc === false ? '' : `<button type="button" class="calcbtn" aria-label="Ouvrir la calculatrice" title="Calculatrice" onclick="openCalc(${i}, this)">${CALC_ICON}</button>`}</h2>${body}<div class="res" id="r${i}" hidden></div></section>`);
+  });
+  showQ(0);
+}
+
+// Amène un élément à l'écran.
+// iPad / iPhone dans une page intégrée (Google Sites) : Safari fait trop défiler la page parente avec
+// scrollIntoView (le haut du test passe sous le bandeau du site). On ne fait donc défiler que le test
+// lui-même, sans toucher à la page parente.
+const IOS_FRAME = (() => {
+  try {
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
+    return ios && document.documentElement.classList.contains('in-frame');
+  } catch (e) { return false; }
+})();
+// iPhone dans Google Sites : écran trop petit pour centrer (le bandeau du site recouvrait le haut du test)
+const IOS_PHONE = (() => { try { return IOS_FRAME && /iPhone|iPod/.test(navigator.userAgent); } catch (e) { return false; } })();
+const IOS_PHONE_TOP = 84;   // marge sous le bandeau fixe de Google Sites (px)
+if (IOS_PHONE) document.documentElement.classList.add('ios-phone');   // bande vide en haut du test (CSS)
+// Repère invisible placé IOS_PHONE_TOP px au-dessus de l'élément : c'est lui qu'on amène en haut de l'écran
+let IOS_PHONE_MARK = null;
+function iphoneTop(el, behavior) {
+  if (!IOS_PHONE_MARK) {
+    IOS_PHONE_MARK = document.createElement('div');
+    IOS_PHONE_MARK.setAttribute('aria-hidden', 'true');
+    IOS_PHONE_MARK.style.cssText = 'position:absolute;left:0;width:1px;height:1px;margin:0;padding:0;pointer-events:none;visibility:hidden';
+    document.body.appendChild(IOS_PHONE_MARK);
+  }
+  IOS_PHONE_MARK.style.top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - IOS_PHONE_TOP) + 'px';
+  IOS_PHONE_MARK.scrollIntoView({ block: 'start', inline: 'nearest', behavior });
+}
+// iPad / iPhone dans Google Sites : une question plus haute que le cadre défile DANS sa propre case
+// (défilement tactile fiable dans Safari) ; titre, progression et bouton « Question suivante » restent visibles.
+function iosVisibleH() {
+  let land = false;
+  try { land = Math.abs(window.orientation || 0) === 90 || (screen.orientation && /landscape/.test(screen.orientation.type)); } catch (e) {}
+  const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
+  return Math.min(window.innerHeight, (land ? a : b) - 230 - (IOS_PHONE ? 70 : 0));   // iPhone : marge du bandeau en plus
+}
+function fitQ() {
+  if (!IOS_FRAME) return;
+  document.querySelectorAll('#quiz section.q').forEach(sec => { sec.style.maxHeight = ''; sec.classList.remove('qscroll'); });
+  const sec = document.querySelector('#quiz section.q.cur');
+  if (!sec) return;
+  const tc = document.getElementById('test-content');
+  const top = sec.getBoundingClientRect().top - tc.getBoundingClientRect().top + 16;   // titre, progression… au-dessus de la question
+  const bar = document.getElementById('bar1').offsetHeight + 60;
+  const maxH = Math.max(160, iosVisibleH() - top - bar);
+  if (sec.scrollHeight > maxH) { sec.style.maxHeight = maxH + 'px'; sec.classList.add('qscroll'); sec.scrollTop = 0; }
+}
+window.addEventListener('resize', () => { if (IOS_FRAME) fitQ(); });
+window.addEventListener('orientationchange', () => { if (IOS_FRAME) setTimeout(() => { fitQ(); if (testStarted || document.querySelector('#quiz section.q.cur')) viewTest(); }, 400); });
+function viewEl(el, behavior) {
+  if (!el) return;
+  behavior = behavior || 'auto';
+  try {
+    if (IOS_PHONE) {
+      // iPhone : le HAUT de l'élément est placé juste sous le bandeau du site (jamais centré, jamais masqué)
+      iphoneTop(el, behavior);
+    } else if (IOS_FRAME && el.getBoundingClientRect().height <= iosVisibleH()) {
+      el.scrollIntoView({ block: 'center', inline: 'nearest', behavior });   // tient dans l'écran : centré, rien sous le bandeau
+    } else if (IOS_FRAME) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior });
+    } else {
+      el.scrollIntoView({ block: 'center', inline: 'nearest', behavior });
+    }
+  } catch (e) {}
+}
+
+// Centre le test dans la fenêtre (sous l'en-tête fixe d'un site, le titre reste visible)
+function viewTest() {
+  const view = () => viewEl(document.getElementById('test-content'));
+  view();
+  setTimeout(view, 120);
+}
+
+// Une seule question à la fois : « Question suivante » avance, aucun retour en arrière possible
+let curQ = 0;
+function showQ(i) {
+  curQ = i;
+  document.querySelectorAll('#quiz section.q').forEach(sec => sec.classList.toggle('cur', +sec.dataset.i === i));
+  const n = Q.length, last = i >= n - 1;
+  document.getElementById('subtitle').textContent = `Question ${i + 1} / ${n} - Test n°004`;
+  document.querySelector('#qbar i').style.width = ((i + 1) / n * 100) + '%';
+  document.getElementById('nextBtn').hidden = last;
+  fitQ();
+  document.getElementById('val').hidden = !last;
+}
+document.getElementById('nextBtn').onclick = () => {
+  if (curQ >= Q.length - 1) return;
+  stopSpeaking();
+  closeCalc();
+  showQ(curQ + 1);
+  // Centre le test dans la fenêtre : titre, progression et question restent visibles
+  // (même sous l'en-tête fixe d'une page Google Sites)
+  viewTest();
+};
+
+document.getElementById('val').onclick = () => {
+  if (navigator.onLine && !adminMode && !netExempt) {
+    triggerFraud("Activation/réactivation d'Internet ou du Wi-Fi pendant le test");
+    return;
+  }
+  const nomv = document.getElementById('nom').value.trim(), prenomv = document.getElementById('prenom').value.trim(), clv = document.getElementById('classe').value;
+  if (!nomv || !prenomv || !clv) {
+    document.getElementById('idmsg').hidden = false;
+    viewEl(document.getElementById('ident'), 'smooth');
+    return;
+  }
+  document.getElementById('idmsg').hidden = true;
+  testSubmitted = true;
+  validatedAt = new Date();
+  logIncident("Test soumis et validé par l'élève");
+  let sc = 0;
+  Q.forEach((q, i) => {
+    let ok = false, r = document.getElementById('r' + i);
+    if (isNumQ(q)) {
+      const raw = (document.querySelector(`input.numans[name=q${i}]`) || {}).value || '';
+      const v = parseNumAnswer(raw);
+      ok = numAnswerOk(q, v, raw);
+      const empty = raw.trim() === '';
+      const pts = empty ? 0 : (ok ? 1 : -WRONG_PENALTY);
+      RES[i] = { ok, ans: empty ? '(pas de réponse)' : raw.trim().replace(/\s*[a-zA-Zµ\/°%]+$/, m => /^\s*E[-+]?$/i.test(m) ? m : ''), pts, num: true };
+      sc += pts;
+      r.hidden = false;
+      r.className = "res " + (ok ? "ok" : "ko");
+      r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${numShow(q)}${q.u ? ' ' + q.u : ''}`;
+      return;
+    }
+    const c = [...document.querySelectorAll(`input[name=q${i}]:checked`)].map(e => +e.value);
+    ok = isMultiQ(q) ? (c.length === q.a.length && q.a.every(j => c.includes(j))) : (c.length === 1 && c[0] === q.a[0]);
+    const av = c.length > 0 ? letters(c) : '(pas de réponse)';
+    const pts = c.length === 0 ? 0 : (ok ? 1 : -WRONG_PENALTY);
+    RES[i] = { ok, ans: av, pts, sel: c };
+    sc += pts;
+    r.hidden = false;
+    r.className = "res " + (ok ? "ok" : "ko");
+    r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${letters(q.a)}`;
+  });
+  stopSpeaking();
+  closeCalc();
+  exitFs();
+  sc = Math.max(0, sc);   // pas de note négative
+  document.getElementById('score').textContent = `Note : ${fmtNote(sc)} / ${Q.length}`;
+  document.getElementById('ph').textContent = `${nomv.toUpperCase()} ${prenomv} — ${clv} — Note : ${fmtNote(sc)} / ${Q.length}`;
+  document.querySelector('main').classList.add('done', 'qrstep');
+  document.getElementById('val').disabled = true;
+  document.querySelectorAll('#quiz input,#ident input,#ident select').forEach(e => e.disabled = true);
+  // Écran de fin : encart jaune orangé (nom, classe, date, note) + bouton « GÉNÉRER LE PDF »
+  const dDay = questionsShownAt || answerStartedAt || validatedAt || new Date();
+  const noteLine = (isPap && Q.length)
+    ? `Note : ${fmtNote(sc)} / ${Q.length} (soit ${fmt1(sc * levelN / Q.length)} / ${levelN})`
+    : `Note : ${fmtNote(sc)} / ${Q.length}`;
+  const box = document.getElementById('donebox');
+  box.innerHTML = '';
+  [`${nomv.toUpperCase()} ${prenomv}`, clv, dDay.toLocaleDateString('fr-FR'), noteLine].forEach(t => {
+    const d = document.createElement('div');
+    d.textContent = t;
+    box.appendChild(d);
+  });
+  // Écran QR code (strictement le même QR code que la copie PDF), avant l'encart de fin
+  if (typeof qrcode === 'function') {
+    const svg = makeQr(buildQrPayload()).createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    document.getElementById('qrbig').innerHTML = svg;
+    document.getElementById('qrsmall').innerHTML = svg;
+    const showQr = () => viewEl(document.getElementById('qrstep'));
+    showQr();
+    requestAnimationFrame(showQr);
+    setTimeout(showQr, 150);
+    setTimeout(showQr, 500);
+  } else {
+    showEndPage();
+  }
+};
+
+// « Suivant » : page de fin déjà existante (encart jaune + bouton de copie PDF), centrée à l'écran comme avant
+function showEndPage() {
+  document.querySelector('main').classList.remove('qrstep');
+  // Amène l'encart de fin et le bouton à l'écran (instantané, répété après le rendu)
+  const showEnd = () => {
+    const b2 = document.getElementById('bar2');
+    viewEl(b2);   // centre aussi dans la page Google Sites parente (sauf iPad/iPhone)
+  };
+  showEnd();
+  requestAnimationFrame(showEnd);
+  setTimeout(showEnd, 150);
+  setTimeout(showEnd, 500);
+}
+document.getElementById('qrnext').onclick = showEndPage;
+
+document.getElementById('prt').onclick = generatePDF;
+
+// Centre verticalement le grand encart affiché, dans ce que voit l'élève
+// (scrollIntoView agit aussi sur la page parente quand le test est intégré dans Google Sites)
+(function () {
+  const IDS = ['codewarning', 'papwarning', 'netwarning', 'fswarning', 'splitwarning', 'rulewarning', 'fraudwarning'];
+  let last = '', first = true, t1 = 0, t2 = 0;
+  const visibleGate = () => IDS.map(i => document.getElementById(i)).find(e => e && !e.hidden);
+  const center = () => {
+    const g = visibleGate();
+    const id = g ? g.id : '';
+    if (id === last) return;
+    last = id;
+    if (!g) return;
+    if (first) { first = false; if (!IOS_FRAME) return; }   // pas de défilement au tout premier affichage (sauf iPad : l'encart passerait sous le bandeau du site)
+    const go = () => { const c = visibleGate(); if (c) viewEl(c, 'smooth'); };
+    clearTimeout(t1); clearTimeout(t2);
+    t1 = setTimeout(go, 60); t2 = setTimeout(go, 450);
+  };
+  new MutationObserver(center).observe(document.querySelector('main'), { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  center();
+})();
+
+function fmt1(v) {
+  return String(Math.round(v * 10) / 10).replace('.', ',');
+}
+
+function fmtNote(n) {
+  return String(Math.round(n * 100) / 100).replace('.', ',');
+}
+
+
+// PDF "version papier" : n questions tirées au hasard (options mélangées), bandeau NOM / PRÉNOM / CLASSE à compléter,
+// suivi du corrigé : même copie, en rouge, avec une croix dans la case de la bonne réponse.
+function generatePaperPDF(nBase, pap) {
+  if (!(window.jspdf && window.jspdf.jsPDF)) return false;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const PW = 210, M = 10, BOTTOM = 284;
+  const n = pap ? Math.round(nBase * PAP_RATIO) : nBase;
+  const QS = getRandomQuestions(n);
+  // Numéro de version (lettre + 2 chiffres) imprimé sur la copie ET sur le corrigé pour les associer
+  const VL = 'ABCDEFGHJKLMNPRSTUVWXYZ';
+  const VER = VL.charAt(Math.floor(Math.random() * VL.length)) + String(10 + Math.floor(Math.random() * 90));
+
+  const BASE = { blue: [11, 94, 215], dark: [28, 35, 51], mut: [91, 100, 120], line: [150, 158, 175], soft: [217, 222, 234], white: [255, 255, 255], txt: [50, 55, 65] };
+  const RED = [180, 35, 24];
+  const pc = t => cl(String(t).replace(/[₀-₉]/g, d => d.charCodeAt(0) - 0x2080));
+  const font = (sz, bold, col) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(sz); doc.setTextColor(...col); };
+  const fill = c => doc.setFillColor(...c);
+  const stroke = (c, w) => { doc.setDrawColor(...c); if (w) doc.setLineWidth(w); };
+
+  // Dessine la copie complète (key = false) ou son corrigé (key = true) ; renvoie le nombre de pages
+  function renderCopy(key) {
+    const C = Object.assign({}, BASE, { blue: key ? RED : BASE.blue });
+    const firstPage = doc.getNumberOfPages();
+    let y = M;
+
+    // --- Bandeau d'en-tête ---
+    fill(C.blue);
+    doc.roundedRect(M, y, PW - 2 * M, 9, 1.8, 1.8, 'F');
+    font(12, true, C.white);
+    doc.text(`TEST 004 - ${n} QUESTIONS${pap ? ' - PAP' : ''}`, M + 4, y + 6.2);
+    fill(C.white);
+    doc.roundedRect(PW - M - 40, y + 1.2, 37, 6.6, 1.3, 1.3, 'F');
+    font(11, true, C.blue);
+    doc.text(`VERSION  ${VER}`, PW - M - 21.5, y + 6.1, { align: 'center' });
+    y += 12;
+
+    // --- Cadre d'identité (copie) ou mention « CORRIGÉ » (corrigé) ---
+    stroke(key ? RED : C.line, key ? 0.6 : 0.4);
+    fill(C.white);
+    doc.roundedRect(M, y, PW - 2 * M, 21, 1.8, 1.8, 'FD');
+    if (key) {
+      font(26, true, RED);
+      doc.text(pc('CORRIGÉ'), PW / 2, y + 14.5, { align: 'center' });
+    } else {
+      font(9, true, C.dark);
+      doc.text('NOM :', M + 4, y + 7.5);
+      doc.text(pc('PRÉNOM :'), M + 100, y + 7.5);
+      doc.text('CLASSE :', M + 4, y + 16);
+      doc.text('DATE :', M + 62, y + 16);
+      doc.text('NOTE :', M + 118, y + 16);
+      stroke(C.line, 0.3);
+      doc.line(M + 16, y + 8, M + 96, y + 8);
+      doc.line(M + 123, y + 8, PW - M - 4, y + 8);
+      doc.line(M + 20, y + 16.5, M + 56, y + 16.5);
+      doc.line(M + 74, y + 16.5, M + 112, y + 16.5);
+      doc.line(M + 132, y + 16.5, M + 150, y + 16.5);
+      font(10, true, C.dark);
+      doc.text(`/ ${n}`, M + 153, y + 16);
+    }
+    y += 24;
+
+    font(8, false, C.mut);
+    doc.text(pc(`Coche UNE seule case par question${QS.some(isMultiQ) ? ' (plusieurs si « la ou les bonnes réponses »)' : ''}${QS.some(isNumQ) ? ' (ou écris la valeur demandée)' : ''}.  Barème : +1 point par bonne réponse  ·  -${fmtNote(WRONG_PENALTY)} point par mauvaise réponse  ·  0 point sans réponse.`), M, y + 3);
+    y += 6;
+
+    // --- Questions (2 colonnes ; une question à image occupe toute la largeur) ---
+    PLAN.forEach(r => {
+      if (r.br) { doc.addPage(); y = M; }
+      const row = r.cards, rowH = r.h;
+      row.forEach((c, ci) => {
+        const x = M + ci * (colW + gap);
+        fill(C.white);
+        stroke(C.soft, 0.4);
+        doc.roundedRect(x, y, c.wide ? FULL : colW, rowH, 1.8, 1.8, 'FD');
+        fill(C.blue);
+        doc.roundedRect(x + 3, y + 3.5, 11, 5, 1, 1, 'F');
+        font(7.5, true, C.white);
+        doc.text(`Q${String(c.k + 1).padStart(2, '0')}`, x + 8.5, y + 7, { align: 'center' });
+        font(9.2, true, C.dark);
+        c.qLines.forEach((l, k2) => pdfRichLine(doc, l, x + 17, y + 7 + k2 * 4.1));
+        if (c.wide) {                  // question à image : texte à gauche, image à droite
+          try { doc.addImage(c.q.img, 'JPEG', x + colW + 2, y + 3.5, c.imgW, c.imgW * c.q.imgR); } catch (e) { console.warn(e); }
+        }
+
+        let oy = y + 3.5 + c.qH + 2;
+        if (isNumQ(c.q)) {             // ligne de réponse à compléter (+ valeur attendue sur le corrigé)
+          font(9, false, C.txt);
+          doc.text('Réponse :', x + 4, oy + 3.6);
+          stroke(C.line, 0.3);
+          doc.setLineDashPattern([0.6, 0.6], 0);
+          doc.line(x + 21, oy + 4, x + colW - 22, oy + 4);
+          doc.setLineDashPattern([], 0);
+          if (c.q.u) doc.text(pc(c.q.u), x + colW - 20, oy + 3.6);
+          if (key) { font(9, true, RED); pdfRichLine(doc, pdfRichSplit(doc, numShow(c.q), 999)[0], x + 24, oy + 3.2); }
+          return;
+        }
+        c.opts.forEach((lines, j) => {
+          const cy = oy + 2.3;
+          stroke(C.dark, 0.5);
+          fill(C.white);
+          doc.rect(x + 4, cy - 2, 4, 4, 'FD');
+          if (key && c.q.a.includes(j)) {             // simple croix dans la case de la bonne réponse
+            stroke(RED, 0.7);
+            doc.line(x + 4.5, cy - 1.5, x + 7.5, cy + 1.5);
+            doc.line(x + 7.5, cy - 1.5, x + 4.5, cy + 1.5);
+          }
+          font(9, false, C.txt);
+          lines.forEach((l, k2) => pdfRichLine(doc, l, x + 11, oy + 3.3 + k2 * LH));
+          oy += lines.length * LH + 2.4;
+        });
+      });
+      y += rowH + 3.5;
+    });
+
+    // Pieds de page (identiques sur la copie et le corrigé)
+    const total = doc.getNumberOfPages() - firstPage + 1;
+    for (let pg = 1; pg <= total; pg++) {
+      doc.setPage(firstPage + pg - 1);
+      stroke(C.soft, 0.3);
+      doc.line(M, 288, PW - M, 288);
+      font(7, false, C.mut);
+      doc.text(pc(`TEST 004 — ${VER} — ${n} questions${pap ? ' — PAP' : ''}`), M, 292);
+      doc.text(`Page ${pg} / ${total}`, PW - M, 292, { align: 'right' });
+    }
+    return total;
+  }
+
+  // --- Mise en page des questions, calculée une fois pour la copie ET le corrigé ---
+  // Une question à image occupe toute la largeur (texte à gauche, image à droite).
+  // Si une ligne ne tient pas en bas de page, on avance d'abord une ligne plus courte qui y tient
+  // (les questions sont ensuite numérotées dans l'ordre d'affichage) : moins de grands vides.
+  const colW = 92, gap = 6, LH = 3.7, FULL = PW - 2 * M;
+  const measure = q => {
+    font(9.2, true, BASE.dark);
+    const qLines = pdfRichSplit(doc, q.t, colW - 21);
+    font(9, false, BASE.dark);
+    const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 15));
+    const tH = Math.max(5, qLines.length * 4.1), qH = tH;
+    const oH = opts.reduce((t, l) => t + l.length * LH + 2.4, 0);
+    const wide = !!q.img, imgW = FULL - colW - 6;
+    const h = Math.max(3.5 + qH + 2 + oH + 1.5, wide ? imgW * q.imgR + 7 : 0);
+    return { q, qLines, opts, tH, qH, wide, imgW, h };
+  };
+  const PLAN = [];
+  {
+    const pend = QS.map(measure);
+    const rowAt = s => {
+      const c = pend[s];
+      if (c.wide) return [c];
+      const j = pend.findIndex((d, k) => k > s && !d.wide);
+      return j < 0 ? [c] : [c, pend[j]];
+    };
+    const hOf = r => Math.max(...r.map(c => c.h));
+    let y = M + 12 + 24 + 6;       // hauteur de l'en-tête de la 1re page
+    while (pend.length) {
+      let row = rowAt(0), br = false;
+      if (y + hOf(row) > BOTTOM) {
+        let alt = null;
+        for (let s = 1; s < pend.length && !alt; s++) { const r = rowAt(s); if (y + hOf(r) <= BOTTOM) alt = r; }
+        if (alt) row = alt; else { br = true; y = M; }
+      }
+      row.forEach(c => pend.splice(pend.indexOf(c), 1));
+      PLAN.push({ cards: row, h: hOf(row), br });
+      y += hOf(row) + 3.5;
+    }
+    PLAN.flatMap(r => r.cards).forEach((c, i) => { c.k = i; QS[i] = c.q; });
+  }
+
+  renderCopy(false);
+  doc.addPage();
+  renderCopy(true);
+
+  const blobUrl = URL.createObjectURL(doc.output('blob'));
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = `TEST_004-COPIE-ET-CORRIGE-${n}Q${pap ? '-PAP' : ''}-${VER}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  return true;
+}
+
+
+// PDF "corrigé enseignant" : les 30 questions de la banque + bonnes réponses
+function generateAnswerKeyPDF() {
+  if (!(window.jspdf && window.jspdf.jsPDF)) return false;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const PW = 210, M = 10, TW = PW - 2 * M, BOTTOM = 285;
+  let y = M;
+
+  const C = {
+    blue: [11, 94, 215], dark: [28, 35, 51], mut: [91, 100, 120], line: [217, 222, 234],
+    green: [14, 95, 55], greenBg: [227, 244, 234], white: [255, 255, 255], txt: [70, 75, 85]
+  };
+  const pc = t => cl(String(t).replace(/[₀-₉]/g, d => d.charCodeAt(0) - 0x2080));
+  const font = (sz, bold, col) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(sz); doc.setTextColor(...col); };
+  const fill = c => doc.setFillColor(...c);
+  const stroke = (c, w) => { doc.setDrawColor(...c); if (w) doc.setLineWidth(w); };
+  const tick = (cx, cy, s, col, w) => {
+    stroke(col, w);
+    doc.line(cx - s * 0.9, cy + s * 0.05, cx - s * 0.3, cy + s * 0.7);
+    doc.line(cx - s * 0.3, cy + s * 0.7, cx + s, cy - s * 0.8);
+  };
+
+  // En-tête
+  font(14, true, C.blue);
+  doc.text('TEST 004', M, y + 5);
+  font(11, true, C.dark);
+  doc.text(pc('— CORRIGÉ ENSEIGNANT'), M + 28, y + 5);
+  font(8, false, C.mut);
+  doc.text(pc(`${ALL_QUESTIONS.length} questions — généré le ${new Date().toLocaleString('fr-FR')}`), PW - M, y + 5, { align: 'right' });
+  doc.text(pc('Barème : +1 point par bonne réponse  ·  -' + fmtNote(WRONG_PENALTY) + ' point par mauvaise réponse  ·  0 point sans réponse'), M, y + 10.5);
+  stroke(C.line, 0.3);
+  doc.line(M, y + 13, PW - M, y + 13);
+  y += 17;
+
+  const colW = 92, gap = 6, LH2 = 3.6, FULL = TW, imgW = FULL - colW - 6;
+  const CARDS = ALL_QUESTIONS.map((q, k) => {
+      font(8.8, true, C.dark);
+      const qLines = pdfRichSplit(doc, q.t, colW - 31 - (isMultiQ(q) ? 4 + 3.2 * q.a.length : 0));   // place pour la pastille des bonnes réponses
+      font(8.5, true, C.dark);
+      const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 24));
+      const tH = Math.max(5, qLines.length * 3.9), qH = tH;
+      const oH = opts.reduce((s, l) => s + l.length * LH2 + 1.6, 0);
+      const wide = !!q.img;   // question à image : texte et réponses à gauche, image à droite
+      return { k, q, qLines, opts, tH, qH, wide, h: Math.max(3.5 + qH + 2 + oH + 1.5, wide ? imgW * q.imgR + 7 : 0) };
+  });
+  const ROWS = packPdfRows(CARDS, y, M, BOTTOM, 3.5);
+  ROWS.flatMap(r => r.cards).forEach((c, i) => { c.k = i; });   // numérotation dans l'ordre d'affichage (comme la copie papier)
+  ROWS.forEach(r => {
+    if (r.br) { doc.addPage(); y = M; }
+    const row = r.cards, rowH = r.h;
+    row.forEach((c, ci) => {
+      const x = M + ci * (colW + gap);
+      fill(C.white);
+      stroke(C.line, 0.3);
+      doc.roundedRect(x, y, c.wide ? FULL : colW, rowH, 1.8, 1.8, 'FD');
+      if (c.wide) { try { doc.addImage(c.q.img, 'JPEG', x + colW + 2, y + 3.5, imgW, imgW * c.q.imgR); } catch (e) { console.warn(e); } }
+
+      fill(C.blue);
+      doc.roundedRect(x + 3, y + 3.5, 11, 5, 1, 1, 'F');
+      font(7.5, true, C.white);
+      doc.text(`Q${String(c.k + 1).padStart(2, '0')}`, x + 8.5, y + 7, { align: 'center' });
+      font(8.8, true, C.dark);
+      c.qLines.forEach((l, n) => pdfRichLine(doc, l, x + 17, y + 7 + n * 3.9));
+
+      // Lettre de la bonne réponse (lecture rapide)
+      fill(C.green);
+      if (isMultiQ(c.q)) {
+        const lt = c.q.a.map(j => String.fromCharCode(65 + j)).join(' ');
+        font(8.5, true, C.white);
+        const bw = doc.getTextWidth(lt) + 4;
+        doc.roundedRect(x + colW - 3.2 - bw, y + 3.4, bw, 5.6, 2.8, 2.8, 'F');
+        doc.text(lt, x + colW - 3.2 - bw / 2, y + 7.2, { align: 'center' });
+      } else {
+      doc.circle(x + colW - 6, y + 6.2, 2.8, 'F');
+      font(8.5, true, C.white);
+      if (isNumQ(c.q)) tick(x + colW - 6, y + 6.2, 1.4, C.white, 0.65);
+      else doc.text(String.fromCharCode(65 + c.q.a[0]), x + colW - 6, y + 7.2, { align: 'center' });
+      }
+
+      let oy = y + 3.5 + c.qH + 2;
+      if (isNumQ(c.q)) {
+        fill(C.greenBg);
+        doc.roundedRect(x + 2.5, oy, colW - 5, LH2 + 1.2, 1, 1, 'F');
+        font(8.5, true, C.green);
+        pdfRichLine(doc, pdfRichSplit(doc, `Réponse attendue : ${numShow(c.q)}${c.q.u ? ' ' + c.q.u : ''}`, 999)[0], x + 6.35, oy + 3.2);
+        tick(x + colW - 8, oy + 2.1, 1.3, C.green, 0.95);
+        return;
+      }
+      c.opts.forEach((lines, j) => {
+        const isExp = c.q.a.includes(j);
+        const bandH = lines.length * LH2 + 1.2;
+        if (isExp) {
+          fill(C.greenBg);
+          doc.roundedRect(x + 2.5, oy, colW - 5, bandH, 1, 1, 'F');
+        }
+        const cy = oy + 2.1;
+        stroke(C.dark, 0.4);
+        fill(C.white);
+        doc.rect(x + 6.35, cy - 1.65, 3.3, 3.3, 'FD');
+        if (isExp) tick(x + colW - 8, cy, 1.3, C.green, 0.95);
+        font(8.5, isExp, isExp ? C.green : C.txt);
+        lines.forEach((l, n) => pdfRichLine(doc, l, x + 11.5, oy + 3.2 + n * LH2));
+        oy += bandH + 0.4;
+      });
+    });
+    y += rowH + 3.5;
+  });
+
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p);
+    stroke(C.line, 0.3);
+    doc.line(M, 288, PW - M, 288);
+    font(7, false, C.mut);
+    doc.text(pc(`TEST 004 — Corrigé enseignant — ${ALL_QUESTIONS.length} questions`), M, 292);
+    doc.text(`Page ${p} / ${total}`, PW - M, 292, { align: 'right' });
+  }
+
+  const blobUrl = URL.createObjectURL(doc.output('blob'));
+  const link = document.createElement('a');
+  link.href = blobUrl;
+  link.download = 'TEST_004-CORRIGE-ENSEIGNANT.pdf';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  return true;
+}
+
+// Espaces insécables : aucune coupure de ligne qui gênerait la lecture (écran ET PDF)
+function noBreak(s) {
+  const NB = ' ';
+  s = String(s);
+  // exposants/indices : jamais coupés, signe moins typographique
+  s = s.replace(/<(sup|sub)>([\s\S]*?)<\/\1>/g, (m, k, c) => `<${k}>${c.replace(/ /g, NB).replace(/-/g, '−')}</${k}>`);
+  // points de suspension dans un nombre (1000…0) : pas de coupure
+  s = s.replace(/…/g, '\u2060…\u2060');
+  // contenu court entre guillemets : "n zéros"
+  s = s.replace(/"([^"<]{1,12})"/g, (m, c) => '"' + c.replace(/ /g, NB) + '"');
+  // symbole court entre guillemets jamais seul en début de ligne : est "A"
+  s = s.replace(/ ("[^"<\s]{1,4}")/g, NB + '$1');
+  // signes d’opération et de comparaison : jamais seuls en début ou fin de ligne
+  s = s.replace(/ (=|≈|<|>|≤|≥) /g, NB + '$1' + NB);          // « = » jamais en début ni en fin de ligne
+  s = s.replace(/ (x|×|\+|−|→|⇒) /g, NB + '$1 ');               // « + », « × », « → » : coupure possible APRÈS le signe seulement
+  // valeur + unité (ou nombre + mot suivant)
+  s = s.replace(/(\d[²³]?|<\/sup>|<\/sub>) (?=[A-Za-zÀ-ÿµμΩ°%])/g, '$1' + NB);
+  // ponctuation et parenthèses
+  s = s.replace(/ ([?!:;»)])/g, NB + '$1').replace(/([«(]) /g, '$1' + NB);
+  return s;
+}
+
+// Texte enrichi pour les PDF : vrais exposants (<sup>) et indices (<sub>), avec retour à la ligne
+// Largeurs officielles (police Symbol, en millièmes de cadratin) des lettres grecques utilisées
+const SYM_W = { a: 631, b: 549, g: 411, d: 494, D: 612, h: 603, q: 521, l: 549, m: 576, p: 549, r: 549, s: 603, f: 521, w: 686, W: 768, '\u00AE': 987 };
+function symWidth(doc, t) { return [...t].reduce((a, c) => a + (SYM_W[c] || 600), 0) / 1000 * doc.getFontSize() / doc.internal.scaleFactor; }
+function pdfRichSplit(doc, html, maxW) {
+  if (/<br\s*\/?>/i.test(html)) return [].concat(...String(html).split(/<br\s*\/?>/i).map(part => pdfRichSplit(doc, part, maxW)));
+  const fs = doc.getFontSize();
+  const txt = s => cl(String(s).replace(/[₀-₉]/g, d => d.charCodeAt(0) - 0x2080));
+  const src = noBreak(html).replace(/ ([?!:;])/g, ' $1').replace(/²/g, '<sup>2</sup>').replace(/³/g, '<sup>3</sup>')
+    .replace(/[αβγδΔηθλµμπρσφωΩ→]/g, c => '<grk>' + ({ 'α': 'a', 'β': 'b', 'γ': 'g', 'δ': 'd', 'Δ': 'D', 'η': 'h', 'θ': 'q', 'λ': 'l', 'µ': 'm', 'μ': 'm', 'π': 'p', 'ρ': 'r', 'σ': 's', 'φ': 'f', 'ω': 'w', 'Ω': 'W', '→': '\u00AE' })[c] + '</grk>');
+  const segs = [];
+  src.split(/(<sup>[\s\S]*?<\/sup>|<sub>[\s\S]*?<\/sub>|<grk>[\s\S]*?<\/grk>)/).forEach(part => {
+    if (!part) return;
+    const m = part.match(/^<(sup|sub|grk)>([\s\S]*)<\/\1>$/);
+    if (m) segs.push({ t: m[1] === 'grk' ? m[2] : txt(m[2].replace(/\s+/g, '')), k: m[1] });
+    else segs.push({ t: txt(part), k: '' });
+  });
+  const f0 = doc.getFont();
+  const width = (t, k) => {
+    if (k === 'grk') return symWidth(doc, t);
+    doc.setFontSize(k ? fs * 0.68 : fs); const w = doc.getTextWidth(t); doc.setFontSize(fs); return w;
+  };
+  // Découpage en mots (un mot peut contenir plusieurs morceaux : 10 + exposant)
+  const words = [[]];
+  segs.forEach(s => {
+    const parts = s.k ? [s.t] : s.t.split(' ');
+    parts.forEach((pt, i) => {
+      if (i > 0) words.push([]);
+      if (pt) words[words.length - 1].push({ t: pt.replace(/\u00A0/g, ' '), k: s.k });
+    });
+  });
+  const ww = w => w.reduce((a, s) => a + width(s.t, s.k), 0);
+  const sp = width(' ', '');
+  const lines = []; let cur = [], curW = 0;
+  words.filter(w => w.length).forEach(w => {
+    const W = ww(w);
+    if (cur.length && curW + sp + W > maxW) { lines.push(cur); cur = []; curW = 0; }
+    if (cur.length) { cur.push({ t: ' ', k: '' }); curW += sp; }
+    cur.push(...w); curW += W;
+  });
+  if (cur.length) lines.push(cur);
+  // fusion des morceaux consécutifs de même type (un seul tracé par portion de texte normal)
+  const merged = lines.map(l => l.reduce((acc, s) => { const last = acc[acc.length - 1]; if (last && last.k === s.k) last.t += s.t; else acc.push({ t: s.t, k: s.k }); return acc; }, []));
+  return merged.length ? merged : [[{ t: '', k: '' }]];
+}
+function pdfRichLine(doc, line, x, y) {
+  const fs = doc.getFontSize(), pt = 0.3528, f0 = doc.getFont();
+  line.forEach(s => {
+    if (s.k === 'grk') { const w = symWidth(doc, s.t); doc.setFont('symbol', 'normal'); doc.text(s.t, x, y); doc.setFont(f0.fontName, f0.fontStyle); x += w; return; }
+    if (s.k) doc.setFontSize(fs * 0.68);
+    if (s.k === 'sup' && /^[-−]/.test(s.t)) x += fs * pt * 0.09;   // petit espace : le signe moins de l’exposant ne touche pas la lettre (m.s⁻¹)
+    const dy = s.k === 'sup' ? -fs * 0.33 * pt : s.k === 'sub' ? fs * 0.18 * pt : 0;
+    doc.text(s.t, x, y + dy);
+    x += doc.getTextWidth(s.t);
+    doc.setFontSize(fs);
+  });
+}
+
+function cl(s) {
+  s = String(s).split('<sup>').join('^').split('</sup>').join('').split('<sub>').join('').split('</sub>').join('').split('≈').join('~').split('⇒').join('=>').split('Δ').join('D').split('η').join('eta').split('−').join('-');
+  return [...s].filter(c => c.charCodeAt(0) < 256 || '’—–…'.includes(c)).join('');
+}
+
+// Contenu du QR code de la copie PDF (une valeur par ligne) : TEST, NOM, prénom, classe, note, date, début, fin, code saisi
+function buildQrPayload() {
+  const g = id => document.getElementById(id).value.trim();
+  const nom = g('nom') || "ELEVE";
+  const prenom = g('prenom') || "Inconnu";
+  const classe = g('classe') || "Sans-Classe";
+  let sc = 0;
+  RES.forEach(r => { if (r) sc += r.pts || 0; });
+  sc = Math.max(0, sc);   // pas de note négative
+  const fmt1 = v => String(Math.round(v * 10) / 10).replace('.', ',');
+  const noteProp = isPap && Q.length ? sc * levelN / Q.length : null;   // règle de proportionnalité
+  const dStart = questionsShownAt || answerStartedAt, dEnd = validatedAt, dDay = dStart || dEnd;
+  const sDate = dDay ? dDay.toLocaleDateString('fr-FR') : '-';
+  const sStart = dStart ? dStart.toLocaleTimeString('fr-FR') : 'Aucune réponse';
+  const sEnd = dEnd ? dEnd.toLocaleTimeString('fr-FR') : '-';
+  return [
+    'TEST 004',   // nom du test
+    nom.toUpperCase(),
+    prenom,
+    classe,
+    noteProp === null ? `${fmtNote(sc)}/${Q.length}` : `${fmtNote(sc)}/${Q.length}=${fmt1(noteProp)}/${levelN}`,
+    sDate,
+    dStart ? sStart : '-',
+    sEnd,
+    usedCode || '-'
+  ].join('\n');
+}
+// QR code (UTF-8, niveau M) : utilisé à l'écran ET sur la copie PDF
+function makeQr(payload) {
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  const qr = qrcode(0, 'M');
+  qr.addData(payload, 'Byte');
+  qr.make();
+  return qr;
+}
+
+function generatePDF() {
+  const g = id => document.getElementById(id).value.trim();
+  const nom = g('nom') || "ELEVE";
+  const prenom = g('prenom') || "Inconnu";
+  const classe = g('classe') || "Sans-Classe";
+  let sc = 0;
+  RES.forEach(r => { if (r) sc += r.pts || 0; });
+  sc = Math.max(0, sc);   // pas de note négative
+
+  if (window.jspdf && window.jspdf.jsPDF) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const PW = 210, M = 10, TW = PW - 2 * M, BOTTOM = 285;
+    let y = 0;
+
+    // --- Palette & helpers ---
+    const C = {
+      blue: [11, 94, 215], dark: [28, 35, 51], mut: [91, 100, 120], line: [217, 222, 234],
+      light: [244, 246, 251], zebra: [250, 251, 253], red: [160, 25, 18], redBg: [253, 232, 230],
+      green: [14, 95, 55], greenBg: [227, 244, 234], white: [255, 255, 255], txt: [70, 75, 85]
+    };
+    const pc = t => cl(String(t).replace(/[₀-₉]/g, d => d.charCodeAt(0) - 0x2080));
+    const font = (sz, bold, col) => {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(sz);
+      doc.setTextColor(...col);
+    };
+    const fill = c => doc.setFillColor(...c);
+    const stroke = (c, w) => { doc.setDrawColor(...c); if (w) doc.setLineWidth(w); };
+    const tick = (cx, cy, s, col, w) => {
+      stroke(col, w);
+      doc.line(cx - s * 0.9, cy + s * 0.05, cx - s * 0.3, cy + s * 0.7);
+      doc.line(cx - s * 0.3, cy + s * 0.7, cx + s, cy - s * 0.8);
+    };
+    const cross = (cx, cy, s, col, w) => {
+      stroke(col, w);
+      doc.line(cx - s, cy - s, cx + s, cy + s);
+      doc.line(cx + s, cy - s, cx - s, cy + s);
+    };
+    const chkBox = (cx, cy, checked) => {
+      stroke(C.dark, 0.4);
+      fill(C.white);
+      doc.rect(cx - 1.65, cy - 1.65, 3.3, 3.3, 'FD');
+      if (checked) cross(cx, cy, 1.0, C.dark, 0.55);
+    };
+    const newPage = () => { doc.addPage(); y = M; };
+    const ensure = h => { if (y + h > BOTTOM) newPage(); };
+    const section = (label, accent, right) => {
+      ensure(12);
+      fill(accent);
+      doc.rect(M, y, 1.6, 4.4, 'F');
+      font(9.5, true, C.dark);
+      doc.text(pc(label), M + 4, y + 3.4);
+      if (right) {
+        font(7, false, C.mut);
+        doc.text(pc(right), PW - M, y + 3.4, { align: 'right' });
+      }
+      y += 6.8;
+    };
+
+    const logs = getLogs();
+    const hasFraud = !adminMode && (logs.some(l => l.includes('🚨')) || refreshCount > 1);
+    const accent = hasFraud ? C.red : C.green;
+
+    // --- EN-TÊTE COMPACT : identité | infos de passation | note + QR code ---
+    y = 8;
+    const hH = 30, P = 5.5;
+    fill(hasFraud ? C.redBg : C.greenBg);
+    stroke(accent, 0.5);
+    doc.roundedRect(M, y, TW, hH, 2, 2, 'FD');
+    stroke(accent, 0.2);
+    doc.line(M + 62, y + 4, M + 62, y + hH - 4);
+    const r0 = y + 7;
+
+    // Colonne 1 : titre + identité
+    const x0 = M + 4;
+    font(10, true, C.blue);
+    doc.text('TEST 004', x0, r0);
+    const idRow = (lab, val, n) => {
+      font(6.5, true, C.mut);
+      doc.text(pc(lab), x0, r0 + n * P);
+      let sz = 10;
+      font(sz, true, C.dark);
+      while (doc.getTextWidth(pc(val)) > 38 && sz > 6) { sz -= 0.5; doc.setFontSize(sz); }
+      doc.text(pc(val), x0 + 17, r0 + n * P);
+    };
+    idRow('NOM', nom.toUpperCase(), 1);
+    idRow('PRÉNOM', prenom, 2);
+    idRow('CLASSE', classe, 3);
+
+    // Colonne 2 : déroulement du test
+    const x1 = M + 66, vx = M + 95;
+    const infoRow = (lab, val, n) => {
+      font(8, false, C.dark);
+      doc.text(pc(lab), x1, r0 + n * P);
+      font(8.5, true, C.dark);
+      doc.text(pc(val), vx, r0 + n * P);
+    };
+    const dStart = questionsShownAt || answerStartedAt, dEnd = validatedAt, dDay = dStart || dEnd;
+    const sDate = dDay ? dDay.toLocaleDateString('fr-FR') : '-';
+    const sStart = dStart ? dStart.toLocaleTimeString('fr-FR') : 'Aucune réponse';
+    const sEnd = dEnd ? dEnd.toLocaleTimeString('fr-FR') : '-';
+    infoRow('Date :', sDate, 0);
+    infoRow('Heure de début :', sStart, 1);
+    infoRow('Heure de fin :', sEnd, 2);
+    infoRow('Code d’accès saisi :', usedCode || '-', 3);
+
+    // Note (sans libellé)
+    const fmt1 = v => String(Math.round(v * 10) / 10).replace('.', ',');
+    const noteTxt = `${fmtNote(sc)} / ${Q.length}`;
+    const noteProp = isPap && Q.length ? sc * levelN / Q.length : null;   // règle de proportionnalité
+    fill(C.blue);
+    doc.roundedRect(M + 131, y + 5, 24, hH - 10, 1.8, 1.8, 'F');
+    if (noteProp === null) {
+      font(14, true, C.white);
+      doc.text(noteTxt, M + 143, y + hH / 2 + 2.3, { align: 'center' });
+    } else {
+      font(11, true, C.white);
+      doc.text(noteTxt, M + 143, y + 12.5, { align: 'center' });
+      stroke(C.white, 0.3);
+      doc.line(M + 134, y + 15.3, M + 152, y + 15.3);
+      font(13, true, C.white);
+      doc.text(`${fmt1(noteProp)} / ${levelN}`, M + 143, y + 21.8, { align: 'center' });
+    }
+
+    // QR code : NOM, PRÉNOM, CLASSE, NOTE, début, validation, code
+    if (typeof qrcode === 'function') {
+      const qr = makeQr(buildQrPayload());
+      const n = qr.getModuleCount();
+      // Zone blanche 26 x 27,5 mm : QR (20 mm) en haut, « By Domstoolbox » dessous, tout dans la zone blanche
+      const boxW = 26, boxH = 27.5, qSize = 20, qz = 2, ms = qSize / n;
+      const qx = M + 159, qy = y + 1.25;
+      fill(C.white);
+      doc.roundedRect(qx, qy, boxW, boxH, 1.5, 1.5, 'F');
+      fill([0, 0, 0]);
+      const gx = qx + (boxW - qSize) / 2, gy = qy + qz;
+      for (let r = 0; r < n; r++) {
+        for (let c2 = 0; c2 < n; c2++) {
+          if (qr.isDark(r, c2)) doc.rect(gx + c2 * ms, gy + r * ms, ms + 0.04, ms + 0.04, 'F');
+        }
+      }
+      let fs2 = 6.5;
+      font(fs2, false, [0, 0, 0]);
+      while (doc.getTextWidth('By Domstoolbox') > boxW - 4 && fs2 > 4) { fs2 -= 0.25; font(fs2, false, [0, 0, 0]); }
+      doc.text('By Domstoolbox', qx + boxW / 2, gy + qSize + 3.1, { align: 'center' });
+    }
+    y += hH + 4;
+
+    // --- RAPPORT D'ÉPREUVE (durée, audio, calculatrice) + alarmes éventuelles ---
+    section('RAPPORT D’ÉPREUVE', C.red);
+    // durée calculée sur les secondes entières, pour rester cohérente avec les heures affichées
+    const tStart = questionsShownAt || answerStartedAt;
+    const dureeTxt = (tStart && validatedAt) ? fmtDuree(Math.floor(validatedAt / 1000) * 1000 - Math.floor(tStart / 1000) * 1000) : 'durée non mesurée';
+    if (y + 12 > BOTTOM) newPage();
+    // Une seule ligne : [horloge] durée   [haut-parleur si audio utilisé]   [calculatrice si utilisée]
+    const R = 3.7, cyL = y + 5;
+    const ring = (cx) => { stroke(C.blue, 0.45); fill(C.white); doc.circle(cx, cyL, R, 'FD'); };
+    const iconClock = (cx) => {
+      ring(cx); stroke(C.blue, 0.5);
+      doc.line(cx, cyL, cx, cyL - 2.2); doc.line(cx, cyL, cx + 1.6, cyL + 0.9);
+      fill(C.blue); doc.circle(cx, cyL, 0.35, 'F');
+    };
+    const iconSpeaker = (cx) => {
+      ring(cx); fill(C.blue); stroke(C.blue, 0.3);
+      doc.rect(cx - 2.1, cyL - 0.9, 1.1, 1.8, 'F');
+      doc.lines([[1.9, -1.4], [0, 4.6], [-1.9, -1.4]], cx - 1, cyL - 0.9 + 0, [1, 1], 'F', true);
+      stroke(C.blue, 0.4);
+      [1.3, 2.3].forEach(r => {
+        let px = cx + 0.9 + 0.2, py = cyL;
+        for (let a = -50; a <= 50; a += 25) {
+          const nx = cx + 0.9 + r * Math.cos(a * Math.PI / 180) * 0.75, ny = cyL + r * Math.sin(a * Math.PI / 180) * 1.0;
+          if (a > -50) doc.line(px, py, nx, ny);
+          px = nx; py = ny;
+        }
+      });
+    };
+    const iconCalc = (cx) => {
+      ring(cx); stroke(C.blue, 0.4); fill(C.white);
+      doc.roundedRect(cx - 1.6, cyL - 2.3, 3.2, 4.6, 0.6, 0.6, 'D');
+      fill(C.blue); doc.rect(cx - 1, cyL - 1.7, 2, 1, 'F');
+      [[-0.8, 0.2], [0.8, 0.2], [-0.8, 1.4], [0.8, 1.4]].forEach(([dx, dy]) => doc.circle(cx + dx, cyL + dy, 0.33, 'F'));
+    };
+    // Type d'appareil : téléphone, tablette ou ordinateur
+    const deviceType = (() => {
+      let touch = false;
+      try { touch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 1; } catch (e) {}
+      if (!touch) return 'ordinateur';
+      const m = Math.min(window.screen.width || 0, window.screen.height || 0);
+      return m && m < 600 ? 'telephone' : 'tablette';
+    })();
+    const iconDevice = (cx) => {
+      ring(cx); stroke(C.blue, 0.4); fill(C.white);
+      if (deviceType === 'telephone') {
+        doc.roundedRect(cx - 1.35, cyL - 2.2, 2.7, 4.4, 0.6, 0.6, 'D');
+        fill(C.blue); doc.circle(cx, cyL + 1.45, 0.28, 'F');
+        doc.line(cx - 0.45, cyL - 1.6, cx + 0.45, cyL - 1.6);
+      } else if (deviceType === 'tablette') {
+        doc.roundedRect(cx - 1.8, cyL - 2.2, 3.6, 4.4, 0.6, 0.6, 'D');
+        fill(C.blue); doc.circle(cx, cyL + 1.6, 0.28, 'F');
+      } else {
+        doc.roundedRect(cx - 1.9, cyL - 1.9, 3.8, 2.7, 0.4, 0.4, 'D');
+        doc.line(cx - 2.4, cyL + 1.6, cx + 2.4, cyL + 1.6);
+        doc.line(cx - 2.4, cyL + 1.6, cx - 1.9, cyL + 0.8);
+        doc.line(cx + 2.4, cyL + 1.6, cx + 1.9, cyL + 0.8);
+      }
+    };
+    let x = M + 2 + R;
+    iconClock(x);
+    font(11, true, C.dark);
+    doc.text(pc(dureeTxt), x + R + 3, cyL + 1.5);
+    x += R + 3 + doc.getTextWidth(pc(dureeTxt)) + 8 + R;
+    iconDevice(x); x += 2 * R + 4;
+    if (usedAudio) { iconSpeaker(x); x += 2 * R + 4; }
+    if (usedCalc) { iconCalc(x); x += 2 * R + 4; }
+    y += 2 * R + 6;
+    y += 4;
+
+    // --- OBSERVATIONS (mode observation, sans sanction) : ouverture probable de Siri ---
+    if (OBS.length) {
+      section(`OBSERVATIONS (SANS SANCTION) : ${OBS.length}`, C.red, 'Possible ouverture de Siri / d’un assistant vocal');
+      OBS.forEach(o => {
+        ensure(5);
+        font(8, false, C.dark);
+        const qTxt = o.q ? `question ${o.q}` : 'avant les questions';
+        const lines = doc.splitTextToSize(pc(`${new Date(o.at).toLocaleTimeString('fr-FR')} — ${qTxt} — ${o.label}`), TW - 4);
+        doc.text(lines, M + 4, y + 3);
+        y += lines.length * 3.6 + 0.8;
+      });
+      y += 3;
+    }
+
+    // --- DÉTAIL DES RÉPONSES (2 colonnes, cartes de même hauteur) ---
+
+    const colW = 92, gap = 6, LH2 = 3.6, FULL = TW, imgW = FULL - colW - 6;
+    const CARDS = Q.map((q, k) => {
+        const rO = RES[k] || { ok: false, ans: '(pas de réponse)' };
+        const noAns = rO.ans === '(pas de réponse)';
+        font(8.8, true, C.dark);
+        const qLines = pdfRichSplit(doc, q.t, colW - 31);
+        font(8.5, true, C.dark);
+        const opts = isNumQ(q) ? (noAns || rO.ok ? [['']] : [[''], ['']]) : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 24));
+        const tH = Math.max(5, qLines.length * 3.9), qH = tH;
+        const oH = opts.reduce((s, l) => s + l.length * LH2 + 1.6, 0);
+        const wide = !!q.img;   // question à image : texte et réponses à gauche, image à droite
+        return { k, q, rO, noAns, qLines, opts, tH, qH, wide, h: Math.max(3.5 + qH + 2 + oH + (noAns ? 4.4 : 0) + 1.5, wide ? imgW * q.imgR + 7 : 0) };
+    });
+    const ROWS = packPdfRows(CARDS, y, M, BOTTOM, 3.5);
+    ROWS.flatMap(r => r.cards).forEach((c, i) => { c.k = i; });   // numérotation dans l'ordre d'affichage (comme la copie papier)
+    ROWS.forEach(r => {
+      if (r.br) newPage();
+      const row = r.cards, rowH = r.h;
+
+      row.forEach((c, ci) => {
+        const x = M + ci * (colW + gap);
+        const rObj = c.rO;
+        const acc = rObj.ok ? C.green : C.red;
+
+        // Cadre + liseré
+        fill(C.white);
+        stroke(C.line, 0.3);
+        doc.roundedRect(x, y, c.wide ? FULL : colW, rowH, 1.8, 1.8, 'FD');
+        fill(acc);
+        doc.roundedRect(x, y, 2, rowH, 1, 1, 'F');
+        if (c.wide) { try { doc.addImage(c.q.img, 'JPEG', x + colW + 2, y + 3.5, imgW, imgW * c.q.imgR); } catch (e) { console.warn(e); } }
+
+        // Badge numéro + question
+        fill(C.blue);
+        doc.roundedRect(x + 5, y + 3.5, 11, 5, 1, 1, 'F');
+        font(7.5, true, C.white);
+        doc.text(`Q${String(c.k + 1).padStart(2, '0')}`, x + 10.5, y + 7, { align: 'center' });
+        font(8.8, true, C.dark);
+        c.qLines.forEach((l, n) => pdfRichLine(doc, l, x + 19, y + 7 + n * 3.9));
+
+        // Verdict global : disque plein avec ✓ (juste) ou ✗ (faux) — lisible en noir et blanc
+        fill(acc);
+        doc.circle(x + colW - 6, y + 6.2, 2.8, 'F');
+        if (rObj.ok) tick(x + colW - 6, y + 6.2, 1.4, C.white, 0.65);
+        else cross(x + colW - 6, y + 6.2, 1.2, C.white, 0.65);
+
+        // Options : case cochée = choix de l'élève ; ✓ = bonne réponse ; ✗ = mauvais choix
+        let oy = y + 3.5 + c.qH + 2;
+        if (isNumQ(c.q)) {
+          const unit = c.q.u ? ' ' + c.q.u : '';
+          const bandH = LH2 + 1.2;
+          if (!c.noAns) {
+            fill(rObj.ok ? C.greenBg : C.redBg);
+            doc.roundedRect(x + 4, oy, colW - 8, bandH, 1, 1, 'F');
+            font(8.5, true, rObj.ok ? C.green : C.red);
+            doc.text(pc(`Réponse saisie : ${rObj.ans}${unit}`), x + 8, oy + 3.2);
+            if (rObj.ok) tick(x + colW - 8, oy + 2.1, 1.3, C.green, 0.95); else cross(x + colW - 8, oy + 2.1, 1.1, C.red, 0.95);
+            oy += bandH + 0.4;
+          }
+          if (c.noAns || !rObj.ok) {
+            fill(C.greenBg);
+            doc.roundedRect(x + 4, oy, colW - 8, bandH, 1, 1, 'F');
+            font(8.5, true, C.green);
+            pdfRichLine(doc, pdfRichSplit(doc, `Réponse attendue : ${numShow(c.q)}${unit}`, 999)[0], x + 8, oy + 3.2);
+            tick(x + colW - 8, oy + 2.1, 1.3, C.green, 0.95);
+            oy += bandH + 0.4;
+          }
+          if (c.noAns) { font(7.5, true, C.dark); doc.text(pc('Aucune réponse de l’élève'), x + 11.5, oy + 3); }
+          return;
+        }
+        c.opts.forEach((lines, j) => {
+          const letter = String.fromCharCode(65 + j);
+          const isSel = Array.isArray(rObj.sel) ? rObj.sel.includes(j) : rObj.ans === letter;
+          const isExp = c.q.a.includes(j);
+          const bandH = lines.length * LH2 + 1.2;
+
+          if (isSel || isExp) {
+            fill(isSel && !isExp ? C.redBg : C.greenBg);
+            doc.roundedRect(x + 4, oy, colW - 8, bandH, 1, 1, 'F');
+          }
+          const cy = oy + 2.1;
+          chkBox(x + 8, cy, isSel);
+          if (isExp) tick(x + colW - 8, cy, 1.3, C.green, 0.95);
+          if (isSel && !isExp) cross(x + colW - 8, cy, 1.1, C.red, 0.95);
+
+          if (isSel) font(8.5, true, isExp ? C.green : C.red);
+          else if (isExp) font(8.5, true, C.green);
+          else font(8.5, false, C.txt);
+          lines.forEach((l, n) => pdfRichLine(doc, l, x + 11.5, oy + 3.2 + n * LH2));
+          oy += bandH + 0.4;
+        });
+        if (c.noAns) {
+          font(7.5, true, C.dark);
+          doc.text(pc('Aucune réponse de l’élève'), x + 11.5, oy + 3);
+        }
+      });
+      y += rowH + 3.5;
+    });
+
+    // --- PIED DE PAGE (identité + pagination sur chaque page) ---
+    const total = doc.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+      doc.setPage(p);
+      stroke(C.line, 0.3);
+      doc.line(M, 288, PW - M, 288);
+      font(7, false, C.mut);
+      doc.text(pc(`${nom.toUpperCase()} ${prenom} — ${classe} — TEST 004`), M, 292);
+      doc.text(`Page ${p} / ${total}`, PW - M, 292, { align: 'right' });
+      // Légende des symboles
+      font(6.5, false, C.mut);
+      const items = [['sel', 'choix de l’élève'], ['ok', 'bonne réponse'], ['ko', 'mauvais choix']];
+      const wTot = items.reduce((s2, it) => s2 + 5 + doc.getTextWidth(pc(it[1])) + 5, 0) - 5;
+      let lx2 = PW - M - 22 - wTot;
+      items.forEach(it => {
+        const ic = lx2 + 1.7;
+        if (it[0] === 'sel') chkBox(ic, 291.1, true);
+        else if (it[0] === 'ok') tick(ic, 291.1, 1.3, C.green, 0.95);
+        else cross(ic, 291.1, 1.1, C.red, 0.95);
+        font(6.5, false, C.mut);
+        doc.text(pc(it[1]), lx2 + 5, 292);
+        lx2 += 5 + doc.getTextWidth(pc(it[1])) + 5;
+      });
+    }
+
+    const pdfBlob = doc.output('blob');
+    const fileName = `${nom.toUpperCase()}-${prenom.charAt(0).toUpperCase()}-${classe}-TEST_004.pdf`.replace(/[\\\/:*?"<>|]/g, '');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } else {
+    window.print();
+  }
+}
+
+</script>
+</body>
+</html>
