@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scanner des copies</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1c2333;--mut:#5b6478;--pri:#0b5ed7;--bd:#d9deea;--ok:#157347;--okbg:#e3f4ea;--ko:#b42318;--kobg:#fde8e6;--warn:#8a5a00;--warnbg:#fff4d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1b2030;--tx:#e8ebf3;--mut:#9aa3b8;--pri:#6ea8fe;--bd:#2d3550;--ok:#75d19b;--okbg:#14301f;--ko:#ff8a80;--kobg:#3a1a1a;--warn:#ffd27a;--warnbg:#3a2e10;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:.2em 0 2px;color:var(--pri)}
+.sub{color:var(--mut);margin:0 0 14px;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:0 0 14px}
+.card h2{font-size:1rem;margin:0 0 10px}
+button{font:inherit;font-weight:600;background:var(--pri);color:#fff;border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+button.sec{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+button.del{background:transparent;color:var(--ko);border:1px solid var(--bd);padding:4px 10px;font-size:.85rem}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;gap:14px;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+#videoBox{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;color:#aab;font-size:.95rem;text-align:center}
+#video{width:100%;height:100%;object-fit:cover;display:none}
+#frame{position:absolute;inset:16%;border:3px solid rgba(255,255,255,.75);border-radius:14px;display:none;pointer-events:none}
+#videoBox.hit #frame{border-color:#4ade80}
+#camMsg{padding:20px}
+label.field{display:block;font-size:.85rem;color:var(--mut);margin-bottom:10px}
+label.field input{display:block;width:100%;margin-top:4px;font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+#status{margin-top:10px;padding:10px 12px;border-radius:8px;font-weight:600;min-height:1.4em}
+#status.ok{background:var(--okbg);color:var(--ok)}
+#status.ko{background:var(--kobg);color:var(--ko)}
+#status.warn{background:var(--warnbg);color:var(--warn)}
+#status:empty{display:none}
+.drop{border:2px dashed var(--bd);border-radius:10px;padding:16px;text-align:center;color:var(--mut);font-size:.9rem}
+.drop.over{border-color:var(--pri);color:var(--pri)}
+.count{font-size:2.2rem;font-weight:800;color:var(--pri);line-height:1}
+.tblwrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th{color:var(--mut);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.flash td{background:var(--okbg)}
+#empty{color:var(--mut);text-align:center;padding:18px 0}
+#finishBtn{background:#157347;font-size:1.05rem;padding:14px 22px}
+.fmt{display:flex;gap:16px;align-items:center;font-weight:600}
+.fmt label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.fmt input{width:18px;height:18px;accent-color:var(--pri)}
+#after{display:none;margin-top:12px;padding:12px;border-radius:10px;background:var(--okbg);color:var(--ok)}
+#after.show{display:block}
+.small{font-size:.82rem;color:var(--mut)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<main>
+  <h1>Scanner des copies</h1>
+  <p class="sub">Scanne le QR code de chaque copie d'élève, puis génère le PDF récapitulatif de la classe.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📷 Scan avec la caméra</h2>
+      <div id="videoBox"><video id="video" playsinline muted></video><div id="frame"></div><div id="camMsg">Clique sur « Démarrer la caméra » puis place le QR code de la copie dans le cadre.</div></div>
+      <div class="row" style="margin-top:10px">
+        <button id="camBtn" type="button">Démarrer la caméra</button>
+        <button id="switchBtn" type="button" class="sec" hidden>Changer de caméra</button>
+        <button id="photoBtn" type="button" class="sec">📸 Photographier une copie</button>
+        <input type="file" id="photo" accept="image/*" capture="environment" hidden>
+      </div>
+      <p class="small" style="margin:8px 0 0">Sur téléphone, si la caméra en direct ne démarre pas, utilise « Photographier une copie » : l'appareil photo s'ouvre, prends la copie (QR code bien net), valide, puis recommence pour la suivante.</p>
+      <div id="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>📄 Ou importer les copies (PDF ou photos)</h2>
+      <div class="drop" id="drop">Dépose ici les PDF des élèves (plusieurs à la fois)<br>ou
+        <button type="button" class="sec" id="pickBtn" style="margin-top:8px">Choisir des fichiers</button>
+        <input type="file" id="files" accept="application/pdf,image/*" multiple hidden>
+      </div>
+      <p class="small" id="importMsg"></p>
+      <div class="row" style="justify-content:space-between">
+        <div><div class="count" id="count">0</div><div class="small">copie(s) scannée(s)</div></div>
+        <button type="button" class="sec" id="clearBtn">Vider la liste</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Copies scannées</h2>
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>N°</th><th>Test</th><th>Nom</th><th>Prénom</th><th>Classe</th><th>Note</th><th>Ramenée (PAP)</th><th>Sur 20</th><th>Date</th><th>Début</th><th>Fin</th><th>Durée</th><th>Code</th><th></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="empty">Aucune copie scannée pour l'instant.</div>
+    </div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <div class="fmt"><span class="small">Fichier(s) à générer :</span>
+        <label><input type="checkbox" id="fmtPdf" checked> PDF</label>
+        <label><input type="checkbox" id="fmtXlsx" checked> Excel</label>
+      </div>
+      <button id="finishBtn" type="button" disabled>✔ Dernière copie scannée : générer</button>
+    </div>
+    <div id="after">
+      <span id="afterMsg">Le fichier a été généré.</span> Pour la classe suivante :
+      <div class="row" style="margin-top:8px">
+        <button type="button" id="newClassBtn">Nouvelle classe (vider la liste)</button>
+        <button type="button" class="sec" id="keepBtn">Garder la liste</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ===== Données =====
+const STORE = 'domstoolbox_scan_copies';
+let rows = [];
+try { rows = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) { rows = []; }
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(rows)); } catch (e) {} };
+
+const num = s => parseFloat(String(s).replace(',', '.'));
+const fr = (v, d) => (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toString().replace('.', ',');
+const secs = t => { const m = /^(\d{1,2}):(\d{2}):(\d{2})$/.exec(t || ''); return m ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) : null; };
+function duree(a, b) {
+  const s1 = secs(a), s2 = secs(b);
+  if (s1 === null || s2 === null || s2 < s1) return '-';
+  const d = s2 - s1, h = Math.floor(d / 3600), m = Math.floor(d % 3600 / 60), s = d % 60;
+  return (h ? h + ' h ' : '') + (h || m ? m + ' min ' : '') + s + ' s';
+}
+
+// Contenu du QR code de la copie, une valeur par ligne :
+//   nouveau format : Test / NOM / Prénom / Classe / Note / Date / Début / Fin / Code
+//   ancien format  :        NOM / Prénom / Classe / Note / Date / Début / Fin / Code
+const NOTE_RE = /^([\d.,]+)\s*\/\s*(\d+)(?:\s*=\s*([\d.,]+)\s*\/\s*(\d+))?$/;
+function parsePayload(txt) {
+  let L = String(txt).replace(/\r/g, '').split('\n').map(s => s.trim());
+  let test = '';
+  if (L.length >= 9 && NOTE_RE.test(L[4])) { test = L[0]; L = L.slice(1); }
+  if (L.length < 8) return null;
+  const [nom, prenom, classe, note, date, debut, fin, code] = L;
+  const m = NOTE_RE.exec(note);
+  if (!nom || !m) return null;
+  return {
+    test, nom, prenom, classe, date, debut, fin, code,
+    note: `${m[1]} / ${m[2]}`,
+    notePap: m[3] ? `${m[3]} / ${m[4]}` : '',
+    sur20: num(m[1]) / num(m[2]) * 20,
+    raw: [test].concat(L.slice(0, 8)).join('\n')
+  };
+}
+
+let lastKey = '';
+let lastIsStudent = true;
+function addPayload(txt, quiet) {
+  const r = parsePayload(txt);
+  if (!r) { if (!quiet) say('Ce QR code ne vient pas d’une copie de test.', 'ko'); return 'bad'; }
+  const key = keyOf(r);
+  const i = rows.findIndex(x => keyOf(x) === key);
+  let res;
+  if (i >= 0 && rows[i].raw === r.raw) res = 'dup';
+  else if (i >= 0) { rows[i] = r; res = 'upd'; }
+  else { rows.push(r); res = 'new'; }
+  lastKey = key;
+  save(); render();
+  const who = `${r.nom.toUpperCase()} ${r.prenom} (${r.classe}) — ${r.note}` + (r.test ? ` — ${r.test}` : '');
+  lastIsStudent = isStudentCode(r);
+  if (!quiet) {
+    if (res === 'dup') say('Déjà scannée : ' + who, 'warn');
+    else { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); if (lastIsStudent) beep(); else fraudSound(); }   // code non élève : alarme au lieu du bip
+  }
+  return res;
+}
+
+const keyOf = r => ((r.test || '') + '|' + r.nom + '|' + r.prenom + '|' + r.classe).toUpperCase();
+function sorted() {
+  return rows.slice().sort((a, b) =>
+    a.classe.localeCompare(b.classe, 'fr') || a.nom.localeCompare(b.nom, 'fr', { sensitivity: 'base' }) || a.prenom.localeCompare(b.prenom, 'fr', { sensitivity: 'base' }) || (a.test || '').localeCompare(b.test || '', 'fr', { numeric: true }));
+}
+
+function render() {
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  sorted().forEach((r, i) => {
+    const tr = document.createElement('tr');
+    if (keyOf(r) === lastKey) tr.className = 'flash';
+    [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, r.note, r.notePap || '-', fr(r.sur20, 1), r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code]
+      .forEach((v, k) => { const td = document.createElement('td'); td.textContent = v; if ([0, 5, 6, 7].includes(k)) td.className = 'num'; tr.appendChild(td); });
+    const td = document.createElement('td');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'del'; b.textContent = 'Retirer';
+    b.onclick = () => { rows = rows.filter(x => x !== r); save(); render(); };
+    td.appendChild(b); tr.appendChild(td);
+    tb.appendChild(tr);
+  });
+  document.getElementById('empty').style.display = rows.length ? 'none' : '';
+  document.getElementById('count').textContent = rows.length;
+  document.getElementById('finishBtn').disabled = !rows.length || !(document.getElementById('fmtPdf').checked || document.getElementById('fmtXlsx').checked);
+}
+
+let sayT = 0;
+function say(t, k) {
+  const s = document.getElementById('status');
+  s.textContent = t; s.className = k || '';
+  clearTimeout(sayT); sayT = setTimeout(() => { s.textContent = ''; s.className = ''; }, 6000);
+}
+let AC = null;
+function getAC() {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state !== 'running') AC.resume();
+  } catch (e) {}
+  return AC;
+}
+// Contexte audio « déverrouillé » dès le premier clic ou toucher (sinon l'alarme lancée pendant un scan peut rester muette)
+['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, function unlock() {
+  const c = getAC();
+  try { const b = c.createBufferSource(); b.buffer = c.createBuffer(1, 1, 22050); b.connect(c.destination); b.start(0); } catch (e) {}
+  if (c && c.state === 'running') ['pointerdown', 'keydown', 'touchstart'].forEach(x => window.removeEventListener(x, unlock, true));
+}, true));
+function beep() {
+  try {
+    AC = getAC();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.frequency.value = 1150; g.gain.value = 0.15;
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + 0.12);
+  } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
+}
+
+// ===== Code d'accès élève ? =====
+// Code élève = une des deux bases du jour DE LA DATE DE LA COPIE + A, B, C, AW, BW ou CW.
+// Base 1 : jour×10, mois×10, initiale du jour, initiale du mois ; base 2 : jour×2, mois×2, initiale du jour en anglais, initiale du mois suivant.
+function studentBases(dateTxt) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(dateTxt || '').trim());
+  if (!m) return [];
+  const d = new Date(+m[3], +m[2] - 1, +m[1]);
+  if (isNaN(d)) return [];
+  const daysFr = ['D', 'L', 'M', 'M', 'J', 'V', 'S'], daysEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const day = d.getDate(), mon = d.getMonth() + 1;
+  return [
+    String(day * 10) + String(mon * 10) + daysFr[d.getDay()] + months[d.getMonth()],
+    String(day * 2) + String(mon * 2) + daysEn[d.getDay()] + months[(d.getMonth() + 1) % 12]
+  ];
+}
+function isStudentCode(r) {
+  const code = String(r.code || '').trim().toUpperCase();
+  return studentBases(r.date).some(b => code.startsWith(b) && /^[ABC]W?$/.test(code.slice(b.length)));
+}
+
+// Son d'alarme « fraude détectée » (le même que dans les tests) : sirène, montée, annonce vocale grave, grondement
+let fraudPlaying = false;
+function fraudSound() {
+  if (fraudPlaying) return;
+  fraudPlaying = true;
+  setTimeout(() => { fraudPlaying = false; }, 9000);
+  const ANNONCE = [
+    "Alerte !",
+    "Tentative de fraude détectée !",
+    "Votre évaluation est verrouillée !"
+  ];
+  const PAUSES = [150, 200];
+  const PITCH  = [0.3, 0.15, 0.1];
+  const RATE   = [1.0, 1.25, 1.2];
+  const HIT    = [true, true, true];   // impact au début de la phrase
+  const audioCtx = getAC();
+  if (!audioCtx) return;
+  const ttsOk = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+  const duration = 10;
+  if (!ttsOk) {
+    try {
+      let startTime = audioCtx.currentTime;
+      let oscillator = audioCtx.createOscillator();
+      let gainNode = audioCtx.createGain();
+      oscillator.type = 'sawtooth';
+      for (let t = 0; t < duration; t += 0.5) {
+        oscillator.frequency.setValueAtTime(800, startTime + t);
+        oscillator.frequency.setValueAtTime(1200, startTime + t + 0.25);
+      }
+      gainNode.gain.setValueAtTime(0.4, startTime);
+      gainNode.gain.setValueAtTime(0, startTime + duration);
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    } catch(e) {}
+    return;
+  }
+
+  // Grondement grave et inquiétant sous la voix (deux notes basses légèrement désaccordées)
+  let droneGain = null;
+  try {
+    const t0 = audioCtx.currentTime;
+    droneGain = audioCtx.createGain();
+    droneGain.gain.setValueAtTime(0, t0);
+    droneGain.gain.linearRampToValueAtTime(0.10, t0 + 0.4);
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 220;
+    [55, 55.8, 82.4].forEach(f => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sawtooth'; o.frequency.value = f;
+      o.connect(lp); o.start(t0); o.stop(t0 + 25);
+    });
+    lp.connect(droneGain); droneGain.connect(audioCtx.destination);
+  } catch(e) {}
+  // Impact « boum » de bande-annonce : basse qui plonge + souffle filtré
+  const hit = (strength) => {
+    try {
+      const t = audioCtx.currentTime, g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.9 * strength, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      g.connect(audioCtx.destination);
+      const o = audioCtx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(110, t);
+      o.frequency.exponentialRampToValueAtTime(32, t + 0.9);
+      o.connect(g); o.start(t); o.stop(t + 1.2);
+      const n = audioCtx.createBufferSource(), len = audioCtx.sampleRate * 0.5;
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      n.buffer = buf;
+      const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+      const ng = audioCtx.createGain(); ng.gain.value = 0.5 * strength;
+      n.connect(f); f.connect(ng); ng.connect(audioCtx.destination); n.start(t);
+    } catch(e) {}
+  };
+  // Montée de tension (souffle qui grimpe) juste avant la première phrase
+  const riser = () => {
+    try {
+      const t = audioCtx.currentTime, len = audioCtx.sampleRate * 0.6;
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const n = audioCtx.createBufferSource(); n.buffer = buf;
+      const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 4;
+      f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(4000, t + 0.6);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.01, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.58); g.gain.setValueAtTime(0, t + 0.6);
+      n.connect(f); f.connect(g); g.connect(audioCtx.destination); n.start(t);
+    } catch(e) {}
+  };
+  const endDrone = () => {
+    try { const t = audioCtx.currentTime; droneGain.gain.cancelScheduledValues(t);
+          droneGain.gain.setValueAtTime(droneGain.gain.value, t);
+          droneGain.gain.linearRampToValueAtTime(0, t + 1.5); } catch(e) {}
+  };
+
+  // Choix d'une voix française, masculine de préférence (plus grave)
+  const pickVoice = () => {
+    const fr = window.speechSynthesis.getVoices().filter(x => /^fr/i.test(x.lang));
+    return fr.find(x => /thomas|paul|henri|claude|mathieu|daniel|nicolas|jacques|male|homme|masculin/i.test(x.name))
+        || fr.find(x => /fr-FR/i.test(x.lang)) || fr[0] || null;
+  };
+  window.speechSynthesis.cancel();
+  const say = k => {
+    if (k >= ANNONCE.length) { endDrone(); return; }
+    const u = new SpeechSynthesisUtterance(ANNONCE[k]);
+    u.lang = 'fr-FR';
+    const v = pickVoice(); if (v) u.voice = v;
+    u.pitch = PITCH[k];                 // très grave
+    u.rate = RATE[k];                   // rapide et nerveux
+    u.volume = 1;
+    u.onstart = () => { if (HIT[k]) hit(k === 0 ? 1 : 0.7); };
+    u.onend = () => {
+      if (k + 1 < ANNONCE.length) setTimeout(() => say(k + 1), PAUSES[k] || 0);
+      else { endDrone(); setTimeout(siren, 150); }   // nouveau coup de sirène pour finir
+    };
+    u.onerror = () => endDrone();
+    window.speechSynthesis.speak(u);
+  };
+  // Coup de sirène d'alarme (1,5 s) avant la voix ; on attend que le contexte audio tourne vraiment
+  const SIREN = 1.5;
+  const siren = () => {
+  try {
+    const t0 = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sawtooth';
+    for (let t = 0; t < SIREN; t += 0.5) {
+      o.frequency.setValueAtTime(800, t0 + t);
+      o.frequency.setValueAtTime(1200, t0 + t + 0.25);
+    }
+    g.gain.setValueAtTime(0.4, t0);
+    g.gain.setValueAtTime(0.4, t0 + SIREN - 0.05);
+    g.gain.linearRampToValueAtTime(0, t0 + SIREN);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0 + SIREN);
+  } catch(e) {}
+  };
+  const go = () => {
+  siren();
+  setTimeout(riser, SIREN * 1000);                  // puis montée de tension
+  setTimeout(() => say(0), SIREN * 1000 + 600);     // la voix tombe pile à la fin de la montée
+  };
+  let started = false;
+  const start = () => { if (!started) { started = true; go(); } };
+  try {
+    if (audioCtx.state === 'running') start();
+    else { audioCtx.resume().then(start, start); setTimeout(start, 400); }   // au pire, la voix part quand même
+  } catch(e) { start(); }
+}
+
+// Lecture d'un QR dans un canvas (texte décodé en UTF-8 pour les accents)
+function decodeCanvas(cv) {
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  const img = ctx.getImageData(0, 0, cv.width, cv.height);
+  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+  if (!code) return null;
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(new Uint8Array(code.binaryData)); } catch (e) { return code.data; }
+}
+
+// ===== Caméra =====
+const video = document.getElementById('video');
+const scanCv = document.createElement('canvas');
+let stream = null, devices = [], devIdx = -1, lastTxt = '', lastAt = 0;
+
+async function startCam() {
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camMsg('Le navigateur bloque la caméra en direct pour un fichier ouvert depuis le téléphone (il faut une page en https). Utilise le bouton « Photographier une copie » ou importe les PDF des copies.');
+    return;
+  }
+  stopCam();
+  try {
+    const c = devIdx >= 0 && devices[devIdx] ? { deviceId: { exact: devices[devIdx].deviceId } } : { facingMode: 'environment' };
+    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign(c, { width: { ideal: 1280 }, height: { ideal: 720 } }), audio: false });
+  } catch (e) {
+    camMsg('Accès à la caméra refusé ou impossible. Utilise le bouton « Photographier une copie » ou importe les PDF des copies.');
+    return;
+  }
+  video.srcObject = stream;
+  await video.play().catch(() => {});
+  video.style.display = 'block';
+  document.getElementById('frame').style.display = 'block';
+  document.getElementById('camMsg').style.display = 'none';
+  document.getElementById('camBtn').textContent = 'Arrêter la caméra';
+  try {
+    devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    if (devIdx < 0) { const id = stream.getVideoTracks()[0].getSettings().deviceId; devIdx = Math.max(0, devices.findIndex(d => d.deviceId === id)); }
+    document.getElementById('switchBtn').hidden = devices.length < 2;
+  } catch (e) {}
+  requestAnimationFrame(tick);
+}
+function stopCam() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  video.style.display = 'none';
+  document.getElementById('frame').style.display = 'none';
+  document.getElementById('camMsg').style.display = '';
+  document.getElementById('camBtn').textContent = 'Démarrer la caméra';
+}
+function camMsg(t) { document.getElementById('camMsg').textContent = t; document.getElementById('camMsg').style.display = ''; }
+
+function tick() {
+  if (!stream) return;
+  if (video.readyState >= 2 && video.videoWidth) {
+    const w = Math.min(800, video.videoWidth), h = Math.round(video.videoHeight * w / video.videoWidth);
+    scanCv.width = w; scanCv.height = h;
+    scanCv.getContext('2d', { willReadFrequently: true }).drawImage(video, 0, 0, w, h);
+    const txt = decodeCanvas(scanCv);
+    const now = Date.now();
+    if (txt && !(txt === lastTxt && now - lastAt < 3000)) {
+      if (txt !== lastTxt || now - lastAt >= 3000) {
+        lastTxt = txt; lastAt = now;
+        const box = document.getElementById('videoBox');
+        box.classList.add('hit'); setTimeout(() => box.classList.remove('hit'), 600);
+        addPayload(txt);
+      }
+    } else if (txt) lastAt = now;   // même copie toujours devant la caméra : pas de répétition
+  }
+  setTimeout(() => requestAnimationFrame(tick), 120);
+}
+
+document.getElementById('camBtn').onclick = () => stream ? stopCam() : startCam();
+document.getElementById('switchBtn').onclick = () => { if (devices.length) { devIdx = (devIdx + 1) % devices.length; startCam(); } };
+
+// ===== Import de fichiers (PDF des copies ou photos) =====
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+function tryVariants(src, w, h) {
+  // pleine image, puis zone en haut à droite (emplacement du QR sur la copie), puis réduction
+  const zones = [[0, 0, w, h], [w * 0.55, 0, w * 0.45, h * 0.3], [w * 0.5, 0, w * 0.5, h * 0.5]];
+  for (const z of zones) {
+    for (const scale of [1, 0.6, 0.35, 1.6]) {
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(z[2] * scale)); cv.height = Math.max(1, Math.round(z[3] * scale));
+      if (cv.width * cv.height > 9e6) continue;
+      const ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(src, z[0], z[1], z[2], z[3], 0, 0, cv.width, cv.height);
+      const t = decodeCanvas(cv);
+      if (t) return t;
+    }
+  }
+  return null;
+}
+
+async function readFile(f) {
+  if (/pdf$/i.test(f.type) || /\.pdf$/i.test(f.name)) {
+    if (!window.pdfjsLib) throw new Error('lecteur PDF indisponible (connexion internet nécessaire)');
+    const pdf = await pdfjsLib.getDocument({ data: await f.arrayBuffer(), standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/' }).promise;
+    const page = await pdf.getPage(1);
+    const vp = page.getViewport({ scale: 3 });
+    const cv = document.createElement('canvas');
+    cv.width = vp.width; cv.height = vp.height;
+    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    return tryVariants(cv, cv.width, cv.height);
+  }
+  const url = URL.createObjectURL(f);
+  try {
+    const img = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+    return tryVariants(img, img.naturalWidth, img.naturalHeight);
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function importFiles(list) {
+  const files = [...list];
+  if (!files.length) return;
+  const msg = document.getElementById('importMsg');
+  let added = 0, upd = 0, dup = 0, nonStudent = 0;
+  const fails = [];
+  for (let k = 0; k < files.length; k++) {
+    const f = files[k];
+    msg.textContent = `Lecture ${k + 1} / ${files.length} : ${f.name}…`;
+    // nom du test repris du nom de fichier de la copie (…-TEST001-TGEN.pdf)
+    try {
+      const txt = await readFile(f);
+      const r = txt ? addPayload(txt, true) : 'bad';
+      if (r === 'new') added++; else if (r === 'upd') upd++; else if (r === 'dup') dup++; else fails.push(f.name);
+      if ((r === 'new' || r === 'upd') && !lastIsStudent) nonStudent++;
+    } catch (e) { fails.push(f.name); }
+  }
+  msg.textContent = `${added} copie(s) ajoutée(s)` + (upd ? `, ${upd} mise(s) à jour` : '') + (dup ? `, ${dup} déjà présente(s)` : '') +
+    (fails.length ? `. QR code introuvable dans : ${fails.join(', ')}` : '.');
+  if (nonStudent) fraudSound(); else if (added || upd) beep();   // au moins une copie avec un code non élève : alarme
+}
+document.getElementById('photoBtn').onclick = () => document.getElementById('photo').click();
+document.getElementById('photo').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  say('Lecture de la photo…', 'warn');
+  try {
+    const txt = await readFile(f);
+    if (txt) addPayload(txt); else say('QR code non trouvé sur la photo : reprends-la plus près, bien nette et sans reflet.', 'ko');
+  } catch (x) { say('Photo illisible, recommence.', 'ko'); }
+};
+document.getElementById('pickBtn').onclick = () => document.getElementById('files').click();
+document.getElementById('files').onchange = e => { importFiles(e.target.files); e.target.value = ''; };
+const drop = document.getElementById('drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => importFiles(e.dataTransfer.files));
+
+// ===== Liste =====
+function clearList() { rows = []; lastKey = ''; save(); render(); document.getElementById('after').classList.remove('show'); }
+document.getElementById('clearBtn').onclick = () => { if (rows.length && confirm('Vider la liste des copies scannées ?')) clearList(); };
+document.getElementById('newClassBtn').onclick = clearList;
+document.getElementById('keepBtn').onclick = () => document.getElementById('after').classList.remove('show');
+
+// ===== Choix des formats (mémorisé) =====
+['fmtPdf', 'fmtXlsx'].forEach(id => {
+  const el = document.getElementById(id);
+  try { const v = localStorage.getItem(STORE + '_' + id); if (v !== null) el.checked = v === '1'; } catch (e) {}
+  el.onchange = () => { try { localStorage.setItem(STORE + '_' + id, el.checked ? '1' : '0'); } catch (e) {} render(); };
+});
+
+const baseName = () => {
+  const classes = [...new Set(rows.map(r => r.classe))].sort((a, b) => a.localeCompare(b, 'fr')).join('_');
+  return `Resultats-${classes}-${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}`.replace(/[\\\/:*?"<>|\s]/g, '');
+};
+function download(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+document.getElementById('finishBtn').onclick = () => {
+  if (!rows.length) return;
+  const wantPdf = document.getElementById('fmtPdf').checked, wantXlsx = document.getElementById('fmtXlsx').checked;
+  const done = [];
+  if (wantPdf && makePdf()) done.push('PDF');
+  if (wantXlsx && makeXlsx()) done.push('Excel');
+  if (!done.length) return;
+  stopCam();
+  document.getElementById('afterMsg').textContent = done.length > 1 ? 'Les fichiers PDF et Excel ont été générés.' : `Le fichier ${done[0]} a été généré.`;
+  document.getElementById('after').classList.add('show');
+};
+
+// ===== Fichier Excel (notes en nombres, moyenne calculée par formule) =====
+function makeXlsx() {
+  if (!window.XLSX) { alert('Génération du fichier Excel impossible : vérifie la connexion internet puis recharge la page.'); return false; }
+  const list = sorted();
+  const n = v => { const x = num(v); return isNaN(x) ? '' : x; };
+  const head = ['N°', 'Test', 'NOM', 'Prénom', 'Classe', 'Note', 'Barème', 'Note ramenée (PAP)', 'Barème complet (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi'];
+  const data = list.map((r, i) => {
+    const [p, b] = r.note.split('/').map(n);
+    const [pp, bp] = r.notePap ? r.notePap.split('/').map(n) : ['', ''];
+    return [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, p, b, pp, bp, Math.round(r.sur20 * 100) / 100, r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code];
+  });
+  const ws = XLSX.utils.aoa_to_sheet([head].concat(data));
+  const last = data.length + 1, foot = last + 1;
+  XLSX.utils.sheet_add_aoa(ws, [['', '', 'Moyenne', '', '', '', '', '', '', { t: 'n', f: `ROUND(AVERAGE(J2:J${last}),2)` }]], { origin: `A${foot}` });
+  for (let r = 2; r <= foot; r++) { const c = ws['J' + r]; if (c) c.z = '0.0'; }
+  ws['!cols'] = [5, 16, 18, 14, 10, 7, 8, 10, 10, 8, 11, 9, 9, 11, 12].map(w => ({ wch: w }));
+  ws['!autofilter'] = { ref: `A1:O${last}` };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Résultats');
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  download(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), baseName() + '.xlsx');
+  return true;
+}
+
+// ===== PDF récapitulatif =====
+function makePdf() {
+  if (!(window.jspdf && window.jspdf.jsPDF)) { alert('Génération du PDF impossible : vérifie la connexion internet puis recharge la page.'); return false; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pc = s => String(s).replace(/[’‘]/g, "'").replace(/[–—]/g, '-').replace(/[^\x00-\xFF]/g, '');
+  const list = sorted();
+  const classes = [...new Set(list.map(r => r.classe))].join(', ');
+  const T = [1];   // colonne « Test » toujours présente : chaque élève peut faire un test différent
+  const now = new Date();
+  const moy = list.reduce((s, r) => s + r.sur20, 0) / list.length;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(11, 94, 215);
+  doc.text(pc('Résultats de la séance'), 14, 15);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(60, 66, 80);
+  doc.text(pc(`Classe : ${classes}   ·   ${list.length} copie(s)   ·   Moyenne : ${fr(moy, 1)} / 20   ·   Généré le ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR').slice(0, 5)}`), 14, 21.5);
+
+  doc.autoTable({
+    startY: 26,
+    head: [['N°', 'Test'].concat(['NOM', 'Prénom', 'Classe', 'Note', 'Ramenée (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi']).map(pc)],
+    body: list.map((r, i) => [i + 1, r.test || '-'].concat([r.nom.toUpperCase(), r.prenom, r.classe, r.note, r.notePap || '-', fr(r.sur20, 1), r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code]).map(pc)),
+    foot: [['', ''].concat([pc('Moyenne'), '', '', '', '', fr(moy, 1), '', '', '', '', ''])],
+    theme: 'grid',
+    styles: { font: 'helvetica', fontSize: 9, cellPadding: 1.8, textColor: [28, 35, 51], lineColor: [200, 206, 220], lineWidth: 0.2 },
+    headStyles: { fillColor: [11, 94, 215], textColor: 255, fontStyle: 'bold' },
+    footStyles: { fillColor: [227, 244, 234], textColor: [14, 95, 55], fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [246, 248, 252] },
+    columnStyles: { 0: { halign: 'right', cellWidth: 10 }, [1 + T.length]: { fontStyle: 'bold' }, [4 + T.length]: { halign: 'right' }, [5 + T.length]: { halign: 'right' }, [6 + T.length]: { halign: 'right', fontStyle: 'bold' } },
+    margin: { left: 14, right: 14, bottom: 14 },
+    didDrawPage: () => {
+      doc.setFontSize(8); doc.setTextColor(120, 128, 145);
+      doc.text(pc('By Domstoolbox pour La Joliverie'), 14, 203);
+      doc.text(`Page ${doc.getNumberOfPages()}`, 283, 203, { align: 'right' });
+    }
+  });
+
+  download(doc.output('blob'), pc(baseName()) + '.pdf');
+  return true;
+}
+
+render();
+</script>
+</body>
+</html>
