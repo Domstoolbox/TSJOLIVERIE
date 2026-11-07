@@ -92,7 +92,8 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
 #calc.min .ck{display:none}
 @media (min-width:900px){body.calc-open{padding-right:372px}}
 @media (max-width:899px), (max-height:520px){
-  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  #calc{top:max(14px, env(safe-area-inset-top, 0px));left:max(10px, env(safe-area-inset-left, 0px));right:max(10px, env(safe-area-inset-right, 0px));bottom:auto;width:auto;height:auto;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);border-radius:14px}   /* décollée des bords : la croix ne tombe plus dans l’arrondi de l’écran (plein écran) */
+  #calc .ch{padding-right:12px!important}
   body.calc-open{padding-bottom:0;padding-right:0}
   #calcMin,#calcFx,#calcKeys{display:none!important}
   #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
@@ -400,7 +401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 07/11/2026 - 09h44</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 07/11/2026 - 10h01</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -1843,6 +1844,14 @@ function openCalc(i, btn) {
   }
 }
 
+// Remise à zéro totale de la calculatrice (calcul, résultat, Ans, mémoire, mode DEG)
+function calcResetAll() {
+  Object.assign(CALC, { expr: '', lastExpr: '', result: null, ans: 0, justEval: false, err: false, mem: 0, deg: true, note: '' });
+  if (!CALC.built) return;
+  const m = document.getElementById('calcMode');
+  if (m) m.textContent = 'DEG';
+  calcRender();
+}
 function closeCalc() {
   if (!CALC.built) return;
   document.getElementById('calc').hidden = true;
@@ -2019,6 +2028,7 @@ function fitEq(root) {
 }
 window.addEventListener('resize', () => fitEq());
 function showQ(i) {
+  if (i !== curQ) calcResetAll();   // nouvelle question : calculatrice entièrement remise à zéro
   curQ = i;
   document.querySelectorAll('#quiz section.q').forEach(sec => sec.classList.toggle('cur', +sec.dataset.i === i));
   const n = Q.length, last = i >= n - 1;
