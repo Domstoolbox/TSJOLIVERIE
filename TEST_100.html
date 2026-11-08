@@ -401,7 +401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 08h08</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 08h19</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -1245,11 +1245,11 @@ const ALL_QUESTIONS = [
   {t:"La période d’un son vaut T = 2,50 ms. Quelle est sa fréquence f ? (en Hz, 3 chiffres significatifs)",n:400.0,u:"Hz",d:"400",sf:[3],e:"f = 1 / T = 1 / 2,50×10⁻³ = 400 Hz."},
   {t:"La longueur d’onde d’un son est la distance parcourue par l’onde pendant une période.",o:["VRAI","FAUX"],a:[0],e:"Définition de λ.",fixed:true},
   {t:"Dans le Système international, une longueur d’onde s’exprime en m/s.",o:["VRAI","FAUX"],a:[1],e:"Une longueur d’onde est une distance : en mètres (m).",fixed:true},
-  {t:"La longueur d’onde λ (en m), la célérité v (en m.s<sup>-1</sup>) et la période T (en s) sont liées par :",o:["<span class=\"eq\">λ = v / T</span>","<span class=\"eq\">λ = T / v</span>","<span class=\"eq\">λ = v + T</span>","<span class=\"eq\">λ = v · T</span>"],a:[3],e:"λ = v · T."},
-  {t:"La longueur d’onde λ (en m), la célérité v (en m.s<sup>-1</sup>) et la fréquence f (en Hz) sont liées par :",o:["<span class=\"eq\">λ = v / f</span>","<span class=\"eq\">λ = v · f</span>","<span class=\"eq\">λ = f / v</span>","<span class=\"eq\">λ = v + f</span>"],a:[0],e:"λ = v · T = v / f."},
-  {t:"On prend pour la célérité du son dans l’air v = 340 m.s<sup>-1</sup>. Quelle est la longueur d’onde λ d’un son de fréquence 680 Hz dans l’air ? (en m, 3 chiffres significatifs)",n:0.5,u:"m",d:"0,500",sf:[3],e:"λ = v / f = 340 / 680 = 0,500 m."},
-  {t:"Dans un même milieu, la longueur d’onde d’un son aigu est plus courte que celle d’un son grave.",o:["VRAI","FAUX"],a:[0],e:"λ = v / f : f plus grande, λ plus petite.",fixed:true},
-  {t:"La longueur d’onde d’un son est proportionnelle à sa fréquence.",o:["VRAI","FAUX"],a:[1],e:"λ = v / f : elle est inversement proportionnelle à f.",fixed:true},
+  {t:"La longueur d’onde λ (en m), la célérité c (en m.s<sup>-1</sup>) et la période T (en s) sont liées par :",o:["<span class=\"eq\">λ = c / T</span>","<span class=\"eq\">λ = T / c</span>","<span class=\"eq\">λ = c + T</span>","<span class=\"eq\">λ = c · T</span>"],a:[3],e:"λ = c · T."},
+  {t:"La longueur d’onde λ (en m), la célérité c (en m.s<sup>-1</sup>) et la fréquence f (en Hz) sont liées par :",o:["<span class=\"eq\">λ = c / f</span>","<span class=\"eq\">λ = c · f</span>","<span class=\"eq\">λ = f / c</span>","<span class=\"eq\">λ = c + f</span>"],a:[0],e:"λ = c · T = c / f."},
+  {t:"On prend pour la célérité du son dans l’air c = 340 m.s<sup>-1</sup>. Quelle est la longueur d’onde λ d’un son de fréquence 680 Hz dans l’air ? (en m, 3 chiffres significatifs)",n:0.5,u:"m",d:"0,500",sf:[3],e:"λ = c / f = 340 / 680 = 0,500 m."},
+  {t:"Dans un même milieu, la longueur d’onde d’un son aigu est plus courte que celle d’un son grave.",o:["VRAI","FAUX"],a:[0],e:"λ = c / f : f plus grande, λ plus petite.",fixed:true},
+  {t:"La longueur d’onde d’un son est proportionnelle à sa fréquence.",o:["VRAI","FAUX"],a:[1],e:"λ = c / f : elle est inversement proportionnelle à f.",fixed:true},
   {t:"La célérité et la fréquence d’une onde sonore désignent la même grandeur.",o:["VRAI","FAUX"],a:[1],e:"Célérité en m/s (vitesse), fréquence en Hz.",fixed:true},
   {t:"La durée d’un motif qui se répète dans une onde périodique s’appelle la longueur d’onde.",o:["VRAI","FAUX"],a:[1],e:"C’est la période T.",fixed:true},
   {t:"La hauteur d’un son (grave ou aigu) est liée à :",o:["sa célérité","sa durée","sa fréquence","son amplitude"],a:[2],e:"Hauteur ↔ fréquence."},
@@ -1276,9 +1276,9 @@ const ALL_QUESTIONS = [
   {t:"L’intensité sonore diminue quand on s’éloigne de la source.",o:["VRAI","FAUX"],a:[0],e:"L’énergie se répartit sur une surface de plus en plus grande.",fixed:true},
   {t:"Le seuil de douleur de l’oreille humaine est atteint vers 120 dB.",o:["VRAI","FAUX"],a:[0],e:"≈ 120 dB.",fixed:true},
   {t:"Un ventilateur produit un niveau d’intensité sonore de 50 dB. Deux ventilateurs identiques fonctionnent ensemble. Quel est le niveau d’intensité sonore obtenu ? (en dB, 2 chiffres significatifs)",n:53.01029995663981,u:"dB",d:"53",sf:[2],e:"Intensité doublée : + 3 dB, soit 53 dB."},
-  {t:"Un son parcourt 1020 m en 3,00 s. Quelle est sa célérité v ? (en m.s<sup>-1</sup>, 3 chiffres significatifs)",n:340.0,u:"m/s",d:"340",sf:[3],e:"v = d / t = 1020 / 3,00 = 340 m.s⁻¹."},
-  {t:"On prend pour la célérité du son dans l’air v = 340 m.s<sup>-1</sup>. Une personne crie face à une falaise et entend l’écho 2,00 s plus tard. À quelle distance d se trouve la falaise ? (en m, 3 chiffres significatifs)",n:340.0,u:"m",d:"340",sf:[3],e:"Aller-retour : 2 · d = v · t, d = 340 × 2,00 / 2 = 340 m."},
-  {t:"On prend pour la célérité du son dans l’air v = 340 m.s<sup>-1</sup>. Le son met, pour parcourir 1,70 km dans l’air :",o:["5,00 s","0,200 s","5,00×10<sup>-3</sup> s","5,78×10<sup>5</sup> s"],a:[0],e:"t = d / v = 1700 / 340 = 5,00 s."}
+  {t:"Un son parcourt 1020 m en 3,00 s. Quelle est sa célérité c ? (en m.s<sup>-1</sup>, 3 chiffres significatifs)",n:340.0,u:"m/s",d:"340",sf:[3],e:"c = d / t = 1020 / 3,00 = 340 m.s⁻¹."},
+  {t:"On prend pour la célérité du son dans l’air c = 340 m.s<sup>-1</sup>. Une personne crie face à une falaise et entend l’écho 2,00 s plus tard. À quelle distance d se trouve la falaise ? (en m, 3 chiffres significatifs)",n:340.0,u:"m",d:"340",sf:[3],e:"Aller-retour : 2 · d = c · t, d = 340 × 2,00 / 2 = 340 m."},
+  {t:"On prend pour la célérité du son dans l’air c = 340 m.s<sup>-1</sup>. Le son met, pour parcourir 1,70 km dans l’air :",o:["5,00 s","0,200 s","5,00×10<sup>-3</sup> s","5,78×10<sup>5</sup> s"],a:[0],e:"t = d / c = 1700 / 340 = 5,00 s."}
 ];
 
 // Mélange les propositions A/B/C d'une question (copie : la banque d'origine reste intacte).
