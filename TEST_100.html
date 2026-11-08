@@ -401,7 +401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 08h19</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 09h09</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -1257,11 +1257,11 @@ const ALL_QUESTIONS = [
   {t:"Plus l’amplitude d’une onde sonore est grande, plus le son est fort.",o:["VRAI","FAUX"],a:[0],e:"Amplitude ↔ intensité (volume).",fixed:true},
   {t:"Deux instruments de musique peuvent jouer la même note (même fréquence) tout en sonnant différemment.",o:["VRAI","FAUX"],a:[0],e:"Ils diffèrent par le timbre.",fixed:true},
   {t:"Deux instruments jouent la même note avec le même volume. Ce qui permet de les distinguer est :",o:["la célérité","la période","le timbre","la fréquence"],a:[2],e:"Le timbre (forme du signal)."},
-  {t:"L’oreille humaine perçoit les sons dont la fréquence est comprise entre :",o:["20 Hz et 20 MHz","2 Hz et 2 kHz","200 Hz et 200 kHz","20 Hz et 20 kHz"],a:[3],e:"Domaine audible : 20 Hz – 20 kHz."},
-  {t:"Les infrasons sont audibles par l’oreille humaine.",o:["VRAI","FAUX"],a:[1],e:"f < 20 Hz : inaudibles.",fixed:true},
+  {t:"Un homme jeune et en bonne santé entend les sons dont la fréquence est comprise entre :",o:["20 Hz et 20 MHz","2 Hz et 2 kHz","200 Hz et 200 kHz","20 Hz et 20 kHz"],a:[3],e:"Domaine audible : 20 Hz – 20 kHz."},
+  {t:"Un homme jeune et en bonne santé peut entendre les infrasons.",o:["VRAI","FAUX"],a:[1],e:"f < 20 Hz : inaudibles.",fixed:true},
   {t:"Les ultrasons ont des fréquences :",o:["égales à 340 Hz","supérieures à 20 kHz","inférieures à 20 Hz","comprises entre 20 Hz et 20 kHz"],a:[1],e:"Ultrasons : f > 20 kHz."},
   {t:"Les ultrasons sont utilisés en imagerie médicale (échographie).",o:["VRAI","FAUX"],a:[0],e:"L’échographie utilise des ultrasons.",fixed:true},
-  {t:"L’oreille humaine peut percevoir un son quelle que soit sa fréquence.",o:["VRAI","FAUX"],a:[1],e:"Seulement entre 20 Hz et 20 kHz.",fixed:true},
+  {t:"Un homme jeune et en bonne santé peut entendre un son quelle que soit sa fréquence.",o:["VRAI","FAUX"],a:[1],e:"Seulement entre 20 Hz et 20 kHz.",fixed:true},
   {t:"L’oreille humaine a la même sensibilité à toutes les fréquences audibles.",o:["VRAI","FAUX"],a:[1],e:"Elle est plus sensible vers 1 à 4 kHz.",fixed:true},
   {t:"Un son de fréquence 30 kHz est :",o:["un son audible aigu","un ultrason","un infrason","un son audible grave"],a:[1],e:"30 kHz > 20 kHz."},
   {t:"Un son de fréquence 10 Hz est :",o:["un son audible grave","un son audible aigu","un infrason","un ultrason"],a:[2],e:"10 Hz < 20 Hz."},
@@ -1269,10 +1269,10 @@ const ALL_QUESTIONS = [
   {t:"L’intensité sonore I s’exprime en :",o:["W.m<sup>-2</sup>","décibels (dB)","hertz (Hz)","watts (W)"],a:[0],e:"I en W/m²."},
   {t:"Le niveau d’intensité sonore se mesure avec un sonomètre.",o:["VRAI","FAUX"],a:[0],e:"Le sonomètre affiche L en dB.",fixed:true},
   {t:"Un niveau d’intensité sonore de 0 dB correspond à l’absence totale de son.",o:["VRAI","FAUX"],a:[1],e:"0 dB = seuil d’audibilité, pas l’absence de son.",fixed:true},
-  {t:"Le niveau d’intensité sonore est une grandeur logarithmique.",o:["VRAI","FAUX"],a:[0],e:"L = 10 · log(I / I₀).",fixed:true},
-  {t:"Un son de 60 dB est deux fois plus intense qu’un son de 30 dB.",o:["VRAI","FAUX"],a:[1],e:"+30 dB : intensité multipliée par 1000.",fixed:true},
+  {t:"Le niveau d’intensité sonore est une grandeur logarithmique.",o:["VRAI","FAUX"],a:[0],e:"Intensité × 2 ⇔ +3 dB : le niveau n’est pas proportionnel à l’intensité.",fixed:true},
+  {t:"Un son de 60 dB est deux fois plus intense qu’un son de 30 dB.",o:["VRAI","FAUX"],a:[1],e:"Intensité × 2 ⇔ +3 dB seulement, pas +30 dB.",fixed:true},
   {t:"Quand le niveau d’intensité sonore augmente de 3 dB, l’intensité sonore :",o:["est multipliée par 10","est multipliée par 2","est multipliée par 3","augmente de 3 W.m<sup>-2</sup>"],a:[1],e:"+3 dB ↔ I × 2."},
-  {t:"Quand l’intensité sonore est multipliée par 10, le niveau d’intensité sonore :",o:["augmente de 20 dB","est multiplié par 10","augmente de 10 dB","augmente de 3 dB"],a:[2],e:"I × 10 ↔ +10 dB."},
+  {t:"L’intensité sonore et le niveau d’intensité sonore désignent la même grandeur.",o:["VRAI","FAUX"],a:[1],e:"Intensité sonore I en W/m² ; niveau d’intensité sonore L en dB.",fixed:true},
   {t:"L’intensité sonore diminue quand on s’éloigne de la source.",o:["VRAI","FAUX"],a:[0],e:"L’énergie se répartit sur une surface de plus en plus grande.",fixed:true},
   {t:"Le seuil de douleur de l’oreille humaine est atteint vers 120 dB.",o:["VRAI","FAUX"],a:[0],e:"≈ 120 dB.",fixed:true},
   {t:"Un ventilateur produit un niveau d’intensité sonore de 50 dB. Deux ventilateurs identiques fonctionnent ensemble. Quel est le niveau d’intensité sonore obtenu ? (en dB, 2 chiffres significatifs)",n:53.01029995663981,u:"dB",d:"53",sf:[2],e:"Intensité doublée : + 3 dB, soit 53 dB."},
