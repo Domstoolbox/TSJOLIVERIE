@@ -1,0 +1,1978 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Combustion du méthane</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<style>
+/* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
+:root{
+  --bg:#eceff1;
+  --paper:#ffffff;
+  --ink:#1d2633;
+  --muted:#5f6b7a;
+  --line:#dde2e8;
+  --soft:#f4f6f8;
+  --accent:#1f4e79;
+  --accent-soft:#e8eff6;
+  --ch4:#178a45; --co2:#7a3aa8; --coef:#d1262b;
+  --bad:#c0281f; --bad-bg:#fcecea;
+  --todo:#9a5b00; --todo-bg:#fff4df;
+  --good:#167a46; --good-bg:#e7f4ec;
+  --focus:#2b74c7;
+  --head-ink:#000000;
+  --f-head:"Archivo Black","Arial Black",Impact,sans-serif;
+  --red:#e3161b; --blue1:#1565c0; --green:#14a04a;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --paper:#1a2129; --ink:#e4e9ef; --muted:#9ba7b4; --line:#2e3843; --soft:#212a33;
+  --accent:#8fbbe6; --accent-soft:#1f2c3a;
+  --ch4:#4fcf83; --co2:#bb8ae6; --coef:#ff6b6f; --red:#ff5a5e; --blue1:#5aa2f0; --green:#3fd078; --head-ink:#e4e9ef;
+  --bad:#ff8077; --bad-bg:#3a1f1e; --todo:#f1b65c; --todo-bg:#3a2d17; --good:#5fd494; --good-bg:#17301f;
+  --focus:#7ab4f0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --paper:#1a2129; --ink:#e4e9ef; --muted:#9ba7b4; --line:#2e3843; --soft:#212a33;
+  --accent:#8fbbe6; --accent-soft:#1f2c3a;
+  --ch4:#4fcf83; --co2:#bb8ae6; --coef:#ff6b6f; --red:#ff5a5e; --blue1:#5aa2f0; --green:#3fd078; --head-ink:#e4e9ef;
+  --bad:#ff8077; --bad-bg:#3a1f1e; --todo:#f1b65c; --todo-bg:#3a2d17; --good:#5fd494; --good-bg:#17301f;
+  --focus:#7ab4f0; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.sheet{max-width:860px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+
+/* En-tête */
+.head{padding:20px clamp(16px,4vw,32px) 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);font-family:var(--f-head);--ink:var(--head-ink)}
+.head-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.memo{font-size:clamp(1rem,3.2vw,1.45rem);letter-spacing:.01em;color:var(--ink)}
+.memo .r{color:var(--red)}
+.lvl{display:flex;align-items:flex-end;line-height:1;color:var(--ink)}
+.lvl .one{font-size:clamp(2.2rem,6vw,2.9rem);color:var(--blue1);line-height:.8}
+.lvl .rest{display:flex;flex-direction:column;align-items:flex-start;margin-left:2px}
+.lvl .ere{font-family:var(--f-body);font-weight:700;font-size:.8rem;line-height:1;margin-bottom:2px}
+.lvl .sti{font-size:clamp(1rem,3vw,1.3rem);line-height:.9}
+.lvl .sti .r{color:var(--red)}
+.head h1{margin:0;font-weight:400;font-size:clamp(1.5rem,5.6vw,2.6rem);line-height:1.1;text-align:center;text-wrap:balance;color:var(--ink)}
+.head h1 .g{color:var(--green)}
+
+.body{padding:20px clamp(16px,4vw,32px) 24px;display:flex;flex-direction:column;gap:22px}
+
+/* Identité */
+.identbar{padding:16px clamp(16px,4vw,32px) 0}
+.ident{display:grid;grid-template-columns:1fr 1fr 170px;gap:12px;padding:14px;background:var(--soft);border:1px solid var(--line);border-radius:8px}
+@media (max-width:620px){.ident{grid-template-columns:1fr 1fr}.ident .f-classe{grid-column:1/-1}}
+@media (max-width:400px){.ident{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{width:100%;height:38px;font-weight:600;letter-spacing:.02em}
+.field input{text-transform:uppercase}
+.ident-msg{grid-column:1/-1;font-size:.8rem;font-weight:600;color:var(--todo);margin:0}
+
+/* Parties */
+section{display:flex;flex-direction:column;gap:10px}
+h2{margin:0;font-size:.82rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+h2 .tag{white-space:nowrap;font-size:.7rem;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-weight:600}
+.lead{margin:0;font-size:.92rem;color:var(--muted)}
+
+/* Molécules : même écriture partout que dans l'équation */
+.mol{font-weight:700;white-space:nowrap}
+.mol sub{font-size:.68em;line-height:0;vertical-align:-.3em;margin-left:.02em}
+.c-ch4{color:var(--ch4)} .c-co2{color:var(--co2)} .c-k{color:var(--coef)}
+
+/* Équation */
+.situation{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--soft);font-size:1rem}
+.situation b{font-weight:700}
+.recipe{border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--soft)}
+.recipe .cap{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.equation{font-size:2rem;font-weight:700;width:100%;max-width:100%;letter-spacing:.01em;text-align:center;line-height:1.4;white-space:nowrap;overflow:hidden}
+.equation .term{white-space:nowrap}
+.equation .op{font-weight:500;color:var(--muted);margin:0 .05em}
+
+/* Famille */
+.family{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.family{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;background:var(--paper)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt .t{display:flex;flex-direction:column;line-height:1.3}
+.opt .t b{font-weight:600}
+.opt .t small{font-size:.85rem;color:var(--muted)}
+.opt .t small sub{font-size:.72em;line-height:0;vertical-align:-.3em}
+input.word,select.word{width:11em;height:30px;vertical-align:middle}
+select.word{font-weight:600;letter-spacing:.02em;width:auto;min-width:11em;max-width:100%;padding-right:26px}
+.help{margin-left:8px;padding:3px 12px;font-size:.78rem;font-weight:700;letter-spacing:.08em;border-radius:999px;background:transparent;color:var(--accent);border:1px solid var(--accent);vertical-align:middle;line-height:1.6}
+.help:hover{background:var(--accent-soft)}
+.fam-extra{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;margin-top:2px}
+.inl{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:500}
+
+/* Questions : lignes compactes */
+.qlist{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.q{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 16px;padding:9px 14px;border-top:1px solid var(--line);transition:background-color .2s}
+.q:first-child{border-top:0}
+.q.block{grid-template-columns:minmax(0,1fr);row-gap:8px}
+.q .stmt{min-width:0}
+.q .stmt b{font-weight:600}
+.q .key{font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.fb{grid-column:1/-1;font-size:.8rem;font-weight:600;margin:0}
+.fb:empty{display:none}
+.q[data-state]{box-shadow:inset 4px 0 0 var(--st)}
+.q[data-state="bad"]{--st:var(--bad);background:var(--bad-bg)}
+.q[data-state="todo"]{--st:var(--todo);background:var(--todo-bg)}
+.q[data-state="good"]{--st:var(--good);background:var(--good-bg)}
+.q[data-state="bad"] .fb{color:var(--bad)} .q[data-state="todo"] .fb{color:var(--todo)} .q[data-state="good"] .fb{color:var(--good)}
+@media (max-width:640px){.q{grid-template-columns:minmax(0,1fr)}}
+
+.choices{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.choices label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0}
+
+/* Textes à trous */
+.para{line-height:2.35}
+.nw{white-space:nowrap}
+.para .ch label{margin-left:10px;display:inline-flex;white-space:nowrap;vertical-align:middle;align-items:center;gap:5px;cursor:pointer;font-weight:600;line-height:1.4}
+
+/* Contrôles */
+input[type=text],select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid #b9c2cc;border-radius:6px;padding:4px 8px;min-width:0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) input[type=text],:root:not([data-theme="light"]) select{border-color:#46525f}}
+:root[data-theme="dark"] input[type=text],:root[data-theme="dark"] select{border-color:#46525f}
+input[type=text]:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+input.num{width:7.2em;height:30px;padding:4px 6px;text-align:center;font-family:var(--f-mono);font-size:.92rem;font-variant-numeric:tabular-nums;vertical-align:middle}
+input.num.lg{width:7.2em}
+input#fam-n,input.num.int{width:4.6em}
+select.unit{height:30px;vertical-align:middle;padding:2px 6px}
+input[type=checkbox],input[type=radio]{width:17px;height:17px;accent-color:var(--accent);margin:0;flex:none}
+input.f-bad,select.f-bad{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+input.f-todo,select.f-todo{border-color:var(--todo);box-shadow:0 0 0 1px var(--todo)}
+
+/* Tableau */
+.note{font-size:.84rem;font-weight:600;color:var(--todo);background:var(--todo-bg);border-radius:6px;padding:6px 10px;margin:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:600px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:center;vertical-align:middle}
+th{font-weight:500;font-size:.8rem;color:var(--muted);background:var(--soft);line-height:1.35}
+th b{display:block;color:var(--ink);font-weight:600;font-size:.88rem}
+td.data{font-family:var(--f-mono);font-size:.8rem;text-align:left;white-space:nowrap;line-height:1.75;color:var(--muted)}
+td.data sub{line-height:0}
+td .u{display:block;margin-top:4px;font-size:.78rem;color:var(--muted)}
+.q.tbl td{white-space:nowrap}
+.q.tbl{padding:12px 14px;gap:8px}
+
+/* Envoi */
+.submit{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:4px}
+button{font:inherit;font-weight:600;border-radius:8px;padding:10px 20px;cursor:pointer}
+.primary{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .primary{background:#2d6aa6;border-color:#2d6aa6}}
+:root[data-theme="dark"] .primary{background:#2d6aa6;border-color:#2d6aa6}
+.primary:hover{filter:brightness(1.08)}
+.violet{background:#6f42c1;color:#fff;border:1px solid #6f42c1}
+.violet:hover{filter:brightness(1.1)}
+.submit.part{padding-top:0}
+#part2{display:flex;flex-direction:column;gap:22px}
+#part2[hidden],#submitAll[hidden]{display:none}
+.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.result[hidden]{display:none}
+.result{border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:var(--soft)}
+.result .score{font-size:1.15rem;font-weight:700}
+.result .score.all{color:var(--good)}
+.result ul{margin:0;padding-left:1.1em;font-size:.88rem;display:flex;flex-direction:column;gap:2px}
+.result li.bad{color:var(--bad)} .result li.todo{color:var(--todo)}
+.result .who{font-size:.82rem;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:.74rem;color:var(--muted);border-top:1px solid var(--line);padding:10px clamp(16px,4vw,32px)}
+@media (prefers-reduced-motion:reduce){.q{transition:none}}
+
+/* ===== Sécurités anti-triche ===== */
+body.locked .sheet{display:none}
+@keyframes blinkWarning{0%,100%{background:#dc3545}50%{background:#842029}}
+#fraud{max-width:620px;margin:8vh auto 0;border-radius:14px;border:4px solid #ffc107;color:#fff;text-align:center;padding:clamp(24px,5vw,40px) 16px;animation:blinkWarning .8s infinite ease-in-out;background:#dc3545}
+#fraud h2{justify-content:center;color:#fff;font-size:clamp(1.3rem,4vw,1.9rem);letter-spacing:.04em}
+#fraud h2::after{display:none}
+#fraud p{margin:8px 0 0;font-size:.95rem}
+#fraud .timer{font-size:clamp(3rem,10vw,5rem);font-weight:700;line-height:1;margin-top:10px}
+
+/* ===== Écoute (synthèse vocale) et calculatrice ===== */
+.has-tools{position:relative;padding-right:52px}
+.has-tools.two{padding-right:92px}
+.tools{position:absolute;top:8px;right:10px;display:flex;gap:6px}
+.q.has-tools .tools{top:7px}
+.lead.has-tools,.situation.has-tools{min-height:36px}
+.lead.has-tools .tools{top:-4px;right:0}
+.lead.has-tools{padding-right:44px}
+.recipe.has-tools{padding-right:52px;padding-left:52px}
+.tts,.calcbtn{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:50%;cursor:pointer;flex:none}
+.tts svg,.calcbtn svg{width:18px;height:18px;fill:currentColor}
+.tts.on,.calcbtn.on{background:var(--accent);color:var(--paper)}
+.tts:focus-visible,.calcbtn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (max-width:640px){
+  /* Téléphone : icônes empilées dans une colonne à droite, le texte garde toute la largeur restante */
+  .tools{top:6px;right:6px;flex-direction:column;gap:6px}
+  .q.has-tools .tools{top:6px}
+  .tts,.calcbtn{width:30px;height:30px}
+  .tts svg,.calcbtn svg{width:16px;height:16px}
+  .has-tools,.has-tools.two{padding-right:44px}
+  .recipe.has-tools{padding-left:12px;padding-right:44px}
+  .lead.has-tools{padding-right:40px;min-height:32px}
+  .lead.has-tools .tools{top:0;right:0}
+  .situation.has-tools{padding-right:44px}
+}
+#calc{--card:var(--paper);--tx:var(--ink);--mut:var(--muted);--bd:var(--line);--pri:var(--accent);--bg:var(--soft);--ok:var(--good);font-family:var(--f-body)}
+#calc button{font:inherit;font-weight:600;cursor:pointer;border:0}
+#calc .ch button{background:var(--pri);color:var(--bg)}
+#calc .ck button.num{background:var(--card)}
+#calc{position:fixed;top:16px;right:16px;width:340px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);z-index:50;display:flex;flex-direction:column;overflow:hidden;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.3);user-select:none;touch-action:manipulation;outline:none}
+#calc[hidden]{display:none}
+body.locked #calc{display:none!important}
+#calc .ch{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:700}
+#calc .ch .ttl{flex:1}
+#calc .ch small{color:var(--mut);font-weight:600}
+#calc .ch button{min-height:38px;padding:4px 12px;font-size:.85rem;border-radius:8px}
+#calc .ch .cx{min-width:46px;font-size:1.1rem;background:transparent;color:var(--tx);border:1px solid var(--bd)}
+#calc .ch #calcMin{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+#calcExpr{flex:none;min-height:1.4em;padding:8px 12px 0;text-align:right;font:500 1rem/1.3 ui-monospace,Consolas,monospace;color:var(--mut);word-break:break-all}
+#calcRes{flex:none;min-height:1.3em;padding:0 12px 2px;text-align:right;font:700 1.7rem/1.3 ui-monospace,Consolas,monospace;overflow-x:auto;white-space:nowrap}
+#calcMsg{flex:none;padding:0 12px 6px;min-height:1.2em;text-align:right;font-size:.8rem;color:var(--mut);white-space:pre-wrap}
+#calc .ck{flex:1 1 auto;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:0 10px 10px}
+#calc .ck button{padding:9px 0;font-size:.92rem;border-radius:8px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+#calc .ck button.num{background:var(--card);font-weight:700}
+#calc .ck button.op{background:var(--pri);color:var(--bg)}
+#calc .ck button.eq{background:var(--ok);color:#fff}
+#calc .inj{flex:none;display:block;margin:0 10px 10px;width:calc(100% - 20px);background:#6f42c1;color:#fff}
+#calc.min .ck{display:none}
+@media (min-width:900px){body.calc-open{padding-right:372px}}
+@media (max-width:899px), (max-height:520px){
+  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  body.calc-open{padding-bottom:0;padding-right:0}
+  #calcMin,#calcFx,#calcKeys{display:none!important}
+  #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
+  #calc .ck.bk button{padding:0;font-size:.95rem;border-radius:7px}
+  #calc .ck.bk .eq{grid-column:span 3}
+  #calcQtxt{display:-webkit-box}
+  #calc .ch{padding:4px 8px}
+  #calc .ch button{min-height:32px;padding:2px 10px}
+  #calcExpr{min-height:1.1em;padding-top:4px;font-size:.85rem}
+  #calcRes{font-size:1.3rem}
+  #calcMsg{padding-bottom:2px;min-height:1em;font-size:.72rem}
+  #calc .inj{margin:0 8px 8px;padding:8px;font-size:.9rem;width:calc(100% - 16px)}
+}
+#calcQtxt{flex:none;padding:6px 12px 0;font-size:.82rem;line-height:1.3;color:var(--mut);-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (min-width:900px) and (min-height:521px){#calc .ck.bk,#calcQtxt,#calcFx{display:none!important}}
+/* téléphone en mode paysage : affichage à gauche, clavier à droite (tient dans une hauteur d'environ 250 px) */
+@media (max-height:520px) and (orientation:landscape){
+  #calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-template-areas:"h k" "q k" "e k" "r k" "m k" "i k";grid-template-rows:auto auto auto auto 1fr auto}
+  #calc .ch{grid-area:h}
+  #calcQtxt{grid-area:q}
+  #calcExpr{grid-area:e}
+  #calcRes{grid-area:r}
+  #calcMsg{grid-area:m}
+  #calc .inj{grid-area:i;align-self:end}
+  #calc .ck.bk{grid-area:k;align-self:center;grid-auto-rows:30px;padding:6px 8px}
+}
+@media (max-height:620px){
+  #calc .ck{gap:4px;padding:0 8px 8px}
+  #calc .ck button{padding:6px 0;font-size:.82rem}
+  #calcRes{font-size:1.3rem}
+  #calcExpr{min-height:1.1em;padding-top:4px}
+  #calc .ch{padding:4px 8px}
+}
+#calcExpr,#calcRes{font-family:var(--f-mono)}
+#calc .inj{padding:10px;border-radius:8px}
+
+/* ===== Encart danger : combustion incomplète ===== */
+.danger{border:2px solid var(--bad);border-radius:8px;background:var(--bad-bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.danger .dh{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--bad);font-size:1rem}
+.danger .dh svg{width:26px;height:26px;flex:none}
+.danger .para{line-height:2.3}
+.danger .para b{font-weight:700}
+.danger .forms{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:2px}
+.danger .forms label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.danger .info{margin:0;font-size:.86rem;color:var(--ink);border-top:1px dashed var(--bad);padding-top:8px}
+.danger[data-state]{box-shadow:none}
+.q.danger,.q.danger:first-child{border:2px solid var(--bad)}
+.qlist:has(.danger){border:0;overflow:visible}
+input.word.wide{width:14em;max-width:100%}
+
+/* ===== Petits écrans (téléphone, page Google Sites) : fiche compacte ===== */
+@media (max-width:600px){
+  body{padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px));padding-block:8px 20px}
+  .head{padding:12px 12px 10px;gap:6px}
+  .body{padding:12px 12px 16px;gap:16px}
+  .content,#part2{gap:16px}
+  section{gap:8px}
+  .q{padding:8px 10px}
+  .q.block{row-gap:6px}
+  .para{line-height:1.95}
+  input.num,input.word,select.word,select.unit{height:28px}
+  .identbar{padding:12px 12px 0}
+  .ident{grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+  .ident .f-classe{grid-column:1/-1}
+  .field input,.field select{height:34px}
+  .family{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .opt{flex-direction:column;align-items:flex-start;gap:4px;padding:6px 8px}
+  .opt .t small{font-size:.78rem}
+  .recipe{padding:10px 12px}
+  .lead{font-size:.88rem}
+  .situation{padding:10px 12px}
+  .danger{padding:10px 12px}
+  .foot{padding:8px 12px}
+  /* Tableau des masses molaires : données en haut, 4 cases sur 2 colonnes */
+  .q.tbl table,.q.tbl tbody,.q.tbl tr{display:block;min-width:0;width:100%}
+  .q.tbl thead{display:none}
+  .q.tbl tr{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .q.tbl td{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);border-radius:6px;padding:6px;white-space:normal}
+  .q.tbl td::before{content:attr(data-label);font-size:.74rem;color:var(--muted);text-align:center;line-height:1.25}
+  .q.tbl td.data{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 14px;align-items:baseline;background:var(--soft)}
+  .q.tbl td.data::before{content:none}
+  .q.tbl td.data br{display:none}
+  .q.tbl td .u{margin-top:0}
+  .q.tbl td input.num{width:100%;max-width:7.2em}
+  .para,.danger .para{line-height:1.75}
+  input.num,input.word,select.word,select.unit{height:26px}
+  h2 .tag{display:none}
+  .choices{gap:4px 10px}
+  .choices label{gap:4px}
+  #sheetBody .q.has-tools:not(.block){padding-right:42px}
+  /* Icônes : colonne à droite, le texte ne passe jamais dessous */
+  #sheetBody .has-tools{padding-right:46px}
+  #sheetBody .recipe.has-tools{padding:42px 10px 10px}
+  #sheetBody .lead.has-tools{padding-right:40px}
+}
+
+/* ===== Choix du carburant dans le titre ===== */
+.head h1{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:.15em .35em}
+#fuel{font:inherit;font-size:1em;color:var(--green);background:transparent;border:0;border-bottom:3px dashed var(--green);border-radius:0;padding:0 .1em;height:auto;max-width:100%;cursor:pointer;text-transform:uppercase;text-align:center}
+#fuel:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+#fuel option{font-family:var(--f-body);font-size:1rem;font-weight:600;color:var(--ink);background:var(--paper);text-transform:none}
+body.no-fuel #fuel{animation:pulseFuel 1.6s ease-in-out infinite}
+@keyframes pulseFuel{50%{border-bottom-color:transparent}}
+@media (prefers-reduced-motion:reduce){body.no-fuel #fuel{animation:none}}
+body.no-fuel #sheetBody{filter:blur(7px);pointer-events:none;user-select:none}
+.content{display:flex;flex-direction:column;gap:22px}
+.qcm .choices{flex-direction:column;align-items:flex-start;gap:4px}
+.qcm .choices label{align-items:flex-start}
+.qcm .choices input{margin-top:3px}
+
+</style>
+<script>
+/* qrcode-generator 2.0.4 - MIT License */
+// Copyright (c) 2009 Kazuhiko Arase
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+</head>
+<body>
+<div id="fraud" hidden>
+  <h2>⚠️ Tentative de fraude</h2>
+  <div class="timer" id="fraudTimer">10</div>
+  <p>Tes réponses ont été effacées. Appelle ton enseignant.</p>
+</div>
+
+<div class="sheet">
+  <header class="head">
+    <div class="head-top">
+      <div class="memo">FICHE <span class="r">MÉMO</span></div>
+      <div class="lvl" aria-label="Première STI2D"><span class="one">1</span><span class="rest"><span class="ere">ère</span><span class="sti">STI<span class="r">2D</span></span></span></div>
+    </div>
+    <h1><span>La COMBUSTION</span> <select id="fuel" aria-label="Choisis le carburant"></select></h1>
+  </header>
+
+  <div class="identbar">
+    <div class="ident" id="ident">
+      <label class="field"><span>Nom</span><input type="text" id="nom" autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span>Prénom</span><input type="text" id="prenom" autocomplete="off" spellcheck="false"></label>
+      <label class="field f-classe"><span>Classe</span>
+        <select id="classe"><option value="">Choisir…</option><option>1STI2D-1</option><option>1STI2D-2</option><option>1STI2D-3</option><option>1STI2D-4</option></select>
+      </label>
+      <p class="ident-msg" id="ident-msg" hidden>Complète ton nom, ton prénom et ta classe.</p>
+    </div>
+  </div>
+
+  <div class="body" id="sheetBody">
+
+    <div id="content" class="content"></div>
+
+    <div class="submit" id="submitAll" hidden>
+      <button type="button" class="primary" id="send">Envoyer mes réponses</button>
+      <button type="button" class="ghost" id="reset">Tout effacer</button>
+    </div>
+    <div class="result" id="result" hidden>
+      <div class="score" id="score"></div>
+      <div class="who" id="who"></div>
+      <ul id="result-list"></ul>
+    </div>
+  </div>
+
+  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Octobre 2026</span></footer>
+</div>
+
+<script>
+/* ===== Sécurités anti-triche (reprises du TEST 001, sans l'obligation de couper le réseau) ===== */
+(function(){
+  const $ = id => document.getElementById(id);
+  let adminMode = location.hash === '#prof', started = false, fraudTriggered = false, alarmPlaying = false;
+
+  // ----- Plein écran -----
+  const FS_ROOT = document.documentElement;
+  const FS_SUPPORTED = !!(FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen);
+  let fsSkipped = false;
+  const inFullscreen = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function fsAvailable(){
+    if (!FS_SUPPORTED || fsSkipped) return false;
+    const en = document.fullscreenEnabled !== undefined ? document.fullscreenEnabled : document.webkitFullscreenEnabled;
+    return en !== false;
+  }
+  const fsRequired = () => started && fsAsked && !adminMode && !fraudTriggered && !fsSkipped && FS_SUPPORTED;
+  let fsBase = null, fsSettleUntil = 0;
+  const fsMeasure = () => { const r = window.devicePixelRatio || 1; return {w: innerWidth*r, h: innerHeight*r}; };
+  function fsRebase(){ fsSettleUntil = Date.now() + 1200; setTimeout(() => { fsBase = fsMeasure(); }, 1200); }
+
+  // Plein écran demandé discrètement au premier clic ou à la première touche (le navigateur l'exige)
+  let fsAsked = false;
+  function askFs(){
+    if (fsAsked || adminMode || fraudTriggered || !fsAvailable() || inFullscreen()) return;
+    fsAsked = true;
+    const req = FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen;
+    try { const pr = req.call(FS_ROOT); if (pr && pr.catch) pr.catch(() => { fsSkipped = true; }); } catch(e) { fsSkipped = true; }
+  }
+  // Plein écran activé automatiquement au premier clic ou à la première touche (le navigateur exige un geste de l'élève)
+  document.addEventListener('pointerdown', askFs, true);
+  document.addEventListener('keydown', askFs, true);
+  function onFsChange(){
+    if (inFullscreen()) { fsRebase(); return; }
+    if (fsRequired()) triggerFraud('Sortie du mode plein écran');
+  }
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+  window.addEventListener('resize', () => {
+    if (!fsRequired() || !inFullscreen() || !fsBase || Date.now() < fsSettleUntil) return;
+    if (matchMedia('(pointer: coarse)').matches) return;          // clavier virtuel sur tablette / téléphone
+    const m = fsMeasure();
+    if (Math.abs(m.w - fsBase.w) > fsBase.w*0.04 || Math.abs(m.h - fsBase.h) > fsBase.h*0.04) triggerFraud('Redimensionnement de la fenêtre (écran partagé possible)');
+  });
+
+  // Les détecteurs s'activent dès que l'élève commence à remplir la fiche
+  function start(){ started = true; }
+  ['input','change'].forEach(t => document.addEventListener(t, e => { if (e.target.closest && e.target.closest('.sheet')) start(); }, true));
+  const armed = () => started && !adminMode && !fraudTriggered && !window.FICHE_DONE;   // fiche réussie : plus de surveillance (téléchargement du certificat)
+
+  // ----- Alarme -----
+  function playAlarm(){
+    if (alarmPlaying) return; alarmPlaying = true;
+    const dur = 10; let left = dur; $('fraudTimer').textContent = left;
+    const iv = setInterval(() => { left--; $('fraudTimer').textContent = Math.max(0,left); if (left <= 0) clearInterval(iv); }, 1000);
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = ctx.currentTime, osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sawtooth';
+      for (let t = 0; t < dur; t += 0.5) { osc.frequency.setValueAtTime(800, t0+t); osc.frequency.setValueAtTime(1200, t0+t+0.25); }
+      g.gain.setValueAtTime(0.4, t0); g.gain.setValueAtTime(0, t0+dur);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t0); osc.stop(t0+dur);
+    } catch(e) {}
+  }
+  function triggerFraud(reason){
+    if (!armed()) return;
+    fraudTriggered = true;
+    console.warn('Alarme : ' + reason);
+    // Efface toutes les réponses
+    document.querySelectorAll('.sheet input').forEach(i => { if (i.type === 'checkbox' || i.type === 'radio') i.checked = false; else i.value = ''; });
+    document.querySelectorAll('.sheet select').forEach(sl => sl.value = '');
+    document.body.classList.add('locked');
+    $('fraud').hidden = false;
+    playAlarm();
+  }
+
+  // ----- Copier / coller, clic droit, raccourcis des outils développeur -----
+  const secBlock = e => { if (!adminMode) e.preventDefault(); };
+  document.addEventListener('contextmenu', secBlock);
+  ['copy','cut','paste'].forEach(t => document.addEventListener(t, secBlock));
+  document.addEventListener('keydown', e => {
+    if (adminMode) return;
+    const ctrl = e.ctrlKey || e.metaKey, c = e.code;
+    const blocked = c === 'F12'
+      || (ctrl && e.shiftKey && ['KeyI','KeyJ','KeyC','KeyK'].includes(c))
+      || (e.metaKey && e.altKey && ['KeyI','KeyJ','KeyC','KeyU'].includes(c))
+      || (ctrl && ['KeyU','KeyS','KeyP','KeyC','KeyV','KeyX'].includes(c))
+      || (ctrl && c === 'Insert') || (e.shiftKey && (c === 'Insert' || c === 'Delete'));
+    if (blocked) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // ----- Changement d'onglet / de fenêtre / d'application -----
+  document.addEventListener('visibilitychange', () => { if (document.hidden) triggerFraud("Changement d'onglet ou réduction de la fenêtre"); });
+  // Page intégrée dans une autre page : un clic en dehors du cadre n'est pas de la triche -> on suit la position du pointeur
+  const IN_FRAME = (() => { try { return window.self !== window.top; } catch(e) { return true; } })();
+  let pointerInside = true;
+  document.documentElement.addEventListener('mouseenter', () => { pointerInside = true; });
+  document.documentElement.addEventListener('mouseleave', () => { pointerInside = false; });
+  window.addEventListener('mouseover', () => { pointerInside = true; }, true);
+  window.addEventListener('mouseout', e => { if (!e.relatedTarget) pointerInside = false; }, true);
+  window.addEventListener('blur', () => {
+    if (!armed() || matchMedia('(pointer: coarse)').matches) return;
+    if (IN_FRAME && !pointerInside) return;
+    triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+  });
+  setInterval(() => {
+    if (!armed()) return;
+    if (document.hidden) { triggerFraud("Changement d'onglet ou réduction de la fenêtre"); return; }
+    if (IN_FRAME || matchMedia('(pointer: coarse)').matches) return;
+    if (document.hasFocus && !document.hasFocus()) triggerFraud("Perte de focus de la page (changement de fenêtre ou d'application)");
+  }, 500);
+
+})();
+</script>
+
+<script>
+/* ===== Écoute du texte (synthèse vocale du navigateur) ===== */
+const TTS_OK = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const TTS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+let ttsBtn = null, ttsTimer = null;
+function stopSpeaking() {
+  clearTimeout(ttsTimer);
+  if (TTS_OK) window.speechSynthesis.cancel();
+  if (ttsBtn) { ttsBtn.classList.remove('on'); ttsBtn = null; }
+}
+function speakText(btn, parts, pause) {
+  if (!TTS_OK) return;
+  if (!Array.isArray(parts)) parts = [parts];
+  const wasThis = (ttsBtn === btn);
+  stopSpeaking();
+  if (wasThis) return;                      // second clic = arrêt
+  ttsBtn = btn; btn.classList.add('on');
+  const finish = () => { if (ttsBtn === btn) { btn.classList.remove('on'); ttsBtn = null; } };
+  const say = k => {
+    if (ttsBtn !== btn) return;
+    const u = new SpeechSynthesisUtterance(parts[k]);
+    u.lang = 'fr-FR';
+    const v = window.speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang));
+    if (v) u.voice = v;
+    u.rate = 0.95;
+    u.onend = () => { if (ttsBtn !== btn) return; if (k + 1 < parts.length) ttsTimer = setTimeout(() => say(k + 1), pause || 0); else finish(); };
+    u.onerror = finish;
+    window.speechSynthesis.speak(u);
+  };
+  say(0);
+}
+
+// Transforme un bloc de la fiche en texte à lire : formules chimiques épelées, cases à remplir = « … »
+const sayFormula = f => f.replace(/([A-Z][a-z]?)(\d*)/g, (m, el, n) => ' ' + el + (n ? ' ' + n : '') + ' ').replace(/\s+/g, ' ').trim();
+function textToSay(el) {
+  const c = el.cloneNode(true);
+  c.querySelectorAll('.tools,.fb,script').forEach(e => e.remove());
+  c.querySelectorAll('[data-say]').forEach(e => { e.textContent = ' ' + e.dataset.say + ' '; });
+  c.querySelectorAll('.mol').forEach(e => { const k = e.textContent.replace(/\s/g, ''); e.textContent = ' ' + sayFormula(k) + ' '; });
+  c.querySelectorAll('.choices,.ch').forEach(e => { e.insertAdjacentText('afterbegin', ' : '); });
+  c.querySelectorAll('.choices label,.ch label,.opt').forEach(e => e.append(', '));
+  c.querySelectorAll('input[type=text],select').forEach(e => e.replaceWith(' … '));
+  c.querySelectorAll('th,td,p,h2,.stmt,.cap').forEach(e => e.append('. '));
+  return c.textContent
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu, ' ')
+    .replace(/g\/mol/g, 'grammes par mole').replace(/L\/mol/g, 'litres par mole').replace(/(\s)L(?=[\s.])/g, '$1litres').replace(/(?<!\p{L})kJ(?!\p{L})/gu, 'kilojoules')
+    .replace(/g·mol⁻¹/g, 'grammes par mole')
+    .replace(/(?<!\p{L})kg(?!\p{L})/gu, 'kilogrammes').replace(/(?<!\p{L})g(?!\p{L})/gu, 'grammes')
+    .replace(/(?<!\p{L})mol(?!\p{L})/gu, 'moles')
+    .replace(/→/g, ' donne ').replace(/\s*\+\s*/g, ' plus ').replace(/\bn =/g, 'n égale').replace(/=/g, ' égale ')
+    .replace(/\*/g, '')
+    .replace(/\s+/g, ' ').replace(/\s+([.,:?!])/g, '$1').replace(/([.:?!,])[.,]+/g, '$1').replace(/:\s*,/g, ':').replace(/:\s*:/g, ':').replace(/\s\/\s/g, ' divisé par ').replace(/\s×\s/g, ' fois ').trim();
+}
+
+/* ===== Calculatrice scientifique (reprise du TEST 001) ===== */
+// ===== Calculatrice scientifique (hors ligne, sans dépendance) =====
+const CALC = { expr: '', lastExpr: '', result: null, ans: 0, justEval: false, err: false, mem: 0, deg: true, q: null, btn: null, built: false, note: '' };
+
+const CALC_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v4h10V4H7zm1 6.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8 14.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8 18.2a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm4 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/></svg>';
+
+// Format normalisé des réponses numériques : 1.45E5, 4.78E-4 (1 chiffre avant le point, E majuscule, N chiffres significatifs, arrondi « au plus proche »)
+function toNormalized(x, sig) {
+  sig = Math.min(14, Math.max(1, Math.round(sig) || 3));
+  if (!isFinite(x)) return null;
+  if (x === 0) return (sig > 1 ? '0.' + '0'.repeat(sig - 1) : '0') + 'E0';
+  const neg = x < 0;
+  const parts = Math.abs(x).toExponential(14).split('e');     // 15 chiffres exacts
+  const digits = parts[0].replace('.', '').split('').map(Number);
+  let exp = parseInt(parts[1], 10);
+  const keep = digits.slice(0, sig);
+  if (digits[sig] >= 5) {
+    let i = sig - 1;
+    while (i >= 0) { if (keep[i] === 9) { keep[i] = 0; i--; } else { keep[i]++; break; } }
+    if (i < 0) { keep.unshift(1); keep.pop(); exp++; }
+  }
+  const mant = keep[0] + (sig > 1 ? '.' + keep.slice(1).join('') : '');
+  return (neg ? '-' : '') + mant + 'E' + exp;
+}
+
+function calcFormat(x) {
+  if (x === null || !isFinite(x)) return 'Erreur';
+  const v = Number(x.toPrecision(12));
+  if (v === 0) return '0';
+  const a = Math.abs(v);
+  if (a >= 1e10 || a < 1e-6) return v.toExponential().replace('e+', 'E').replace('e-', 'E-');
+  return String(v);
+}
+
+function calcFn(f, a, deg) {
+  const toRad = x => deg ? x * Math.PI / 180 : x;
+  const fromRad = x => deg ? x * 180 / Math.PI : x;
+  const clean = v => Math.abs(v) < 1e-15 ? 0 : v;
+  const bad = () => { throw new Error('domain'); };
+  switch (f) {
+    case 'sin': return clean(Math.sin(toRad(a)));
+    case 'cos': return clean(Math.cos(toRad(a)));
+    case 'tan': if (Math.abs(Math.cos(toRad(a))) < 1e-15) bad(); return clean(Math.tan(toRad(a)));
+    case 'asin': if (Math.abs(a) > 1) bad(); return fromRad(Math.asin(a));
+    case 'acos': if (Math.abs(a) > 1) bad(); return fromRad(Math.acos(a));
+    case 'atan': return fromRad(Math.atan(a));
+    case 'ln': if (a <= 0) bad(); return Math.log(a);
+    case 'log': if (a <= 0) bad(); return Math.log10(a);
+    case 'sqrt': if (a < 0) bad(); return Math.sqrt(a);
+  }
+  throw new Error('syntax');
+}
+
+function calcTokenize(src) {
+  const out = [];
+  let i = 0;
+  while (i < src.length) {
+    const ch = src[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    const rest = src.slice(i);
+    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+\-−]?\d+)?/);   // ×10ˣ puis la touche − : « 2.5E−3 » (signe moins typographique accepté)
+    if (m) { out.push({ t: 'num', v: parseFloat(m[0].replace('−', '-')) }); i += m[0].length; continue; }
+    m = rest.match(/^(asin|acos|atan|sin|cos|tan|ln|log|Ans)/);
+    if (m) { out.push({ t: m[0] === 'Ans' ? 'ans' : 'fn', v: m[0] }); i += m[0].length; continue; }
+    if (ch === 'π') { out.push({ t: 'num', v: Math.PI, c: true }); i++; continue; }
+    if (ch === 'e') { out.push({ t: 'num', v: Math.E, c: true }); i++; continue; }
+    if (ch === '√') { out.push({ t: 'fn', v: 'sqrt' }); i++; continue; }
+    if ('+-−×*÷/^()'.indexOf(ch) >= 0) {
+      out.push({ t: 'op', v: ch === '−' ? '-' : ch === '×' ? '*' : ch === '÷' ? '/' : ch });
+      i++; continue;
+    }
+    throw new Error('syntax');
+  }
+  return out;
+}
+
+// Évaluation sans eval() : + − × ÷ ^ (), multiplication implicite, parenthèses auto-fermées
+function calcEval(src, deg, ans) {
+  const toks = calcTokenize(src);
+  let open = 0;
+  toks.forEach(t => { if (t.t === 'op') { if (t.v === '(') open++; else if (t.v === ')') open--; } });
+  while (open-- > 0) toks.push({ t: 'op', v: ')' });
+  let p = 0;
+  const isOp = v => toks[p] && toks[p].t === 'op' && toks[p].v === v;
+  const startsPrimary = t => t && (t.t === 'num' || t.t === 'fn' || t.t === 'ans' || (t.t === 'op' && t.v === '('));
+  const expr = () => {
+    let v = term();
+    while (isOp('+') || isOp('-')) { const o = toks[p++].v; const r = term(); v = o === '+' ? v + r : v - r; }
+    return v;
+  };
+  const term = () => {
+    let v = unary();
+    for (;;) {
+      if (isOp('*') || isOp('/')) {
+        const o = toks[p++].v; const r = unary();
+        if (o === '/' && r === 0) throw new Error('div0');
+        v = o === '*' ? v * r : v / r;
+      } else if (startsPrimary(toks[p]) && !(toks[p].t === 'num' && !toks[p].c)) { v *= unary(); }
+      else break;
+    }
+    return v;
+  };
+  const unary = () => {
+    if (isOp('-')) { p++; return -unary(); }
+    if (isOp('+')) { p++; return unary(); }
+    return power();
+  };
+  const power = () => {
+    const b = primary();
+    if (isOp('^')) { p++; return Math.pow(b, unary()); }
+    return b;
+  };
+  const paren = () => {
+    if (!isOp('(')) throw new Error('syntax');
+    p++; const v = expr();
+    if (!isOp(')')) throw new Error('syntax');
+    p++; return v;
+  };
+  const primary = () => {
+    const t = toks[p];
+    if (!t) throw new Error('syntax');
+    if (t.t === 'num') { p++; return t.v; }
+    if (t.t === 'ans') { p++; return ans; }
+    if (t.t === 'op' && t.v === '(') return paren();
+    if (t.t === 'fn') { p++; return calcFn(t.v, paren(), deg); }
+    throw new Error('syntax');
+  };
+  const v = expr();
+  if (p < toks.length || !isFinite(v)) throw new Error('syntax');
+  return v;
+}
+
+const CALC_KEYS = [
+  ['sin','fn','sin('],['cos','fn','cos('],['tan','fn','tan('],['ln','fn','ln('],['log','fn','log('],['π','fn','π'],
+  ['asin','fn','asin('],['acos','fn','acos('],['atan','fn','atan('],['eˣ','fn','e^('],['10ˣ','fn','10^('],['e','fn','e'],
+  ['x²','fn','^2'],['xʸ','fn','^'],['x⁻¹','fn','^(−1)'],['√','fn','√('],['(','fn','('],[')','fn',')'],
+  ['7','num','7'],['8','num','8'],['9','num','9'],['÷','op','÷'],['DEL','act','del'],['AC','act','ac'],
+  ['4','num','4'],['5','num','5'],['6','num','6'],['×','op','×'],['MC','act','mc'],['MR','act','mr'],
+  ['1','num','1'],['2','num','2'],['3','num','3'],['−','op','−'],['M+','act','m+'],['M−','act','m-'],
+  ['0','num','0'],['.','num','.'],['EE','num','E'],['+','op','+'],['Ans','act','ans'],['=','eq','=']
+];
+
+function calcBuild() {
+  if (CALC.built) return;
+  CALC.built = true;
+  const el = document.createElement('div');
+  el.id = 'calc';
+  el.hidden = true;
+  el.tabIndex = -1;
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-label', 'Calculatrice scientifique');
+  el.innerHTML =
+    '<div class="ch" id="calcHead"><span class="ttl">Calculatrice <small id="calcQ"></small></span>' +
+    '<button type="button" id="calcFx" title="Fonctions scientifiques">fx</button>' +
+    '<button type="button" id="calcMode" title="Degrés / radians">DEG</button>' +
+    '<button type="button" id="calcMin" aria-label="Réduire ou agrandir" title="Réduire / agrandir">▾</button>' +
+    '<button type="button" class="cx" id="calcClose" aria-label="Fermer">✕</button></div>' +
+    '<div id="calcQtxt"></div><div id="calcExpr"></div><div id="calcRes">0</div><div id="calcMsg"></div>' +
+    '<div class="ck bk" id="calcKeysB"></div>' +
+    '<div class="ck" id="calcKeys"></div>' +
+    '<button type="button" class="inj" id="calcInject">Utiliser cette valeur comme réponse</button>';
+  document.body.appendChild(el);
+
+  const keys = el.querySelector('#calcKeys');
+  CALC_KEYS.forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = k[0];
+    b.className = k[1];
+    b.dataset.k = k[2];
+    b.dataset.kind = k[1];
+    keys.appendChild(b);
+  });
+  // Clavier de base (téléphone) : 4 lignes de grandes touches
+  const keysB = el.querySelector('#calcKeysB');
+  [['sin','fn','sin('],['cos','fn','cos('],['tan','fn','tan('],['ln','fn','ln('],['log','fn','log('],['π','fn','π'],
+   ['x²','fn','^2'],['xʸ','fn','^'],['√','fn','√('],['eˣ','fn','e^('],['10ˣ','fn','10^('],['x⁻¹','fn','^(−1)'],
+   ['7','num','7'],['8','num','8'],['9','num','9'],['÷','op','÷'],['(','fn','('],[')','fn',')'],
+   ['4','num','4'],['5','num','5'],['6','num','6'],['×','op','×'],['DEL','act','del'],['AC','act','ac'],
+   ['1','num','1'],['2','num','2'],['3','num','3'],['−','op','−'],['EE','num','E'],['Ans','act','ans'],
+   ['0','num','0'],['.','num','.'],['+','op','+'],['=','eq','=']].forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = k[0]; b.className = k[1]; b.dataset.k = k[2]; b.dataset.kind = k[1];
+    keysB.appendChild(b);
+  });
+  const onKey = e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    calcPress(b.dataset.kind, b.dataset.k);
+  };
+  keys.addEventListener('click', onKey);
+  keysB.addEventListener('click', onKey);
+  el.querySelector('#calcFx').onclick = () => {
+    el.classList.toggle('full');
+    el.querySelector('#calcFx').textContent = el.classList.contains('full') ? '123' : 'fx';
+  };
+  el.querySelector('#calcClose').onclick = closeCalc;
+  el.querySelector('#calcMode').onclick = () => {
+    CALC.deg = !CALC.deg;
+    el.querySelector('#calcMode').textContent = CALC.deg ? 'DEG' : 'RAD';
+    calcRender();
+  };
+  el.querySelector('#calcMin').onclick = () => {
+    el.classList.toggle('min');
+    el.querySelector('#calcMin').textContent = el.classList.contains('min') ? '▴' : '▾';
+  };
+  el.querySelector('#calcInject').onclick = calcInject;
+
+  // Hauteur du panneau -> marge basse de la page (téléphone) pour que rien ne soit masqué
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => document.body.style.setProperty('--calc-h', el.offsetHeight + 'px')).observe(el);
+  }
+
+  // Clavier (quand la calculatrice a le focus)
+  el.addEventListener('keydown', e => {
+    const k = e.key;
+    if (/^[0-9.]$/.test(k)) calcPress('num', k);
+    else if (k === '+') calcPress('op', '+');
+    else if (k === '-') calcPress('op', '−');
+    else if (k === '*') calcPress('op', '×');
+    else if (k === '/') calcPress('op', '÷');
+    else if (k === '^') calcPress('fn', '^');
+    else if (k === '(' || k === ')') calcPress('fn', k);
+    else if (k === 'Enter' || k === '=') calcPress('eq', '=');
+    else if (k === 'Backspace') calcPress('act', 'del');
+    else if (k === 'Delete') calcPress('act', 'ac');
+    else if (k === 'Escape') closeCalc();
+    else return;
+    e.preventDefault();
+  });
+}
+
+function calcSay(t) { CALC.note = t || ''; calcRender(); }
+
+function calcRender() {
+  if (!CALC.built) return;
+  const g = id => document.getElementById(id);
+  if (CALC.justEval && !CALC.err) { g('calcExpr').textContent = CALC.lastExpr + ' ='; g('calcRes').textContent = calcFormat(CALC.result); }
+  else if (CALC.err) { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = 'Erreur'; }
+  else { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = CALC.expr ? '' : '0'; }
+  g('calcMsg').textContent = (CALC.mem !== 0 ? 'M = ' + calcFormat(CALC.mem) + '   ' : '') + CALC.note;
+}
+
+function calcValueNow() {            // valeur du résultat affiché (évalue l'expression en cours si besoin)
+  if (CALC.justEval && !CALC.err && CALC.result !== null) return CALC.result;
+  if (!CALC.expr.trim()) return null;
+  try { return calcEval(CALC.expr, CALC.deg, CALC.ans); } catch (e) { return null; }
+}
+
+function calcPress(kind, k) {
+  CALC.note = '';
+  if (kind === 'eq') {
+    if (!CALC.expr.trim()) return;
+    if (CALC.justEval && !CALC.err) return;
+    try {
+      const v = calcEval(CALC.expr, CALC.deg, CALC.ans);
+      CALC.result = v; CALC.ans = v; CALC.lastExpr = CALC.expr; CALC.justEval = true; CALC.err = false;
+    } catch (e) { CALC.result = null; CALC.err = true; CALC.justEval = false; }
+    calcRender(); return;
+  }
+  if (kind === 'act') {
+    if (k === 'ac') { CALC.expr = ''; CALC.result = null; CALC.justEval = false; CALC.err = false; }
+    else if (k === 'del') {
+      if (CALC.justEval) { CALC.expr = ''; CALC.justEval = false; }
+      CALC.expr = CALC.expr.replace(/(asin\(|acos\(|atan\(|sin\(|cos\(|tan\(|ln\(|log\(|√\(|Ans|[\s\S])$/, '');
+      CALC.err = false;
+    }
+    else if (k === 'mc') CALC.mem = 0;
+    else if (k === 'm+' || k === 'm-') {
+      const v = calcValueNow();
+      if (v === null) { CALC.note = 'Rien à mémoriser'; }
+      else {
+        if (!CALC.justEval) { CALC.result = v; CALC.ans = v; CALC.lastExpr = CALC.expr; CALC.justEval = true; CALC.err = false; }
+        CALC.mem += (k === 'm+' ? v : -v);
+      }
+    }
+    else if (k === 'mr') { const lit = calcFormat(CALC.mem); calcInsert(CALC.mem < 0 ? '(' + lit + ')' : lit); return; }
+    else if (k === 'ans') { calcInsert('Ans'); return; }
+    calcRender(); return;
+  }
+  calcInsert(k);
+}
+
+function calcInsert(tok) {
+  if (CALC.justEval) {
+    CALC.expr = /^[+−×÷^]/.test(tok) ? 'Ans' : '';
+    CALC.justEval = false;
+  }
+  CALC.err = false;
+  CALC.expr += tok;
+  calcRender();
+}
+
+function calcRefreshTarget() {}
+
+// « Utiliser cette valeur comme réponse » : remplit la dernière case choisie de la question (sinon la première case vide)
+let lastNumInput = null;
+document.addEventListener('focusin', e => { if (e.target.matches && e.target.matches('.sheet input.num')) lastNumInput = e.target; });
+function calcInject() {
+  if (CALC.q === null) return;
+  const v = calcValueNow();
+  if (v === null) { calcSay('Calcule d’abord une valeur'); return; }
+  const box = CALC.q;
+  const inputs = [...box.querySelectorAll('input.num')];
+  let target = inputs.includes(lastNumInput) ? lastNumInput : inputs.find(i => !i.value.trim()) || inputs[0];
+  if (!target) return;
+  target.value = target.dataset.sig ? toNormalized(v, +target.dataset.sig) : calcFormat(v);
+  target.dispatchEvent(new Event('input', { bubbles: true }));
+  target.dispatchEvent(new Event('change', { bubbles: true }));
+  calcSay('✔ Valeur saisie : ' + target.value);
+  const next = inputs[inputs.indexOf(target) + 1];
+  lastNumInput = next || target;
+}
+
+function openCalc(box, btn) {
+  calcBuild();
+  const el = document.getElementById('calc');
+  if (!el.hidden && CALC.q === box) { closeCalc(); return; }       // 2e clic sur la même icône = fermer
+  if (CALC.btn) CALC.btn.classList.remove('on');
+  CALC.q = box; CALC.btn = btn;
+  btn.classList.add('on');
+  CALC.note = '';
+  const qt = document.getElementById('calcQtxt');
+  if (qt) qt.textContent = textToSay(box).slice(0, 160);
+  el.hidden = false;
+  document.body.classList.add('calc-open');
+  calcRender();
+  try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+  if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+    try { el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' }); } catch (e) {}
+  }
+}
+function closeCalc() {
+  if (!CALC.built) return;
+  document.getElementById('calc').hidden = true;
+  document.body.classList.remove('calc-open');
+  if (CALC.btn) { CALC.btn.classList.remove('on'); CALC.btn = null; }
+}
+
+/* ===== Ajout des icônes sur la fiche (appelé à chaque construction de la fiche) ===== */
+const CALC_ON = ['moles', 'masses', 'grammes', 'masseco2', 'reste', 'volume', 'energie'];
+function addTools(root) {
+  [...root.querySelectorAll('.q, .recipe, .situation, p.lead')].forEach(box => {
+    if (box.classList.contains('has-tools')) return;
+    const tools = document.createElement('div');
+    tools.className = 'tools';
+    if (TTS_OK) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'tts'; b.innerHTML = TTS_ICON;
+      b.title = 'Écouter'; b.setAttribute('aria-label', 'Écouter ce texte');
+      b.addEventListener('click', () => speakText(b, textToSay(box)));
+      tools.appendChild(b);
+    }
+    if (box.dataset.q && CALC_ON.includes(box.dataset.q)) {
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'calcbtn'; c.innerHTML = CALC_ICON;
+      c.title = 'Calculatrice'; c.setAttribute('aria-label', 'Ouvrir la calculatrice');
+      c.addEventListener('click', () => openCalc(box, c));
+      tools.appendChild(c);
+      box.classList.add('two');
+    }
+    if (!tools.children.length) return;
+    box.classList.add('has-tools');
+    box.appendChild(tools);
+  });
+}
+// En cas d'alarme : coupe la voix et ferme la calculatrice
+new MutationObserver(() => { if (document.body.classList.contains('locked')) { stopSpeaking(); closeCalc(); } })
+  .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+</script>
+
+<script>
+/* ===== Écriture automatique des valeurs numériques : X.XEX (2 chiffres significatifs) ou X.XXEX (3 chiffres significatifs) ===== */
+(function(){
+  const SUP = { '⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-','⁺':'+' };
+  function readNumber(raw){
+    let t = String(raw).replace(/[\s  ]/g, '').replace(/,/g, '.').replace(/−/g, '-')
+      .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, c => SUP[c]);
+    // 9,6×10^3  9.6x10^3  9.6*10^3  ->  9.6e3
+    t = t.replace(/(?:×|x|X|\*|·)10\^?([+-]?\d+)$/, 'e$1');
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t)) return null;
+    const v = Number(t);
+    return isFinite(v) ? v : null;
+  }
+  document.addEventListener('change', e => {
+    const inp = e.target;
+    if (!inp.matches || !inp.matches('.sheet input[data-sig]')) return;
+    const v = readNumber(inp.value);
+    if (v === null) return;                         // saisie non numérique : laissée telle quelle
+    inp.value = toNormalized(v, +inp.dataset.sig);
+  }, true);
+})();
+</script>
+
+<script>
+/* ===== Fiche « La combustion d'un carburant » : données, affichage et correction ===== */
+(function(){
+  const $ = id => document.getElementById(id);
+
+  // ---------- Carburants (ΔcH : énergie libérée par la combustion d'une mole, en kJ) ----------
+  const FUELS = [
+    {id:'methane',  nom:'méthane',  f:'CH4',    C:1, H:4,  O:0, fam:'alcane', E:890},
+    {id:'ethane',   nom:'éthane',   f:'C2H6',   C:2, H:6,  O:0, fam:'alcane', E:1560},
+    {id:'propane',  nom:'propane',  f:'C3H8',   C:3, H:8,  O:0, fam:'alcane', E:2220},
+    {id:'butane',   nom:'butane',   f:'C4H10',  C:4, H:10, O:0, fam:'alcane', E:2878},
+    {id:'pentane',  nom:'pentane',  f:'C5H12',  C:5, H:12, O:0, fam:'alcane', E:3509},
+    {id:'hexane',   nom:'hexane',   f:'C6H14',  C:6, H:14, O:0, fam:'alcane', E:4163},
+    {id:'heptane',  nom:'heptane',  f:'C7H16',  C:7, H:16, O:0, fam:'alcane', E:4817},
+    {id:'octane',   nom:'octane',   f:'C8H18',  C:8, H:18, O:0, fam:'alcane', E:5470},
+    {id:'ethene',   nom:'éthène',   f:'C2H4',   C:2, H:4,  O:0, fam:'alcene', E:1411},
+    {id:'propene',  nom:'propène',  f:'C3H6',   C:3, H:6,  O:0, fam:'alcene', E:2058},
+    {id:'butene',   nom:'butène',   f:'C4H8',   C:4, H:8,  O:0, fam:'alcene', E:2717},
+    {id:'methanol', nom:'méthanol', f:'CH3OH',  C:1, H:4,  O:1, fam:'alcool', E:726},
+    {id:'ethanol',  nom:'éthanol',  f:'C2H5OH', C:2, H:6,  O:1, fam:'alcool', E:1367},
+    {id:'propanol', nom:'propanol', f:'C3H7OH', C:3, H:8,  O:1, fam:'alcool', E:2021},
+    {id:'butanol',  nom:'butanol',  f:'C4H9OH', C:4, H:10, O:1, fam:'alcool', E:2676}
+  ];
+  FUELS.forEach(F => {
+    const v = /^[aeiouyéèêh]/i.test(F.nom);
+    F.du = v ? "de l'" + F.nom : 'du ' + F.nom;      // « du méthane », « de l'éthane »
+    F.de = v ? "d'" + F.nom : 'de ' + F.nom;         // « de méthane », « d'éthane »
+    F.le = v ? "L'" + F.nom : 'Le ' + F.nom;
+  });
+
+  // ---------- Outils ----------
+  const molHTML = f => f.replace(/(\d+)/g, '<sub>$1</sub>');
+  const M = (f, cls) => `<span class="mol${cls ? ' ' + cls : ''}">${molHTML(f)}</span>`;
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const fr = (x, sig) => { const s = sig ? Number(x).toPrecision(sig) : String(x); return s.replace('.', ','); };
+  const sep = x => String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const r1 = x => Math.round(x * 1e9) / 1e9;
+
+  // ---------- Banque de questions du mini-QCM (la 1re proposition est la bonne) ----------
+  const QCM_BANK = [
+    {t:'Lors de la combustion complète d’un hydrocarbure, on obtient :', o:['du dioxyde de carbone et de l’eau','du monoxyde de carbone et de l’eau','du carbone et du dihydrogène','du dioxygène et de l’eau']},
+    {t:'Le comburant le plus utilisé est :', o:['le dioxygène de l’air','le diazote de l’air','le dioxyde de carbone','la vapeur d’eau']},
+    {t:'Une réaction de combustion est une réaction :', o:['exothermique : elle libère de l’énergie thermique','endothermique : elle absorbe de l’énergie thermique','qui ne libère aucune énergie']},
+    {t:'Dans une équation bilan ajustée, il y a conservation :', o:['du nombre d’atomes de chaque élément','du nombre de molécules','du nombre de moles de réactifs et de produits','du volume des gaz']},
+    {t:'Le réactif limitant est :', o:['le réactif entièrement consommé en premier','le réactif introduit en plus grande quantité','toujours le dioxygène','le produit formé en plus petite quantité']},
+    {t:'Le triangle du feu réunit :', o:['un combustible, un comburant et une énergie d’activation','un combustible, de l’eau et de la chaleur','du dioxygène, du dioxyde de carbone et de l’eau','un carburant, du diazote et une étincelle']},
+    {t:'Avec M(C) = 12,0 g/mol et M(O) = 16,0 g/mol, la masse molaire de ' + M('CO2') + ' vaut :', o:['44,0 g/mol','28,0 g/mol','32,0 g/mol','60,0 g/mol']},
+    {t:'Au cours d’une réaction chimique, la masse totale des réactifs consommés et des produits formés :', o:['se conserve','augmente','diminue','dépend de la température']},
+    {t:'La formule générale des alcanes est :', o:['C<sub>n</sub>H<sub>2n+2</sub>','C<sub>n</sub>H<sub>2n</sub>','C<sub>n</sub>H<sub>2n+1</sub>–OH','C<sub>n</sub>H<sub>n</sub>']},
+    {t:'Un alcool se reconnaît à :', o:['son groupe –OH','sa formule C<sub>n</sub>H<sub>2n</sub>','sa formule C<sub>n</sub>H<sub>2n+2</sub>','l’absence d’atomes d’hydrogène']},
+    {t:'Un hydrocarbure est une molécule composée :', o:['uniquement d’atomes de carbone et d’hydrogène','d’atomes de carbone, d’hydrogène et d’oxygène','uniquement d’atomes d’hydrogène et d’oxygène','de n’importe quels atomes, pourvu qu’elle brûle']},
+    {t:'Le dioxyde de carbone rejeté par les combustions pose problème car :', o:['c’est un gaz à effet de serre','il détruit la couche d’ozone','il est très toxique, même à faible dose','il rend l’air inflammable']},
+    {t:'L’unité de la quantité de matière est :', o:['la mole (mol)','le gramme (g)','le litre (L)','le joule (J)']},
+    {t:'La relation entre quantité de matière n, masse m et masse molaire M est :', o:['n = m / M','n = m × M','n = M / m','n = m + M']},
+    {t:'On dispose de 88,0 g de ' + M('CO2') + ' (M = 44,0 g/mol). La quantité de matière vaut :', o:['2,00 mol','0,500 mol','3,87 × 10<sup>3</sup> mol','44,0 mol']},
+    {t:'L’air contient environ :', o:['21 % de dioxygène et 78 % de diazote','78 % de dioxygène et 21 % de diazote','50 % de dioxygène et 50 % de diazote','100 % de dioxygène']},
+    {t:'On met en évidence le dioxyde de carbone avec :', o:['l’eau de chaux, qui se trouble','le sulfate de cuivre anhydre, qui bleuit','une allumette, qui se rallume','du papier pH, qui devient bleu']},
+    {t:'On met en évidence l’eau formée avec :', o:['le sulfate de cuivre anhydre, qui bleuit','l’eau de chaux, qui se trouble','une allumette, qui s’éteint','une bougie, qui fond']},
+    {t:'Si l’on double la quantité de carburant brûlée (avec assez de dioxygène), la quantité de ' + M('CO2') + ' formée :', o:['double','reste la même','est divisée par deux','est multipliée par quatre']},
+    {t:'L’énergie libérée par une combustion est surtout :', o:['de l’énergie thermique (chaleur) et lumineuse','de l’énergie électrique','de l’énergie nucléaire','de l’énergie sonore']},
+    {t:'Pour qu’une combustion soit complète, il faut :', o:['suffisamment de dioxygène','très peu de dioxygène','aucun dioxygène','ajouter de l’eau']}
+  ];
+  const QCM_N = 5;
+
+  // ---------- Menu des carburants (ordre alphabétique : ne révèle pas la famille) ----------
+  const sel = $('fuel');
+  sel.innerHTML = '<option value="">………………</option>' +
+    FUELS.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(F => `<option value="${F.id}">${F.du.toUpperCase()}</option>`).join('');
+
+  let CHECKS = [];
+
+  // ---------- Réactif limitant : valeurs entières tirées au hasard, reste exact à 2 chiffres significatifs ----------
+  function pickLimitant(S) {
+    const r = S.kO / S.kF;                           // mol de O2 nécessaires par mol de carburant
+    const wantFuelLimiting = Math.random() < 0.5;
+    for (let t = 0; t < 5000; t++) {
+      const nF = rnd(2, 12), nO = rnd(2, 90);
+      const need = nF * r;
+      if (Math.abs(need - nO) < 1e-9) continue;
+      const fuelLim = nO > need;
+      if (t < 4000 && fuelLim !== wantFuelLimiting) continue;
+      const rest = fuelLim ? r1(nO - need) : r1(nF - nO / r);
+      if (rest < 0.5) continue;
+      if (Math.abs(Number(rest.toPrecision(2)) - rest) > 1e-9) continue;
+      return {nF, nO, lim: fuelLim ? 'fuel' : 'o2', reste: fuelLim ? 'o2' : 'fuel', rest};
+    }
+    return {nF: 7, nO: 40, lim: 'fuel', reste: 'o2', rest: r1(40 - 7 * r)};
+  }
+
+  // ---------- Construction de la fiche pour un carburant ----------
+  function build(F) {
+    const a2 = F.C + F.H / 4 - F.O / 2;              // O2 pour 1 carburant
+    const k = Number.isInteger(a2) ? 1 : 2;
+    const S = {kF: k, kO: a2 * k, kC: F.C * k, kH: F.H / 2 * k};
+    S.MF = r1(12.0 * F.C + 1.0 * F.H + 16.0 * F.O);
+    S.MO = 32.0; S.MC = 44.0; S.MH = 18.0;
+    S.lim = pickLimitant(S);
+    S.n0 = [0.5, 1, 1.5, 2, 2.5, 3, 4][rnd(0, 6)];
+    S.m0 = Number((S.n0 * S.MF).toPrecision(3));
+    const nF = S.m0 / S.MF, nCO2 = nF * S.kC / S.kF;
+    S.ans = {n: nF, nCO2, V: nCO2 * 24.0, En: nF * F.E, mCO2kg: 3.50 * S.kC * S.MC / (S.kF * S.MF)};
+    const fuelM = M(F.f, 'c-ch4');
+    const coef = c => c === 1 ? '' : `<span class="c-k">${c}</span>&nbsp;`;
+    const MOLS = {fuel: F.f, o2: 'O2', co2: 'CO2', h2o: 'H2O'};
+    const boxes = (prefix) => '<div class="choices">' + shuffle(Object.keys(MOLS)).map(key =>
+      `<label><input type="checkbox" id="${prefix}-${key}"> ${M(MOLS[key])}</label>`).join('') + '</div>';
+    const radios = (name, keys) => '<div class="choices">' + keys.map(key =>
+      `<label><input type="radio" name="${name}" value="${key}"> ${M(MOLS[key])}</label>`).join('') + '</div>';
+    const num = (id, sig, lg) => `<input type="text" class="num${lg ? ' lg' : ''}${sig ? '' : ' int'}" id="${id}"${sig ? ` data-sig="${sig}"` : ''} inputmode="decimal" autocomplete="off" aria-label="valeur">`;
+    const isHC = F.O === 0;
+
+    // Réactifs et produits : ordre aléatoire des questions et des propositions
+    const RP = shuffle([
+      ['reactifs', 'Quels sont les <span class="key">réactifs</span> ?', 'rea', ['fuel','o2'], 'Les réactifs'],
+      ['produits', 'Quels sont les <span class="key">produits</span> ?', 'pro', ['co2','h2o'], 'Les produits'],
+      ['combustible', 'Quel est le <span class="key">combustible</span> (ou carburant) ?', 'com', ['fuel'], 'Le combustible'],
+      ['comburant', 'Quel est le <span class="key">comburant</span> ?', 'cbt', ['o2'], 'Le comburant'],
+      ['disparu', 'Réaction <b>terminée</b> : qu’est-ce qui a disparu ?', 'dis', ['fuel','o2'], 'Ce qui a disparu'],
+      ['apparu', 'Réaction <b>terminée</b> : qu’est-ce qui est apparu ?', 'app', ['co2','h2o'], 'Ce qui est apparu']
+    ]);
+    const QCM = shuffle(QCM_BANK).slice(0, QCM_N).map(q => ({t: q.t, o: shuffle(q.o.map((txt, i) => ({txt, ok: i === 0})))}));
+    const L = S.lim;
+
+    let h = '';
+    // --- Le carburant ---
+    h += `<section><h2>${F.le}</h2><div class="qlist">
+      <div class="q block" data-q="famille">
+        <div class="stmt">Regarde la formule de la molécule ${F.du} ${fuelM} pour en déduire s'il s'agit d'un :</div>
+        <div class="family">
+          <label class="opt"><input type="checkbox" id="fam-alcane"><span class="t"><b>Alcane</b><small data-say="formule C n H 2 n plus 2">C<sub>n</sub>H<sub>2n+2</sub></small></span></label>
+          <label class="opt"><input type="checkbox" id="fam-alcene"><span class="t"><b>Alcène</b><small data-say="formule C n H 2 n">C<sub>n</sub>H<sub>2n</sub></small></span></label>
+          <label class="opt"><input type="checkbox" id="fam-alcool"><span class="t"><b>Alcool</b><small data-say="formule C n H 2 n plus 1 O H">C<sub>n</sub>H<sub>2n+1</sub>–OH</small></span></label>
+        </div>
+        <div class="fam-extra"><label class="inl">avec n = <input type="text" class="num" id="fam-n" inputmode="numeric" autocomplete="off"></label></div>
+        <p class="fb"></p>
+      </div>
+      ${isHC ? `<div class="q block" data-q="hydro">
+        <div class="para">Comme la molécule ${F.de} n'est composée que d'atomes de carbone et d'hydrogène, on dit que c'est un
+          <span class="nw"><input type="text" class="word" id="hydro-mot" autocomplete="off" spellcheck="false" aria-label="mot à compléter">.</span><button type="button" class="help" id="hydro-help" title="Choisir le mot dans une liste">AIDE</button></div>
+        <p class="fb"></p>
+      </div>` : ''}
+      </div></div></section>`;
+
+    // --- La recette ---
+    h += `<section><h2>La recette du chef</h2>
+      <div class="recipe"><div class="equation"><span class="term">${coef(S.kF)}${fuelM}</span> <span class="op">+</span> <span class="term">${coef(S.kO)}${M('O2')}</span> <span class="op">→</span> <span class="term">${coef(S.kC)}${M('CO2','c-co2')}</span> <span class="op">+</span> <span class="term">${coef(S.kH)}${M('H2O')}</span></div>
+      <div class="cap">Équation bilan ajustée (ou équilibrée)</div></div>
+      <p class="lead">Si l'on respecte bien cette recette, la combustion ne produit que de l'eau et du dioxyde de carbone*, et à la fin tout le carburant a été consommé.</p></section>`;
+
+    // --- Réactifs et produits ---
+    h += `<section><h2>Réactifs et produits</h2>
+      <p class="lead">Lors de cette réaction de combustion complète, coche la ou les bonnes molécules.</p><div class="qlist">` +
+      RP.map(q => `<div class="q" data-q="${q[0]}"><div class="stmt">${q[1]}</div>${boxes(q[2])}<p class="fb"></p></div>`).join('') + `</div></section>`;
+
+    // --- Proportions en moles ---
+    h += `<section><h2>Les proportions en moles</h2><div class="qlist"><div class="q block" data-q="moles"><div class="para">
+      Pour bien brûler ${F.du}, il faut respecter les proportions suivantes :
+      ${num('mol-fuel',0)} mol ${F.de} en présence de ${num('mol-o2',0)} mol de dioxygène, et craquer une allumette.
+      On génère alors de l'énergie thermique : c'est une réaction<span class="ch"><label><input type="radio" name="thermo" value="endo"> endothermique</label><span class="nw"><label><input type="radio" name="thermo" value="exo"> exothermique</label>.</span></span>
+      À la fin de la combustion, on a fabriqué ${num('mol-co2',0)} mol de dioxyde de carbone et ${num('mol-h2o',0)} mol d'eau.
+      </div><p class="fb"></p></div></div></section>`;
+
+    // --- Masses molaires ---
+    h += `<section><h2>Les masses molaires</h2><div class="qlist"><div class="q block tbl" data-q="masses">
+      <p class="note">Attention : les masses molaires ne dépendent pas de l'équation de combustion.</p>
+      <div class="tablewrap" data-say="Complète le tableau : calcule la masse molaire ${F.du}, du dioxygène, du dioxyde de carbone et de l'eau, en grammes par mole. Données : masse molaire du carbone, 12,0 grammes par mole ; masse molaire de l'oxygène, 16,0 grammes par mole ; masse molaire de l'hydrogène, 1,0 gramme par mole.">
+      <table><thead><tr><th><b>Données</b></th><th>Masse molaire<b>${F.du}</b></th><th>Masse molaire<b>du dioxygène</b></th><th>Masse molaire<b>du dioxyde de carbone</b></th><th>Masse molaire<b>de l'eau</b></th></tr></thead>
+      <tbody><tr><td class="data"><span class="nw">M<sub>C</sub> = 12,0 g·mol⁻¹</span><br><span class="nw">M<sub>O</sub> = 16,0 g·mol⁻¹</span><br><span class="nw">M<sub>H</sub> = 1,0 g·mol⁻¹</span></td>
+      <td data-label="M ${F.du}">${num('M-fuel',3)}<span class="u">g/mol</span></td><td data-label="M du dioxygène">${num('M-o2',3)}<span class="u">g/mol</span></td><td data-label="M du dioxyde de carbone">${num('M-co2',3)}<span class="u">g/mol</span></td><td data-label="M de l'eau">${num('M-h2o',3)}<span class="u">g/mol</span></td></tr></tbody></table></div>
+      <p class="fb"></p></div></div></section>`;
+
+    // --- Proportions en masses ---
+    h += `<section><h2>Les proportions en masses</h2><div class="qlist">
+      <div class="q block" data-q="grammes"><div class="para">Pour bien brûler ${F.du}, il faut donc respecter les proportions suivantes :
+        ${num('g-fuel',3)} g ${F.de} en présence de ${num('g-o2',3)} g de dioxygène.
+        À la fin de la combustion, on a fabriqué ${num('g-co2',3)} g de dioxyde de carbone et ${num('g-h2o',3)} g d'eau.</div><p class="fb"></p></div>
+      <div class="q block" data-q="masseco2"><div class="para">Si l'on brûle 3,50 kg ${F.de}, on rejette dans l'atmosphère
+        ${num('m-co2',3,true)} <select id="m-co2-unit" class="unit" aria-label="unité"><option value="">unité</option><option value="g">g</option><option value="kg">kg</option><option value="t">t</option></select>
+        de dioxyde de carbone.</div><p class="fb"></p></div>
+      </div></section>`;
+
+    // --- Correction de la première partie ---
+    h += `<div class="submit part"><button type="button" class="violet" id="send1">Envoyer mes réponses</button></div>
+      <div class="result" id="result1" hidden><div class="score" id="score1"></div><div class="who" id="who1"></div><ul id="result-list1"></ul></div>`;
+
+    // --- Deuxième partie : cachée tant que la première n'est pas entièrement juste ---
+    h += `<div id="part2" hidden>`;
+
+    // --- Réactif limitant ---
+    h += `<section><h2>Le réactif limitant</h2>
+      <div class="situation">On fait brûler <b>${L.nF} mol ${F.de}</b> avec <b>${L.nO} mol de dioxygène</b>.</div>
+      <div class="qlist">
+        <div class="q" data-q="limitant"><div class="stmt">Quel est le <span class="key">réactif limitant</span> ?</div>${radios('limitant', ['fuel','o2'])}<p class="fb"></p></div>
+        <div class="q" data-q="restant"><div class="stmt">À la fin de cette combustion, quel réactif n'aura pas complètement disparu ?</div>${radios('reste', ['fuel','o2'])}<p class="fb"></p></div>
+        <div class="q" data-q="reste"><div class="stmt">Combien de mol en restera-t-il ?</div><div class="choices"><label>${num('reste-n',2)} mol</label></div><p class="fb"></p></div>
+      </div></section>`;
+
+    // --- Autres calculs ---
+    h += `<section><h2>D'autres calculs</h2>
+      <div class="situation">On brûle complètement <b>${fr(S.m0, 3)} g ${F.de}</b>.</div>
+      <div class="qlist">
+        <div class="q block" data-q="volume"><div class="para">
+          La quantité de matière ${F.de} brûlée est n = ${num('v-n',3)} mol.
+          La quantité de matière de dioxyde de carbone formée est ${num('v-nco2',3)} mol.
+          Avec le volume molaire des gaz V<sub>m</sub> = 24,0 L/mol (à 20 °C), le volume de dioxyde de carbone rejeté est ${num('v-v',3)} L.
+        </div><p class="fb"></p></div>
+        <div class="q block" data-q="energie"><div class="para">
+          La combustion d'une mole ${F.de} libère ${sep(F.E)} kJ. L'énergie libérée par la combustion des ${fr(S.m0, 3)} g ${F.de} est ${num('e-e',3,true)} kJ.
+        </div><p class="fb"></p></div>
+      </div></section>`;
+
+    // --- Danger : combustion incomplète ---
+    const CO_OPTS = shuffle(['CO', ...shuffle(['CO2','O2','H2O','H2','O3','C2O','CO3','HO','CH4']).slice(0, 4)]);
+    h += `<section><h2>Danger : la combustion incomplète</h2><div class="qlist"><div class="q block danger" data-q="co">
+      <div class="dh"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 1 21h22L12 2zm0 4.5L19.5 19h-15L12 6.5zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"/></svg>Attention, gaz mortel !</div>
+      <div class="para">Lorsqu'on fait brûler ${F.du} (le <b>combustible</b>) et qu'il n'y a pas assez de dioxygène (le <b>comburant</b>), la combustion est <b>incomplète</b> : il se forme un gaz très dangereux pour tous les êtres vivants ! C'est le
+        <span class="nw"><input type="text" class="word wide" id="co-nom" autocomplete="off" spellcheck="false" aria-label="nom du gaz"></span> de formule :</div>
+      <div class="forms">${CO_OPTS.map(f => `<label><input type="radio" name="co-f" value="${f}"> ${M(f)}</label>`).join('')}</div>
+      <p class="info">Ce gaz est incolore et inodore : on ne le sent pas venir. Chaque hiver, il provoque des intoxications à cause d'appareils de chauffage mal réglés ou de pièces mal aérées. Un détecteur de ce gaz permet de donner l'alerte.</p>
+      <p class="fb"></p></div></div></section>`;
+
+    // --- Mini-QCM ---
+    h += `<section><h2>Mini-QCM <span class="tag">${QCM_N} questions tirées au hasard</span></h2><div class="qlist">` +
+      QCM.map((q, i) => `<div class="q block qcm" data-q="qcm${i}"><div class="stmt">${q.t}</div><div class="choices">` +
+        q.o.map((o, j) => `<label><input type="radio" name="qcm${i}" value="${o.ok ? 1 : 0}"> <span>${o.txt}</span></label>`).join('') +
+        `</div><p class="fb"></p></div>`).join('') + `</div></section>`;
+
+    h += `</div>`;
+    $('content').innerHTML = h;
+    $('submitAll').hidden = true;
+
+    // Bouton AIDE : le champ devient un menu de 10 mots (HYDROCARBURE + 9 mots de la combustion tirés au hasard)
+    const helpBtn = $('hydro-help');
+    if (helpBtn) helpBtn.addEventListener('click', () => {
+      // Uniquement des mots masculins (la phrase dit « c'est un … »)
+      const WORDS = ['ENDOTHERMIQUE','EXOTHERMIQUE','RÉACTIF','PRODUIT','COMBURANT','COMBUSTIBLE','CARBURANT','LIMITANT','ATOME','GAZ',
+        'ALCANE','ALCÈNE','ALCOOL','DIOXYGÈNE','HYDROGÈNE','CARBONE','HYDRATE','HYDROXYDE','OXYDE','POLLUANT','PÉTROLE','CATALYSEUR','BIOCARBURANT','OXYDANT'];
+      const list = shuffle(['HYDROCARBURE', ...shuffle(WORDS).slice(0, 9)]);
+      const old = $('hydro-mot');
+      const sl = document.createElement('select');
+      sl.id = 'hydro-mot'; sl.className = 'word'; sl.setAttribute('aria-label', 'mot à compléter');
+      sl.innerHTML = '<option value="">choisir…</option>' + list.map(w => `<option value="${w}">${w}</option>`).join('');
+      old.replaceWith(sl);
+      helpBtn.remove();
+      try { sl.focus(); } catch(e) {}
+    });
+    // Correction (dans l'ordre d'affichage)
+    const C = [];
+    C.push({key:'famille', name:'La famille ' + F.du, check(){
+      const any = ['fam-alcane','fam-alcene','fam-alcool'].some(i => $(i).checked);
+      const n = num_('fam-n');
+      if (!any && n === null) return {st:'todo'};
+      const boxesOk = ['alcane','alcene','alcool'].every(x => $('fam-' + x).checked === (x === F.fam));
+      const nOk = close(n, F.C);
+      if (boxesOk && nOk) return {st:'ok'};
+      return {st:'bad', bad: nOk ? [] : ['fam-n'], msg: boxesOk ? 'La case cochée est juste ; vérifie la valeur de n.' : nOk ? 'La valeur de n est juste ; vérifie la case cochée.' : ''};
+    }});
+    if (isHC) C.push({key:'hydro', name:'Le mot « hydrocarbure »', check(){
+      const v = $('hydro-mot').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').replace(/^(un|une|d'|de l'|l') ?/, '').replace(/[.!]$/, '');
+      if (!v) return {st:'todo'};
+      return v === 'hydrocarbure' ? {st:'ok'} : {st:'bad', bad:['hydro-mot']};
+    }});
+    RP.forEach(q => C.push({key:q[0], name:q[4], check:() => boxQ(q[2], q[3])}));
+    C.push({key:'moles', name:'Les proportions en moles', check:() =>
+      numsQ([['mol-fuel',S.kF,2],['mol-o2',S.kO,2],['mol-co2',S.kC,2],['mol-h2o',S.kH,2]],
+        () => { const r = radio('thermo'); return !r ? 'todo' : r === 'exo' ? 'ok' : 'bad'; }, 'type de réaction')});
+    C.push({key:'masses', name:'Le tableau des masses molaires', check:() =>
+      numsQ([['M-fuel',S.MF,3],['M-o2',S.MO,3],['M-co2',S.MC,3],['M-h2o',S.MH,3]])});
+    C.push({key:'grammes', name:'Les proportions en masses', check:() =>
+      numsQ([['g-fuel',S.kF*S.MF,3],['g-o2',S.kO*S.MO,3],['g-co2',S.kC*S.MC,3],['g-h2o',S.kH*S.MH,3]])});
+    C.push({key:'masseco2', name:'La masse de CO₂ rejetée', check(){
+      const n = num_('m-co2'), u = $('m-co2-unit').value;
+      if (n === null && !u) return {st:'todo'};
+      if (n === null) return {st:'todo', empty:['m-co2'], msg:'Il manque la valeur.'};
+      if (!u) return {st:'todo', empty:['m-co2-unit'], msg:'Choisis une unité.'};
+      const kg = u === 'g' ? n / 1000 : u === 't' ? n * 1000 : n;
+      return numOk(kg, S.ans.mCO2kg, 3, 0.006) ? {st:'ok'} : {st:'bad', bad:['m-co2','m-co2-unit']};
+    }});
+    C.push({key:'limitant', name:'Le réactif limitant', check(){ const r = radio('limitant'); return {st: !r ? 'todo' : r === L.lim ? 'ok' : 'bad'}; }});
+    C.push({key:'restant', name:'Le réactif qui n’a pas disparu', check(){ const r = radio('reste'); return {st: !r ? 'todo' : r === L.reste ? 'ok' : 'bad'}; }});
+    C.push({key:'reste', name:'Le nombre de moles restantes', check(){
+      const n = num_('reste-n');
+      if (n === null) return {st:'todo', empty:['reste-n']};
+      return numOk(n, L.rest, 2, 0) ? {st:'ok'} : {st:'bad', bad:['reste-n']};
+    }});
+    C.push({key:'volume', name:'Le volume de CO₂ rejeté', check:() =>
+      numsQ([['v-n',S.ans.n,3,0.006],['v-nco2',S.ans.nCO2,3,0.006],['v-v',S.ans.V,3,0.006]])});
+    C.push({key:'energie', name:'L’énergie libérée', check:() => numsQ([['e-e',S.ans.En,3,0.006]])});
+    C.push({key:'co', name:'Le gaz de la combustion incomplète', check(){
+      const v = $('co-nom').value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').replace(/^(le|du) /, '').replace(/[.!]$/, '');
+      const f = radio('co-f');
+      if (!v && !f) return {st:'todo'};
+      const nOk = v === 'monoxyde de carbone', fOk = f === 'CO';
+      if (nOk && fOk) return {st:'ok'};
+      if (!v || !f) return {st: (v && !nOk) || (f && !fOk) ? 'bad' : 'todo', bad: v && !nOk ? ['co-nom'] : [], empty: !v ? ['co-nom'] : [],
+        msg: !v ? 'Il manque le nom du gaz.' : 'Il manque la formule.'};
+      return {st:'bad', bad: nOk ? [] : ['co-nom'], msg: nOk ? 'Le nom est juste ; vérifie la formule.' : fOk ? 'La formule est juste ; vérifie le nom.' : ''};
+    }});
+    QCM.forEach((q, i) => C.push({key:'qcm' + i, name:'Mini-QCM, question ' + (i + 1), check(){
+      const r = radio('qcm' + i); return {st: !r ? 'todo' : r === '1' ? 'ok' : 'bad'};
+    }}));
+    CHECKS = C;
+    window.FICHE_DATA = {F, S, L, nq: C.length, RP: Object.fromEntries(RP.map(q => [q[2], q[3]]))};   // pour les PDF (liens cachés)
+
+    if (typeof addTools === 'function') addTools($('content'));
+    fitEquations();
+    $('result').hidden = true;
+  }
+
+  // ---------- L'équation bilan reste sur une seule ligne : la taille du texte s'adapte à la largeur ----------
+  function fitEquations() {
+    document.querySelectorAll('.equation').forEach(el => {
+      el.style.fontSize = '';
+      let fs = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > el.clientWidth + 1 && fs > 11) { fs -= 0.5; el.style.fontSize = fs + 'px'; }
+    });
+  }
+  let fitT; window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitEquations, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitEquations);
+
+  // ---------- Correction ----------
+  function num_(id) {
+    const v = $(id).value.trim().replace(',', '.').replace(/\s/g, '');
+    if (v === '') return null;
+    const n = Number(v);
+    return isFinite(n) ? n : NaN;
+  }
+  const close = (a, b) => a !== null && !isNaN(a) && Math.abs(a - b) <= 1e-9;
+  // Juste si la valeur arrondie au bon nombre de chiffres significatifs est celle attendue (ou proche à rel près)
+  function numOk(v, e, sig, rel) {
+    if (v === null || isNaN(v)) return false;
+    if (Math.abs(v - e) <= 1e-9 * Math.max(1, Math.abs(e))) return true;
+    if (typeof toNormalized === 'function' && toNormalized(v, sig) === toNormalized(e, sig)) return true;
+    return rel > 0 && Math.abs(v - e) <= rel * Math.abs(e);
+  }
+  const radio = name => { const r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ''; };
+  function boxQ(prefix, expected) {
+    const all = ['fuel','o2','co2','h2o'];
+    if (!all.some(k => $(prefix + '-' + k).checked)) return {st:'todo'};
+    return {st: all.every(k => $(prefix + '-' + k).checked === expected.includes(k)) ? 'ok' : 'bad'};
+  }
+  function numsQ(list, extra, extraName) {
+    const bad = [], empty = [];
+    list.forEach(([id, val, sig, rel]) => { const n = num_(id); if (n === null) empty.push(id); else if (!numOk(n, val, sig, rel || 0)) bad.push(id); });
+    const ex = extra ? extra() : 'ok';
+    if (empty.length === list.length && (ex === 'todo' || !extra)) return {st:'todo', empty: list.length > 1 ? [] : empty};
+    const msgs = [];
+    if (bad.length) msgs.push(bad.length === 1 ? '1 valeur est fausse.' : bad.length + ' valeurs sont fausses.');
+    if (empty.length) msgs.push(empty.length === 1 ? '1 case est vide.' : empty.length + ' cases sont vides.');
+    if (ex === 'bad') msgs.push('Revois le ' + extraName + '.');
+    if (ex === 'todo') msgs.push('Choisis le ' + extraName + '.');
+    const st = (bad.length || ex === 'bad') ? 'bad' : (empty.length || ex === 'todo') ? 'todo' : 'ok';
+    return {st, bad, empty, msg: list.length > 1 || ex !== 'ok' ? msgs.join(' ') : ''};
+  }
+
+  const MSG = {ok:'Juste.', todo:'Pas encore complété.'};
+  function clearQ(box) {
+    box.removeAttribute('data-state');
+    const fb = box.querySelector('.fb'); if (fb) fb.textContent = '';
+    box.querySelectorAll('.f-bad,.f-todo').forEach(el => el.classList.remove('f-bad','f-todo'));
+  }
+
+  function grade(list, sfx, label) {
+    if (!list.length) return;
+    const idOk = $('nom').value.trim() && $('prenom').value.trim() && $('classe').value;
+    $('ident-msg').hidden = !!idOk;
+    ['nom','prenom','classe'].forEach(id => $(id).classList.toggle('f-todo', !idOk && !$(id).value.trim()));
+    let ok = 0; const out = [];
+    list.forEach(q => {
+      const box = document.querySelector('.q[data-q="' + q.key + '"]');
+      clearQ(box);
+      const r = q.check();
+      box.setAttribute('data-state', r.st === 'ok' ? 'good' : r.st);
+      (r.bad || []).forEach(id => $(id).classList.add('f-bad'));
+      (r.empty || []).forEach(id => $(id).classList.add('f-todo'));
+      box.querySelector('.fb').textContent = r.st === 'ok' ? MSG.ok : (r.st === 'bad' ? 'Incorrect. ' : '') + (r.msg || (r.st === 'bad' ? 'À revoir.' : MSG.todo));
+      if (r.st === 'ok') ok++; else out.push([r.st, q.name]);
+    });
+    $('score' + sfx).textContent = '' + ok + ' / ' + list.length + ' réponses justes';
+    $('score' + sfx).classList.toggle('all', ok === list.length);
+    $('who' + sfx).textContent = (idOk ? $('nom').value.trim() + ' ' + $('prenom').value.trim() + ' · ' + $('classe').value + ' · ' : '') + 'Carburant : ' + sel.options[sel.selectedIndex].text.toLowerCase();
+    const ul = $('result-list' + sfx); ul.innerHTML = '';
+    const add = (cls, txt) => { const li = document.createElement('li'); if (cls) li.className = cls; li.textContent = txt; ul.appendChild(li); };
+    if (ok === list.length) add('', label ? 'Bravo, tout est juste ! La suite de la fiche vient d\u2019apparaître ci-dessous.' : 'Bravo, toutes tes réponses sont justes !');
+    else {
+      out.filter(o => o[0] === 'bad').forEach(o => add('bad', 'À revoir : ' + o[1]));
+      out.filter(o => o[0] === 'todo').forEach(o => add('todo', 'Non complété : ' + o[1]));
+      add('', 'Corrige les questions surlignées, puis renvoie tes réponses.');
+    }
+    $('result' + sfx).hidden = false;
+    $('result' + sfx).scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'nearest'});
+    return ok === list.length;
+  }
+  // Bouton violet : corrige seulement la première partie (jusqu'aux proportions en masses)
+  $('content').addEventListener('click', e => {
+    if (!e.target.closest || !e.target.closest('#send1')) return;
+    const cut = CHECKS.findIndex(q => q.key === 'limitant');
+    const allOk = grade(CHECKS.slice(0, cut), '1', 'Première partie');
+    if (allOk) {
+      $('part2').hidden = false;
+      $('submitAll').hidden = false;
+      $('send1').hidden = true;
+    }
+  });
+  $('send').addEventListener('click', () => {
+    const allOk = grade(CHECKS, '', '');
+    // Fiche entièrement juste (et nom + prénom saisis) : certificat de réussite
+    if (allOk && $('nom').value.trim() && $('prenom').value.trim() && $('classe').value && typeof window.showCertificate === 'function') window.showCertificate(false);
+  });
+
+  // Une réponse modifiée perd son marquage
+  ['input','change'].forEach(t => $('content').addEventListener(t, e => { const box = e.target.closest('.q'); if (box) clearQ(box); }));
+  ['nom','prenom','classe'].forEach(id => { $(id).addEventListener('input', () => $(id).classList.remove('f-todo')); $(id).addEventListener('change', () => $(id).classList.remove('f-todo')); });
+  ['nom','prenom'].forEach(id => $(id).addEventListener('input', e => {
+    const el = e.target, a = el.selectionStart, b = el.selectionEnd;
+    el.value = el.value.toLocaleUpperCase('fr-FR');
+    try { el.setSelectionRange(a, b); } catch(_) {}
+  }));
+
+  // Tout effacer (confirmation par second clic) : garde l'identité et le carburant
+  let armed = false, t;
+  $('reset').addEventListener('click', () => {
+    const btn = $('reset');
+    if (!armed) { armed = true; btn.textContent = 'Cliquer encore pour confirmer'; t = setTimeout(() => { armed = false; btn.textContent = 'Tout effacer'; }, 3000); return; }
+    clearTimeout(t); armed = false; btn.textContent = 'Tout effacer';
+    $('content').querySelectorAll('input').forEach(i => { if (i.type === 'checkbox' || i.type === 'radio') i.checked = false; else i.value = ''; });
+    $('content').querySelectorAll('select').forEach(s => s.value = '');
+    $('content').querySelectorAll('.q').forEach(clearQ);
+    $('result').hidden = true;
+    if ($('result1')) $('result1').hidden = true;
+  });
+
+  // ---------- Choix du carburant : fiche floue tant qu'aucun carburant n'est choisi ----------
+  function applyFuel() {
+    const F = FUELS.find(x => x.id === sel.value);
+    if (typeof stopSpeaking === 'function') stopSpeaking();
+    if (typeof closeCalc === 'function') closeCalc();
+    if (F) {
+      build(F);
+      document.body.classList.remove('no-fuel');
+      $('sheetBody').inert = false;
+    } else {
+      build(FUELS[0]);                                // aperçu flou
+      CHECKS = [];
+      window.FICHE_DATA = null;
+      document.body.classList.add('no-fuel');
+      $('sheetBody').inert = true;
+    }
+  }
+  sel.addEventListener('change', applyFuel);
+  applyFuel();
+})();
+
+</script>
+<style>
+/* ===== Pad de saisie des valeurs numériques (comme dans les tests) : s'ouvre en bas de l'écran quand on touche une case ===== */
+#npad{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;justify-content:center;pointer-events:none}
+#npad .np{pointer-events:auto;width:100%;max-width:400px;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.18);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));font-family:var(--f-body)}
+#npad .nphead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 2px 6px;font-size:.85rem;color:var(--muted)}
+#npad .nphead b{color:var(--ink);font-weight:600}
+#npad .cdisp{display:flex;align-items:center;justify-content:flex-end;min-height:50px;padding:6px 12px;border:2px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:700 1.45rem/1.2 var(--f-mono);overflow:hidden;white-space:nowrap}
+#npad .cval{overflow:hidden;text-overflow:ellipsis}
+#npad .cval sup{font-size:.62em;line-height:0}
+#npad .ph{font:400 .9rem/1.2 var(--f-body);color:var(--muted);flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#npad .box{display:inline-block;width:.55em;height:.8em;border:2px dashed var(--muted);border-radius:3px;vertical-align:baseline}
+#npad .numprev{margin:4px 2px 6px;height:1.5em;line-height:1.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.92rem;color:var(--muted)}
+#npad .numprev b{color:var(--ink)}
+#npad .numprev sup{line-height:0}
+#npad .numprev.warn{color:var(--bad)}
+#npad .numpad{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+#npad button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:42px;padding:0;font:700 1.12rem var(--f-body);border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);cursor:pointer}
+#npad button.k-op{background:var(--soft)}
+#npad button.k-ac{color:var(--bad)}
+#npad button.k-pow{grid-column:span 2}
+#npad button:disabled{opacity:.3;cursor:default}
+#npad .npact{display:grid;grid-template-columns:1fr;gap:6px;margin-top:6px}
+#npad .npact button{font-size:.95rem}
+#npad .npact .npnext{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+#npad .numhelp{margin:6px 2px 0;font-size:.78rem;color:var(--muted)}
+body.npad-open{padding-bottom:var(--npad-h,360px)}
+.sheet input.num.npcur{outline:3px solid var(--focus);outline-offset:1px}
+body.locked #npad{display:none!important}
+</style>
+<script>
+/* ===== Pad de saisie des valeurs numériques =====
+   Toucher une case numérique ouvre le pad en bas de l'écran (le clavier du téléphone ne s'ouvre pas).
+   La valeur tapée est gardée telle quelle (ex. 9.876E-4) ; « Réponse retenue » montre la valeur arrondie au nombre de chiffres significatifs de la case. */
+(function(){
+  const COARSE = matchMedia('(pointer: coarse)').matches;
+  const KEYS = [['7'], ['8'], ['9'], ['AC', 'k-op k-ac'], ['4'], ['5'], ['6'], ['⌫', 'k-op'], ['1'], ['2'], ['3'], ['(−)', 'k-op'], ['0'], ['.', 'k-op'], ['×10ˣ', 'k-op k-pow']];
+  const isNum = el => !!(el && el.matches && el.matches('.sheet input.num'));
+  const isInt = el => !el.dataset.sig;
+  let pad = null, cur = null;
+
+  function build() {
+    if (pad) return;
+    pad = document.createElement('div');
+    pad.id = 'npad'; pad.hidden = true;
+    pad.innerHTML = '<div class="np" role="group" aria-label="Pad de saisie">' +
+      '<div class="nphead"><b>Saisie de la valeur</b><span class="npsig"></span></div>' +
+      '<div class="cdisp" aria-live="polite"><span class="cval"></span></div>' +
+      '<p class="numprev">&nbsp;</p>' +
+      '<div class="numpad">' + KEYS.map(([k, c]) => `<button type="button" class="${c || ''}" data-k="${k}">${k}</button>`).join('') + '</div>' +
+      '<div class="npact"><button type="button" class="npnext">OK ✓</button></div>' +
+      '<p class="numhelp">Exemple : 9,876 × 10<sup>−4</sup> → tape 9.876 puis ×10ˣ puis (−) puis 4</p></div>';
+    document.body.appendChild(pad);
+    pad.addEventListener('pointerdown', e => e.preventDefault());       // la case garde le focus
+    pad.addEventListener('mousedown', e => e.preventDefault());
+    pad.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b || b.disabled) return;
+      if (b.dataset.k) key(b.dataset.k);
+      else if (b.classList.contains('npnext')) close();   // OK : la saisie est terminée, l’élève continue la fiche dans l’ordre
+    });
+  }
+  function prep(el) { if (COARSE) { el.readOnly = true; el.setAttribute('inputmode', 'none'); } }
+
+  function open(el) {
+    build();
+    if (cur && cur !== el) commit(cur);
+    if (cur) cur.classList.remove('npcur');
+    cur = el; prep(el);
+    el.classList.add('npcur');
+    pad.hidden = false;
+    document.body.classList.add('npad-open');
+    const h = pad.firstElementChild.offsetHeight;
+    document.body.style.setProperty('--npad-h', (h + 16) + 'px');
+    render();
+    requestAnimationFrame(() => {                                       // la case ne doit pas être cachée par le pad
+      const r = el.getBoundingClientRect(), top = innerHeight - h - 12;
+      if (r.bottom > top || r.top < 8) window.scrollBy({ top: r.top - Math.max(8, (top - r.height) / 2), behavior: 'auto' });
+    });
+  }
+  function commit(el) { el.dispatchEvent(new Event('change', { bubbles: true })); }   // écriture normalisée + effacement du marquage
+  function close() {
+    if (!cur) { if (pad) pad.hidden = true; return; }
+    const el = cur; cur = null;
+    commit(el);
+    el.classList.remove('npcur');
+    pad.hidden = true;
+    document.body.classList.remove('npad-open');
+    try { el.blur(); } catch (e) {}
+  }
+  function key(k) {
+    if (!cur) return;
+    let v = cur.value.replace(/\s+/g, '').replace(/,/g, '.').replace(/e/g, 'E').replace(/−/g, '-');
+    const iE = v.indexOf('E');
+    if (k === 'AC') v = '';
+    else if (k === '⌫') v = v.slice(0, -1);
+    else if (/^\d$/.test(k)) { if (v.replace(/[^0-9]/g, '').length < 15) v += k; }
+    else if (k === '.') { if (iE < 0 && !/\./.test(v)) v += (v === '' || v === '-' ? '0.' : '.'); }
+    else if (k === '×10ˣ') { if (iE < 0 && /\d/.test(v)) v += 'E'; }
+    else if (k === '(−)') {
+      if (iE >= 0) v = v.slice(0, iE + 1) + (v[iE + 1] === '-' ? v.slice(iE + 2) : '-' + v.slice(iE + 1));
+      else v = v[0] === '-' ? v.slice(1) : '-' + v;
+    }
+    cur.value = v;
+    cur.dispatchEvent(new Event('input', { bubbles: true }));
+    render();
+  }
+  function readNum(v) {
+    const t = String(v).replace(/\s+/g, '').replace(/,/g, '.').replace(/−/g, '-');
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)(E[+-]?\d+)?$/i.test(t)) return null;
+    const x = Number(t); return isFinite(x) ? x : null;
+  }
+  function pretty(x, sig) {
+    if (x === 0) return '0';
+    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    if (e < -2 || e >= sig) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',').replace('-', '−') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',').replace('-', '−');
+  }
+  function render() {
+    if (!pad || !cur) return;
+    const int = isInt(cur), sig = int ? 0 : +cur.dataset.sig;
+    pad.querySelector('.npsig').textContent = int ? 'nombre entier' : sig + ' chiffres significatifs';
+    pad.querySelectorAll('.numpad button').forEach(b => { b.disabled = int && ['.', '×10ˣ', '(−)'].includes(b.dataset.k); });
+    const v = cur.value.replace(/\s+/g, '').replace(/,/g, '.').replace(/e/g, 'E').replace(/−/g, '-'), iE = v.indexOf('E');
+    const cval = pad.querySelector('.cval'), pv = pad.querySelector('.numprev');
+    const mant = (iE < 0 ? v : v.slice(0, iE)).replace('-', '−');
+    if (!v) cval.innerHTML = '<span class="ph">Touche les chiffres ci-dessous</span>';
+    else if (iE < 0) cval.textContent = mant;
+    else { const ex = v.slice(iE + 1).replace('-', '−'); cval.innerHTML = mant + ' × 10<sup>' + (/\d/.test(ex) ? ex : ex + '<span class="box"></span>') + '</sup>'; }
+    pv.classList.remove('warn');
+    if (!v) { pv.innerHTML = '&nbsp;'; return; }
+    if (iE >= 0 && !/\d$/.test(v)) { pv.classList.add('warn'); pv.textContent = 'Il manque l’exposant de la puissance de 10'; return; }
+    const x = readNum(v);
+    if (x === null) { pv.innerHTML = '&nbsp;'; return; }
+    pv.innerHTML = 'Réponse retenue : <b>' + (sig ? pretty(x, sig) : String(x).replace('.', ',').replace('-', '−')) + '</b>';
+  }
+
+  // Ouverture : toucher (ou atteindre au clavier) une case numérique
+  document.addEventListener('pointerdown', e => {
+    const t = e.target;
+    if (isNum(t)) { prep(t); return; }
+    if (!cur || (pad && pad.contains(t))) return;
+    if (t.closest && t.closest('#calc')) return;                        // calculatrice : « Utiliser cette valeur » remplit la case
+    close();
+  }, true);
+  document.addEventListener('focusin', e => { if (isNum(e.target) && e.target !== cur) open(e.target); });
+  document.addEventListener('input', e => { if (e.target === cur) render(); });       // clavier de l'ordinateur, calculatrice
+  document.addEventListener('change', e => { if (e.target === cur) setTimeout(render, 0); });
+  document.addEventListener('keydown', e => { if (cur && e.target === cur && e.key === 'Enter') { e.preventDefault(); close(); } });
+  // Calculatrice ouverte, fraude, changement de carburant, « Tout effacer » : le pad se ferme ou se met à jour
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.calcbtn')) close(); }, true);
+  new MutationObserver(() => { if (document.body.classList.contains('locked')) close(); })
+    .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(() => { if (cur && !cur.isConnected) { cur = null; if (pad) pad.hidden = true; document.body.classList.remove('npad-open'); } else render(); })
+    .observe(document.getElementById('content') || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+})();
+</script>
+<script>
+/* ===== Liens cachés : PDF de la fiche =====
+   « x » de Domstoolbox (en bas) : fiche CORRIGÉE ; « O » de MÉMO (en haut) : fiche VIERGE à imprimer.
+   Actifs seulement quand un carburant est choisi. Même carburant et mêmes valeurs tirées que la fiche à l'écran.
+   Mise en page A4 dédiée : chaque question est un bloc entier (jamais coupé d'une page à l'autre). */
+(function(){
+  const LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+  const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  const PW = 794, PH = 1123, PADX = 44, PADT = 38, FOOT = 56;
+  const CSS = `
+    :root{--bg:#ffffff;--paper:#ffffff;--ink:#1b2430;--muted:#5d6977;--line:#d6dde6;--soft:#f3f6f9;--accent:#1f4e79;--accent-soft:#e6eef7;--ch4:#178a45;--co2:#7a3aa8;--coef:#d1262b;--bad:#c0281f;--bad-bg:#fdecea;--todo:#9a5b00;--todo-bg:#fff4df;--good:#137a43;--good-bg:#e6f4ec;--focus:#2b74c7;--head-ink:#000;--red:#e3161b;--blue1:#1565c0;--green:#14a04a;color-scheme:light}
+    html,body{margin:0!important;padding:0!important;background:#fff!important}
+    body{width:${PW}px;font-size:14px;line-height:1.5;color:var(--ink);-webkit-font-smoothing:antialiased}
+    #stage{position:absolute;left:0;top:0;width:${PW - 2 * PADX}px;visibility:hidden}
+    .pg{position:relative;width:${PW}px;height:${PH}px;overflow:hidden;background:#fff;padding:${PADT}px ${PADX}px 0;box-sizing:border-box}
+    .pgc{display:flex;flex-direction:column;gap:12px}
+    .pgf{position:absolute;left:${PADX}px;right:${PADX}px;bottom:22px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px;font-size:10.5px;color:var(--muted)}
+    .pgf b{color:var(--accent);font-weight:700}
+    .pgf .corr{color:var(--good);font-weight:700;letter-spacing:.06em}
+    .pgh{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:2px}
+    .pgh b{font-family:var(--f-head);font-weight:400;color:var(--ink);font-size:12px;letter-spacing:.02em}
+    /* En-tête de la première page */
+    .ph1{border-radius:16px;background:#14263a;color:#fff;padding:20px 24px 22px;display:flex;flex-direction:column;gap:10px}
+    .ph1-top{display:flex;justify-content:space-between;align-items:center}
+    .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.12em}
+    .pill.memo{background:var(--red);color:#fff}
+    .pill.lvl{background:#ffffff1f;color:#fff;letter-spacing:.04em;gap:0}
+    .pill.lvl .ere{font-size:.72em;letter-spacing:0;position:relative;top:-.45em;margin-left:1px}
+    .ph1-title{font-family:var(--f-head);font-size:34px;line-height:1.08;letter-spacing:.01em}
+    .ph1-title span{color:#7cc4ff}
+    .ph1-sub{font-size:12.5px;color:#c9d6e3}
+    .pband{border-radius:12px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:700;background:var(--good-bg);color:var(--good);border:2px solid var(--good);letter-spacing:.04em}
+    .pident{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px}
+    .pident span{display:block;border:1.5px solid #b8c4d1;border-radius:10px;height:50px;padding:6px 12px;font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+    /* Titres de partie */
+    .blk h2{margin:6px 0 10px;font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--accent);display:flex;align-items:center;gap:10px}
+    .blk h2::after{content:"";flex:1;height:2px;border-radius:2px;background:var(--accent-soft)}
+    .blk h2 .sn{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;letter-spacing:0}
+    .blk h2 .tag{color:var(--muted);border-color:var(--line)}
+    /* Blocs */
+    .blk .q{border:1px solid var(--line)!important;border-radius:12px;padding:12px 16px!important;background:#fff;box-shadow:none!important}
+    .blk .q.danger{border-color:#e7a7a2!important}
+    .has-tools{padding-right:16px!important}
+    .tools,.fb,.submit,.result,.ident-msg,.help,#npad,#calc{display:none!important}
+    .q .key{text-decoration:none!important;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:0 5px}
+    .lead{margin:0;font-size:12.5px;color:var(--muted)}
+    .situation{border-radius:12px!important;border:0!important;background:var(--accent-soft)!important;padding:11px 16px!important}
+    .recipe{border-radius:12px!important;border:0!important;background:var(--soft)!important}
+    .para{line-height:2.4}
+    .opt{border-radius:10px}
+    .pnote{font-size:10.5px;color:var(--muted);margin-top:4px}
+    /* Réponses */
+    .pans{display:inline-block;box-sizing:border-box;min-width:7.2em;height:30px;line-height:26px;padding:0 6px;border:1.5px solid #9aabbe;border-radius:8px;text-align:center;vertical-align:middle;font-family:var(--f-mono);font-size:13px;background:#fff}
+    .pans.int{min-width:4em}
+    .pans.word{min-width:12em;font-family:var(--f-body)}
+    .pans.ok{border-color:var(--good);color:var(--good);font-weight:700;background:var(--good-bg)}
+    .pans sup{font-size:.7em;line-height:0}
+    .pck{display:inline-block;box-sizing:border-box;flex:none;width:17px;height:17px;border:1.5px solid #6b7785;border-radius:5px;vertical-align:-3px;margin-right:2px;background:#fff;position:relative}
+    .pck.rd{border-radius:50%}
+    .pck.on{background:var(--good);border-color:var(--good)}
+    .pck.on::after{content:"";position:absolute;left:4.5px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+    label.pok{color:var(--good);font-weight:700}
+    /* Tableau */
+    .tablewrap{overflow:visible!important}
+    .q.tbl table{table-layout:fixed;min-width:0!important;width:100%}
+    .q.tbl th:first-child,.q.tbl td.data{width:29%}
+    .q.tbl td{white-space:normal!important}
+    .q.tbl .pans{min-width:0;width:100%}
+    th,td{border-color:var(--line)}
+    th{background:var(--soft)}`;
+  let busy = false;
+
+  function fmt(x, sig) {
+    if (!sig) return String(x).replace('.', ',');
+    if (x === 0) return '0';
+    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    if (e < -2 || e >= sig + 1) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
+  }
+
+  // Les champs de la fiche deviennent des cases (vides, ou remplies avec la bonne réponse)
+  function prepare(clone, D, corr) {
+    const F = D.F, S = D.S, L = D.L;
+    const NUM = {'mol-fuel':[S.kF,0], 'mol-o2':[S.kO,0], 'mol-co2':[S.kC,0], 'mol-h2o':[S.kH,0],
+      'M-fuel':[S.MF,3], 'M-o2':[S.MO,3], 'M-co2':[S.MC,3], 'M-h2o':[S.MH,3],
+      'g-fuel':[S.kF*S.MF,3], 'g-o2':[S.kO*S.MO,3], 'g-co2':[S.kC*S.MC,3], 'g-h2o':[S.kH*S.MH,3],
+      'm-co2':[S.ans.mCO2kg,3], 'reste-n':[L.rest,2], 'v-n':[S.ans.n,3], 'v-nco2':[S.ans.nCO2,3], 'v-v':[S.ans.V,3], 'e-e':[S.ans.En,3], 'fam-n':[F.C,0]};
+    const RADIO = {thermo:'exo', limitant:L.lim, reste:L.reste, 'co-f':'CO'};
+    const isOk = inp => {
+      if (inp.type === 'radio') return inp.name.startsWith('qcm') ? inp.value === '1' : RADIO[inp.name] === inp.value;
+      const m = inp.id.match(/^([a-z]+)-(.+)$/);
+      if (!m) return false;
+      if (m[1] === 'fam') return m[2] === F.fam;
+      return !!(D.RP[m[1]] && D.RP[m[1]].includes(m[2]));
+    };
+    const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    clone.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
+    clone.querySelectorAll('.f-bad,.f-todo').forEach(e => e.classList.remove('f-bad', 'f-todo'));
+    clone.querySelectorAll('.tools,.fb,.help').forEach(e => e.remove());
+    clone.querySelectorAll('input').forEach(inp => {
+      if (inp.type === 'checkbox' || inp.type === 'radio') {
+        inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (corr && isOk(inp) ? ' on' : ''), ''));
+        return;
+      }
+      if (inp.classList.contains('num')) {
+        const a = NUM[inp.id], int = a && !a[1];
+        inp.replaceWith(span('pans' + (int ? ' int' : '') + (corr ? ' ok' : ''), corr && a ? fmt(a[0], a[1]) : '&nbsp;'));
+        return;
+      }
+      if (inp.id === 'hydro-mot') { inp.replaceWith(span('pans word' + (corr ? ' ok' : ''), corr ? 'HYDROCARBURE' : '&nbsp;')); return; }
+      if (inp.id === 'co-nom') { inp.replaceWith(span('pans word' + (corr ? ' ok' : ''), corr ? 'monoxyde de carbone' : '&nbsp;')); return; }
+      inp.replaceWith(span('pans word', '&nbsp;'));
+    });
+    clone.querySelectorAll('select').forEach(s => {
+      if (s.id === 'm-co2-unit') s.replaceWith(span('pans int' + (corr ? ' ok' : ''), corr ? 'kg' : '&nbsp;'));
+      else if (s.id === 'hydro-mot') s.replaceWith(span('pans word' + (corr ? ' ok' : ''), corr ? 'HYDROCARBURE' : '&nbsp;'));
+      else s.replaceWith(span('pans word', '&nbsp;'));
+    });
+    if (corr) clone.querySelectorAll('.pck.on').forEach(c => { const lb = c.closest('label'); if (lb) lb.classList.add('pok'); });
+    else { const u = clone.querySelector('.q[data-q="masseco2"] .pans.int'); if (u) u.insertAdjacentHTML('afterend', ' <small style="color:var(--muted)">(g, kg ou t)</small>'); }
+  }
+
+  // Blocs dans l'ordre : en-tête, puis chaque partie (titre collé à son premier bloc), puis la note
+  function blocks(doc, sheet, D, corr) {
+    const mk = (html, cls) => { const d = doc.createElement('div'); d.className = 'blk' + (cls ? ' ' + cls : ''); if (html) d.innerHTML = html; return d; };
+    const out = [];
+    const head = mk(`<div class="ph1"><div class="ph1-top"><span class="pill memo">FICHE MÉMO</span><span class="pill lvl">1<span class="ere">ère</span>&nbsp;STI2D</span></div>
+      <div class="ph1-title">La combustion <span>${D.F.du}</span></div>
+      <div class="ph1-sub">Combustion complète, proportions, masses molaires, réactif limitant et combustion incomplète</div></div>`);
+    out.push(head);
+    out.push(mk(corr ? '<div class="pband"><span>CORRIGÉ</span><span>Combustion ' + D.F.du + '</span></div>'
+      : '<div class="pident"><span>Nom</span><span>Prénom</span><span>Classe</span></div>'));
+    let n = 0;
+    sheet.querySelectorAll('section').forEach(sec => {
+      const h2 = sec.querySelector(':scope > h2');
+      const items = [];
+      [...sec.children].forEach(ch => { if (ch === h2) return; if (ch.classList.contains('qlist')) items.push(...ch.children); else items.push(ch); });
+      if (h2) h2.insertAdjacentHTML('afterbegin', `<span class="sn">${++n}</span>`);
+      items.forEach((it, i) => { const b = mk(); if (i === 0 && h2) b.appendChild(h2); b.appendChild(it); out.push(b); });
+      if (!items.length && h2) { const b = mk(); b.appendChild(h2); out.push(b); }
+    });
+    const note = sheet.querySelector('.foot span');
+    if (note) out.push(mk('<div class="pnote">' + note.innerHTML + '</div>'));
+    return out;
+  }
+
+  async function make(corr) {
+    const D = window.FICHE_DATA;
+    if (!D || busy) return;
+    busy = true; document.body.style.cursor = 'progress';
+    let fr = null;
+    try {
+      await Promise.all(LIBS.map(load));
+      fr = document.createElement('iframe');
+      fr.setAttribute('aria-hidden', 'true');
+      fr.style.cssText = `position:fixed;left:-20000px;top:0;width:${PW}px;height:${PH}px;border:0`;
+      document.body.appendChild(fr);
+      const styles = [...document.querySelectorAll('link[rel="stylesheet"], style')].map(e => e.outerHTML).join('\n');
+      const clone = document.querySelector('.sheet').cloneNode(true);
+      prepare(clone, D, corr);
+      const doc = fr.contentDocument;
+      doc.open();
+      doc.write('<!doctype html><html lang="fr" data-theme="light"><head><meta charset="utf-8">' + styles + '<style>' + CSS + '</style></head><body><div id="stage"></div><div id="pages"></div></body></html>');
+      doc.close();
+      doc.getElementById('stage').innerHTML = clone.outerHTML;
+      await new Promise(r => setTimeout(r, 200));
+      try { await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+      const sheet = doc.querySelector('#stage .sheet');
+      const list = blocks(doc, sheet, D, corr);
+      // Mise en pages : un bloc qui ne tient plus passe entier à la page suivante
+      const pagesEl = doc.getElementById('pages'), LIMIT = PH - PADT - FOOT - 8;
+      const title = 'Fiche mémo · La combustion ' + D.F.du;
+      let pgc = null;
+      const newPage = first => {
+        const pg = doc.createElement('div'); pg.className = 'pg';
+        pg.innerHTML = (first ? '' : `<div class="pgh"><b>${title}</b><span>1<sup>ère</sup> STI2D${corr ? ' · <span style="color:var(--good);font-weight:700">CORRIGÉ</span>' : ''}</span></div>`) + '<div class="pgc"></div><div class="pgf"></div>';
+        pagesEl.appendChild(pg); pgc = pg.querySelector('.pgc');
+      };
+      newPage(true);
+      list.forEach(b => {
+        pgc.appendChild(b);
+        const pg = pgc.parentNode, used = pgc.getBoundingClientRect().bottom - pg.getBoundingClientRect().top;
+        if (used > PH - FOOT - 8 && pgc.children.length > 1) { b.remove(); newPage(false); pgc.appendChild(b); }
+      });
+      doc.querySelectorAll('.equation').forEach(el => {
+        el.style.fontSize = '';
+        let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);
+        while (el.scrollWidth > el.clientWidth + 1 && fs > 11) { fs -= 0.5; el.style.fontSize = fs + 'px'; }
+      });
+      const pgs = [...doc.querySelectorAll('.pg')];
+      pgs.forEach((pg, i) => { pg.querySelector('.pgf').innerHTML = `<span>${corr ? '<span class="corr">CORRIGÉ</span> · ' : ''}Domstoolbox · La Joliverie</span><span><b>${i + 1}</b> / ${pgs.length}</span>`; });
+      doc.getElementById('stage').remove();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      for (let i = 0; i < pgs.length; i++) {
+        if (i) pdf.addPage();
+        const c = await window.html2canvas(pgs[i], { scale: 2.5, backgroundColor: '#ffffff', logging: false, width: PW, height: PH, windowWidth: PW });
+        pdf.addImage(c.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, 210, 297);
+      }
+      pdf.save('FICHE_COMBUSTION_' + D.F.nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase() + (corr ? '_CORRIGE' : '_A_COMPLETER') + '.pdf');
+    } catch (e) {
+      console.error('PDF', e);
+    } finally {
+      if (fr) fr.remove();
+      busy = false; document.body.style.cursor = '';
+    }
+  }
+
+  // Liens cachés
+  const foot = document.querySelector('.foot span:last-child');
+  if (foot) foot.innerHTML = foot.innerHTML.replace('Domstoolbox', 'Domstoolbo<span id="hidCorr">x</span>');
+  const memo = document.querySelector('.memo .r');
+  if (memo) memo.innerHTML = memo.innerHTML.replace(/O$/, '<span id="hidBlank">O</span>');
+  const hc = document.getElementById('hidCorr'), hb = document.getElementById('hidBlank');
+  if (hc) hc.addEventListener('click', () => make(true));
+  if (hb) hb.addEventListener('click', () => make(false));
+})();
+</script>
+<style>
+/* ===== Certificat de réussite (A4 portrait) ===== */
+#certOv{position:fixed;inset:0;z-index:100;background:rgba(10,18,28,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px;overflow:auto}
+#certOv .cmsg{color:#fff;font-family:var(--f-body);font-weight:600;font-size:1.05rem;text-align:center}
+#certOv .cbox{position:relative;flex:none;box-shadow:0 16px 50px rgba(0,0,0,.45);border-radius:6px;overflow:hidden}
+#certOv .cbox .cert{position:absolute;left:0;top:0;transform-origin:0 0}
+#certOv .cbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#certOv .cbtns button{font-family:var(--f-body);font-weight:600;border-radius:999px;padding:11px 22px;border:0;cursor:pointer}
+#certOv .cdl{background:#ff8a1f;color:#1b1206}
+#certOv .ccl{background:#ffffff26;color:#fff}
+body.cert-open{overflow:hidden}
+.cert{width:794px;height:1123px;position:relative;box-sizing:border-box;padding:40px 46px 34px;background:#ffffff;color:#14263a;font-family:Lexend,system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column}
+.cert *{box-sizing:border-box}
+.cert .cdeco{position:absolute;inset:0;pointer-events:none}
+.cert .chead{position:relative;display:flex;justify-content:space-between;align-items:center}
+.cert .chead img{height:56px;width:auto;display:block}
+.cert .cpill{display:inline-flex;align-items:center;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;letter-spacing:.08em;background:#eef3f8;color:#14263a}
+.cert .chero{position:relative;margin-top:22px;border-radius:30px;background:#14263a;color:#fff;padding:30px 34px;height:250px;overflow:hidden}
+.cert .chero .ctag{display:inline-block;border-radius:999px;background:#ff8a1f;color:#1b1206;font-size:12px;font-weight:700;letter-spacing:.14em;padding:6px 14px}
+.cert .chero h1{margin:16px 0 0;font-family:"Archivo Black",Lexend,sans-serif;font-weight:400;font-size:56px;line-height:1.02;letter-spacing:-.005em}
+.cert .chero h1 span{color:#ffb547}
+.cert .chero p{margin:12px 0 0;font-size:16px;color:#c7d5e4}
+.cert .chero .cflame{position:absolute;right:26px;bottom:-6px;width:210px;height:250px}
+.cert .cto{position:relative;margin-top:26px;font-size:13px;font-weight:700;letter-spacing:.16em;color:#8a97a6}
+.cert .cname{position:relative;margin-top:4px;font-family:"Archivo Black",Lexend,sans-serif;font-size:44px;line-height:1.08;color:#14263a;word-break:break-word}
+.cert .ccls{display:inline-block;margin-top:8px;border-radius:999px;background:#fff1e3;color:#b4560a;font-weight:700;font-size:14px;padding:5px 14px}
+.cert .ctext{position:relative;margin-top:16px;font-size:17px;line-height:1.55;color:#33424f}
+.cert .ctext b{color:#14263a}
+.cert .cfuel{display:inline-block;white-space:nowrap;border-radius:10px;background:#14263a;color:#fff;font-weight:700;padding:1px 10px}
+.cert .cfuel sub,.cert .ctext sub{font-size:.7em;line-height:0}
+.cert .ctiles{position:relative;margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cert .ctile{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.cert .ctile b{font-family:"Archivo Black",Lexend,sans-serif;font-weight:400;font-size:30px;line-height:1.1}
+.cert .ctile span{font-size:12.5px;font-weight:600}
+.cert .t1{background:#fff1e3;color:#b4560a}.cert .t2{background:#e7f6ee;color:#137a43}.cert .t3{background:#eaf1fb;color:#1f4e79}
+.cert .cbot{position:relative;margin-top:auto;display:grid;grid-template-columns:330px 1fr;gap:26px;align-items:end}
+.cert .cqrw{border-radius:24px;border:3px solid #ff8a1f;padding:14px;background:#fff;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cert .cqr{width:290px;height:290px}
+.cert .cqr svg{display:block;width:100%;height:100%}
+.cert .cqrl{font-size:11px;font-weight:700;letter-spacing:.14em;color:#b4560a;text-align:center;line-height:1.35}
+.cert .cside{display:flex;flex-direction:column;gap:14px;padding-bottom:6px}
+.cert .cdate{font-size:14px;color:#5d6977}
+.cert .cdate b{display:block;font-size:20px;color:#14263a}
+.cert .cnum{font-family:"JetBrains Mono",monospace;font-size:12px;color:#8a97a6;letter-spacing:.04em}
+.cert .csign{border-top:2px solid #14263a;padding-top:6px;font-size:13px;color:#33424f;max-width:300px}
+.cert .cbrand{font-size:11.5px;font-weight:700;letter-spacing:.12em;color:#8a97a6}
+</style>
+<script>
+/* ===== Certificat de réussite : affiché quand toute la fiche est juste ; lien caché sur le « D » de STI2D =====
+   A4 portrait ; QR code de sécurité au format des copies de test (lu par Scanner-copies : note 20/20, date, heures). */
+(function(){
+  const LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+  const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  const W = 794, H = 1123;
+  const LOGO = 'data:image/png;base64,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';
+  ['input', 'change'].forEach(t => document.addEventListener(t, e => {
+    if (!window.FICHE_START && e.target.closest && e.target.closest('#sheetBody')) window.FICHE_START = new Date();
+  }, true));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // Flamme (thème combustion) et petites molécules
+  const FLAME = `<svg xmlns="http://www.w3.org/2000/svg" width="210" height="250" viewBox="0 0 210 250">
+    <circle cx="40" cy="60" r="16" fill="#e5484d"/><circle cx="66" cy="60" r="20" fill="#2b3b4d"/><circle cx="92" cy="60" r="16" fill="#e5484d"/>
+    <circle cx="28" cy="150" r="9" fill="#ffffff" opacity=".9"/><circle cx="44" cy="164" r="14" fill="#e5484d"/><circle cx="60" cy="150" r="9" fill="#ffffff" opacity=".9"/>
+    <path d="M140 18 C150 58 196 82 196 150 A66 66 0 0 1 64 150 C64 112 90 94 98 64 C108 92 116 102 124 108 C128 76 120 52 140 18Z" fill="#ff6a1a"/>
+    <path d="M132 92 C142 116 170 132 170 170 A40 40 0 0 1 90 170 C90 148 104 136 110 120 C116 136 122 140 128 144 C130 126 126 110 132 92Z" fill="#ffb547"/>
+    <path d="M130 146 C136 160 150 168 150 186 A20 20 0 0 1 110 186 C110 174 118 168 120 160 C124 168 128 170 130 172Z" fill="#fff3c4"/>
+  </svg>`;
+
+  function certNode() {
+    const D = window.FICHE_DATA;
+    const nom = (document.getElementById('nom').value || '').trim().toLocaleUpperCase('fr-FR');
+    const pre = (document.getElementById('prenom').value || '').trim().toLocaleUpperCase('fr-FR');
+    const cls = (document.getElementById('classe').value || '').trim();
+    const now = new Date(), date = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    let hsh = 5381; for (const ch of (pre + nom + D.F.id + now.toDateString())) hsh = ((hsh * 33) ^ ch.charCodeAt(0)) >>> 0;
+    const num = 'COMB-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + hsh.toString(16).toUpperCase().slice(-5).padStart(5, '0');
+    const formula = D.F.f.replace(/(\d+)/g, '<sub>$1</sub>');
+    // QR code de sécurité : même format que les copies des tests (lu par Scanner-copies)
+    const t0 = window.FICHE_START, t1 = window.FICHE_END || now, day = t0 || t1;
+    const payload = ['FICHE COMBUSTION (' + D.F.nom.toUpperCase() + ')', nom || 'ELEVE', pre || 'Inconnu', cls || 'Sans-Classe', '20/20',
+      day.toLocaleDateString('fr-FR'), t0 ? t0.toLocaleTimeString('fr-FR') : '-', t1.toLocaleTimeString('fr-FR'), num].join('\n');
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    const qr = qrcode(0, 'M'); qr.addData(payload, 'Byte'); qr.make();
+    const qrSvg = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    const mins = t0 && window.FICHE_END ? Math.max(1, Math.round((window.FICHE_END - t0) / 60000)) : null;
+    const nq = D.nq || '';
+    const el = document.createElement('div');
+    el.className = 'cert';
+    el.innerHTML = `
+      <div class="chead"><img src="${LOGO}" alt="La Joliverie"><span class="cpill">1<sup style="font-size:.7em">ère</sup>&nbsp;STI2D · PHYSIQUE-CHIMIE</span></div>
+      <div class="chero">
+        <span class="ctag">CERTIFICAT DE RÉUSSITE</span>
+        <h1>Mission<br><span>accomplie !</span></h1>
+        <p>Fiche mémo · La combustion</p>
+        <img class="cflame" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(FLAME)}" alt="">
+      </div>
+      <div class="cto">DÉCERNÉ À</div>
+      <div class="cname">${esc((pre + ' ' + nom).trim()) || '&nbsp;'}</div>
+      ${cls ? `<div><span class="ccls">${esc(cls)}</span></div>` : ''}
+      <div class="ctext">qui a complété en ligne <b>toute la fiche « La combustion » sans aucune erreur</b> et maîtrise parfaitement le cours, en particulier la combustion <span class="cfuel">${esc(D.F.du)} · ${formula}</span></div>
+      <div class="ctiles">
+        <div class="ctile t1"><b>100 %</b><span>de réussite</span></div>
+        <div class="ctile t2"><b>${nq ? nq + '/' + nq : '20/20'}</b><span>${nq ? 'réponses justes' : 'note'}</span></div>
+        <div class="ctile t3"><b>${mins ? mins + ' min' : '20/20'}</b><span>${mins ? 'pour tout compléter' : 'note'}</span></div>
+      </div>
+      <div class="cbot">
+        <div class="cqrw"><div class="cqr">${qrSvg}</div><div class="cqrl">QR CODE DE SÉCURITÉ<br>à scanner par le professeur</div></div>
+        <div class="cside">
+          <div class="cdate">Délivré le<b>${date}</b></div>
+          <div class="cnum">N° ${num}</div>
+          <div class="csign">Le professeur de physique-chimie</div>
+          <div class="cbrand">DOMSTOOLBOX · LA JOLIVERIE</div>
+        </div>
+      </div>`;
+    const plain = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]+/gi, '_');
+    return { el, file: 'CERTIFICAT_COMBUSTION_' + plain(nom || 'ELEVE') + (pre ? '_' + plain(pre) : '') + '.pdf' };
+  }
+
+  let ov = null, busy = false;
+  function fit() {
+    if (!ov) return;
+    const box = ov.querySelector('.cbox'), c = box.querySelector('.cert');
+    const s = Math.min((innerWidth - 24) / W, (innerHeight - 130) / H, 1);
+    c.style.transform = `scale(${s})`; box.style.width = W * s + 'px'; box.style.height = H * s + 'px';
+  }
+  async function download(btn) {
+    if (busy) return; busy = true;
+    const old = btn.textContent; btn.textContent = 'Création du PDF…';
+    const holder = document.createElement('div');
+    holder.style.cssText = `position:fixed;left:-${W + 200}px;top:0;width:${W}px;height:${H}px`;
+    try {
+      await Promise.all(LIBS.map(load));
+      const { el, file } = certNode();
+      holder.appendChild(el); document.body.appendChild(holder);
+      try { await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+      await new Promise(r => setTimeout(r, 100));
+      const c = await window.html2canvas(el, { scale: 2.5, backgroundColor: '#ffffff', logging: false, width: W, height: H, windowWidth: W, windowHeight: H });
+      const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      pdf.addImage(c.toDataURL('image/jpeg', 0.94), 'JPEG', 0, 0, 210, 297);
+      pdf.save(file);
+    } catch (e) { console.error('Certificat', e); }
+    finally { holder.remove(); busy = false; btn.textContent = old; }
+  }
+  window.showCertificate = function (teacher) {
+    if (!window.FICHE_DATA) return;
+    if (!teacher) { window.FICHE_DONE = true; window.FICHE_END = window.FICHE_END || new Date(); }   // fiche réussie : le téléchargement ne déclenche pas l'alarme
+    if (typeof closeCalc === 'function') closeCalc();
+    if (ov) ov.remove();
+    ov = document.createElement('div');
+    ov.id = 'certOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Certificat de réussite');
+    ov.innerHTML = (teacher ? '' : '<div class="cmsg">Bravo ! Toute la fiche est juste. Voici ton certificat.</div>') +
+      '<div class="cbox"></div><div class="cbtns"><button type="button" class="cdl">Télécharger le certificat (PDF)</button><button type="button" class="ccl">Fermer</button></div>';
+    ov.querySelector('.cbox').appendChild(certNode().el);
+    document.body.appendChild(ov); document.body.classList.add('cert-open');
+    fit();
+    ov.querySelector('.cdl').addEventListener('click', e => download(e.currentTarget));
+    ov.querySelector('.ccl').addEventListener('click', () => { ov.remove(); ov = null; document.body.classList.remove('cert-open'); });
+  };
+  window.addEventListener('resize', fit);
+
+  // Lien caché : « D » de STI2D (en haut)
+  const sti = document.querySelector('.lvl .sti .r');
+  if (sti) {
+    sti.innerHTML = sti.innerHTML.replace(/D$/, '<span id="hidCert">D</span>');
+    const d = document.getElementById('hidCert');
+    if (d) d.addEventListener('click', () => window.showCertificate(true));
+  }
+})();
+</script>
+</body>
+</html>

@@ -250,6 +250,7 @@ function studentBases(dateTxt) {
 }
 function isStudentCode(r) {
   const code = String(r.code || '').trim().toUpperCase();
+  if (/^COMB-\d{8}-[0-9A-F]{5}$/.test(code)) return true;   // certificat de la fiche « La combustion » : copie élève (bip normal)
   return studentBases(r.date).some(b => code.startsWith(b) && /^[ABC]W?$/.test(code.slice(b.length)));
 }
 
