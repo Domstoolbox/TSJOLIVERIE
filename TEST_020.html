@@ -401,7 +401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 07/11/2026 - 10h01</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 08h08</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -567,6 +567,13 @@ function getExpectedCode() {
 
   return (dayNum * 10).toString() + (monthNum * 10).toString() + firstDayChar + firstMonthChar;
 }
+// Seconde base du jour : jour × 2, mois × 2, initiale du jour en ANGLAIS, initiale du mois SUIVANT (ex. 7 novembre, samedi : 1422SD)
+function getExpectedCode2() {
+  const now = new Date();
+  const daysEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];   // Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday
+  const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  return (now.getDate() * 2).toString() + ((now.getMonth() + 1) * 2).toString() + daysEn[now.getDay()] + months[(now.getMonth() + 1) % 12];
+}
 
 // Dès que NOM, PRÉNOM et CLASSE sont renseignés (champ quitté / classe choisie), le bandeau disparaît
 function hideIdentityIfDone() {
@@ -618,10 +625,14 @@ function sha256hex(str) {
 // Codes d'accès : seules leurs empreintes SHA-256 figurent dans la page (aucun code en clair)
 const CODE_SALT = 'DTB-LaJoliverie|';
 const H_ANSWER_KEY = '9f8af437683815afb85b6569f352effc14d2d561eef407f29322a79c15ad4070';
+const H_ANSWER_KEY2 = 'c32bffb3cb644d3b9a3525a6e50a713e84182780999aff6082e8c8fa60246fb1';   // seconde base des codes fixes
 const H_ADMIN = {
   'ef824ed6c2cc9070b0e93e03bb66d3f2e1c5acf74b5dd54e3dc2a55b903bd2a8': 10,
   'e8cc07e2bac777c6900983261cec489b30cb5a07cf9f98996bf9291866d48aa2': 20,
-  '6707ae4270c8297ebb98c52f976a549c83b54b9c6a102372d6d71ff4d7708a29': 30
+  '6707ae4270c8297ebb98c52f976a549c83b54b9c6a102372d6d71ff4d7708a29': 30,
+  'b4625ae0d659ecc6c014839ff23b1dcaabf0b2c46e771915575f607d437170b3': 10,
+  '6b08cfa97d4ce97aa6abeb54354706b53a53e8dd0e94f7ef72ff2c31b698ea65': 20,
+  'b47737d0670a599239f7f6486551b9a00caf5b0104e8ea950862e9067d8e61c5': 30
 };
 const H_DAILY = {
   '20de12444b1b3dcb22fa0cba17889a8a9af14e77f373372539d75c8b7d57fb19': { n: 10 },
@@ -662,7 +673,7 @@ document.getElementById('accessCodeBtn').onclick = () => {
 
   const hx = sha256hex(CODE_SALT + entered);
   // Corrigé enseignant
-  if (hx === H_ANSWER_KEY) {
+  if (hx === H_ANSWER_KEY || hx === H_ANSWER_KEY2) {
     input.value = '';
     document.getElementById('codeMsg').hidden = true;
     generateAnswerKeyPDF();
@@ -670,7 +681,7 @@ document.getElementById('accessCodeBtn').onclick = () => {
   }
 
   // Code du jour + suffixe : test (10 / 20 / 30 questions, réseau exigé ou non) ou version papier
-  const day = base && entered.startsWith(base) ? (H_DAILY[sha256hex(CODE_SALT + entered.slice(base.length))] || null) : null;
+  const day = [base, getExpectedCode2()].reduce((r, b) => r || (b && entered.startsWith(b) ? (H_DAILY[sha256hex(CODE_SALT + entered.slice(b.length))] || null) : null), null);   // deux bases du jour possibles
   if (day && day.paper) {
     input.value = '';
     document.getElementById('codeMsg').hidden = true;
@@ -1493,8 +1504,8 @@ function calcTokenize(src) {
     const ch = src[i];
     if (/\s/.test(ch)) { i++; continue; }
     const rest = src.slice(i);
-    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/);
-    if (m) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+\-−]?\d+)?/);   // ×10ˣ puis la touche − : « 2.5E−3 » (signe moins typographique accepté)
+    if (m) { out.push({ t: 'num', v: parseFloat(m[0].replace('−', '-')) }); i += m[0].length; continue; }
     m = rest.match(/^(asin|acos|atan|sin|cos|tan|ln|log|Ans)/);
     if (m) { out.push({ t: m[0] === 'Ans' ? 'ans' : 'fn', v: m[0] }); i += m[0].length; continue; }
     if (ch === 'π') { out.push({ t: 'num', v: Math.PI, c: true }); i++; continue; }
@@ -1730,7 +1741,8 @@ function calcInsert(tok) {
 // --- Lecture d'un nombre dans le texte d'une proposition : 2,50 A  |  1.45E5  |  3,0 × 10⁸ m/s ---
 const SUPERS = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', '⁺': '+' };
 function parseOptionNumber(txt) {
-  const s = String(txt).replace(/[\u00a0\u202f]/g, ' ').replace(/−/g, '-');
+  const s = String(txt).replace(/[\u00a0\u202f]/g, ' ').replace(/−/g, '-')
+    .replace(/10\s*<sup>\s*([+-]?\d+)\s*<\/sup>/g, '10^$1');   // « 5,00×10<sup>-3</sup> s » : la puissance de 10 est lue
   const m = s.match(/([+-]?)(\d+(?:[.,]\d+)?|[.,]\d+)/);
   if (!m) return null;
   const mant = m[2].replace(',', '.');

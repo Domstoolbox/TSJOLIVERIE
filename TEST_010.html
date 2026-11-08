@@ -40,6 +40,28 @@ label.opt input{margin-right:8px}
 .numrow .unit{font-weight:600}
 .numrow label{display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap}
 .numrow input.numans{width:8.5em;flex:none}
+/* ===== Réponse numérique « comme sur la calculatrice » : petit écran + clavier toujours affiché ===== */
+.numrow.calcin{display:block;max-width:330px}
+.calcin .numans{display:none}
+.cdisp{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-height:52px;padding:6px 12px;border:2px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:700 1.45rem/1.2 ui-monospace,Consolas,monospace;cursor:text;outline:none;overflow:hidden;white-space:nowrap}
+.cdisp:focus-visible{border-color:var(--pri)}
+.cdisp .cval{overflow:hidden;text-overflow:ellipsis}
+.cdisp .cval sup{font-size:.62em;line-height:0}
+.cdisp .ph{font:400 .9rem/1.2 system-ui,sans-serif;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;flex:1}
+.cdisp .box{display:inline-block;width:.55em;height:.8em;border:2px dashed var(--mut);border-radius:3px;vertical-align:baseline}
+.cdisp .cunit{font:600 1.05rem/1 system-ui,sans-serif;color:var(--mut)}
+.numprev{margin:4px 2px 6px;height:1.5em;line-height:1.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.92rem;color:var(--mut)}
+.numprev b{color:var(--tx)}
+.numprev sup{line-height:0}
+.numprev.warn{color:#b42318}
+.numpad{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.numpad button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:42px;padding:0;font-size:1.12rem;font-weight:700;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--tx)}
+.numpad button.k-op{background:var(--bg)}
+.numpad button.k-ac{color:#b42318}
+.numpad button.k-pow{grid-column:span 2}
+.numhelp{margin:6px 2px 0;font-size:.8rem;color:var(--mut)}
+#quiz section.q.qmeas{display:block!important;position:absolute!important;visibility:hidden!important;left:0;top:0;min-height:0!important;max-height:none!important}
+#quiz{position:relative}
 /* Texte du test non sélectionnable (sauf champs de saisie), y compris en mode enseignant */
 #test-content,#test-content *,#calc,#calc *{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
 #test-content input[type=text],#test-content select{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important}
@@ -68,7 +90,8 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
 #calc.min .ck{display:none}
 @media (min-width:900px){body.calc-open{padding-right:372px}}
 @media (max-width:899px), (max-height:520px){
-  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  #calc{top:max(14px, env(safe-area-inset-top, 0px));left:max(10px, env(safe-area-inset-left, 0px));right:max(10px, env(safe-area-inset-right, 0px));bottom:auto;width:auto;height:auto;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);border-radius:14px}   /* décollée des bords : la croix ne tombe plus dans l’arrondi de l’écran (plein écran) */
+  #calc .ch{padding-right:12px!important}
   body.calc-open{padding-bottom:0;padding-right:0}
   #calcMin,#calcFx,#calcKeys{display:none!important}
   #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
@@ -77,15 +100,10 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
   #calcQtxt{display:block}
   #calc .ch{padding:4px 8px}
   #calc .ch button{min-height:32px;padding:2px 10px}
-  #calcExpr{min-height:1.1em;padding-top:4px;font-size:.85rem}
+  #calcExpr{min-height:1.3em;padding-top:4px;font-size:.85rem}
   #calcRes{font-size:1.3rem}
   #calcMsg{padding-bottom:2px;min-height:1em;font-size:.72rem}
   #calc .inj{margin:0 8px 8px;padding:8px;font-size:.9rem;width:calc(100% - 16px)}
-}
-/* Téléphone / petit écran : calculatrice DANS la page, sous la question (et non fixée à l'écran). Dans une page Google Sites,
-   « fixé en haut » = haut du cadre du test, qui peut être au-dessus de l'écran du téléphone : la croix était alors masquée. */
-@media (max-width:899px), (max-height:520px){
-  #calc.inflow{position:relative!important;top:auto!important;left:auto;right:auto;bottom:auto;width:100%;max-height:none!important;margin:12px 0;border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:auto;scroll-margin-top:96px}
 }
 #calcQtxt{flex:none;padding:6px 12px 0;font-size:.82rem;line-height:1.3;color:var(--mut)}
 #calcQtx{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -107,7 +125,7 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
   #calc .ck{gap:4px;padding:0 8px 8px}
   #calc .ck button{padding:6px 0;font-size:.82rem}
   #calcRes{font-size:1.3rem}
-  #calcExpr{min-height:1.1em;padding-top:4px}
+  #calcExpr{min-height:1.3em;padding-top:4px}
   #calc .ch{padding:4px 8px}
 }
 #rulewarning{background-color:#ea580c;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;padding:clamp(20px,4vw,30px) clamp(12px,3vw,24px);margin:16px 0;position:relative}
@@ -381,7 +399,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 06/11/2026 - 16h39</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 08h01</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -570,10 +588,53 @@ function checkIdentityAndUnblur() {
   }
 }
 
-// Suffixe ajouté au code du jour -> nombre de questions du test
-const CODE_LEVELS = { A: 10, B: 20, C: 30 };
-// Codes enseignant (sans aucune sécurité) -> nombre de questions
-const ADMIN_LEVELS = { A: 10, B: 20, C: 30 };
+// SHA-256 (texte UTF-8 -> 64 caractères hexadécimaux), calcul immédiat, sans bibliothèque
+function sha256hex(str) {
+  const K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+  const b = Array.from(new TextEncoder().encode(str)), l = b.length * 8;
+  b.push(0x80); while (b.length % 64 !== 56) b.push(0);
+  for (let i = 7; i >= 0; i--) b.push(i > 3 ? 0 : (l >>> (i * 8)) & 0xff);
+  const Hh = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19], W = new Array(64);
+  const r = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < b.length; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = (b[o + 4 * i] << 24) | (b[o + 4 * i + 1] << 16) | (b[o + 4 * i + 2] << 8) | b[o + 4 * i + 3];
+    for (let i = 16; i < 64; i++) {
+      const s0 = r(W[i - 15], 7) ^ r(W[i - 15], 18) ^ (W[i - 15] >>> 3), s1 = r(W[i - 2], 17) ^ r(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) | 0;
+    }
+    let [a, bb, c, d, e, f, g, hh] = Hh;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (hh + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0;
+      const t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c))) | 0;
+      hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0;
+    }
+    Hh[0] = (Hh[0] + a) | 0; Hh[1] = (Hh[1] + bb) | 0; Hh[2] = (Hh[2] + c) | 0; Hh[3] = (Hh[3] + d) | 0;
+    Hh[4] = (Hh[4] + e) | 0; Hh[5] = (Hh[5] + f) | 0; Hh[6] = (Hh[6] + g) | 0; Hh[7] = (Hh[7] + hh) | 0;
+  }
+  return Hh.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+}
+// Codes d'accès : seules leurs empreintes SHA-256 figurent dans la page (aucun code en clair)
+const CODE_SALT = 'DTB-LaJoliverie|';
+const H_ANSWER_KEY = '9f8af437683815afb85b6569f352effc14d2d561eef407f29322a79c15ad4070';
+const H_ADMIN = {
+  'ef824ed6c2cc9070b0e93e03bb66d3f2e1c5acf74b5dd54e3dc2a55b903bd2a8': 10,
+  'e8cc07e2bac777c6900983261cec489b30cb5a07cf9f98996bf9291866d48aa2': 20,
+  '6707ae4270c8297ebb98c52f976a549c83b54b9c6a102372d6d71ff4d7708a29': 30
+};
+const H_DAILY = {
+  '20de12444b1b3dcb22fa0cba17889a8a9af14e77f373372539d75c8b7d57fb19': { n: 10 },
+  '1cf765f39e5621443ea3a119570d8a382ebf74d9b2b1d7e877a50ec27e9c146c': { n: 10, w: true },
+  'b95430af4bde1b0a0642fadeef527475bab166cf2d50a3c8939143868adbf1bc': { paper: 10 },
+  'e25bd45ccd016d71b28e59fc3270b252a86221796260bf6295aef57f30342e53': { paper: 10, pap: true },
+  '7928a659d24ab1479644b7f0928c469155aefef7712b615c6941ae781f4f3a3f': { n: 20 },
+  '6417340223e1767e02cb4eebb6c418c0c780c60a8044e01264dea38a2fd94633': { n: 20, w: true },
+  '72ee74404280eb13b1311b64963d3a7fcf8219ebc46e04b06987cb11cfdaf3c2': { paper: 20 },
+  'd516e34a4a80dadb7354acf5a4ded36a6f49e65432735475e23c29dbab1e7d3e': { paper: 20, pap: true },
+  '9e467ebe4503d9d7331e6449967971fac72cd00382673325dac34c039c90b03b': { n: 30 },
+  '252b21db7cb7ff913e6516b4ce582b5da28dda819e0a80f446cd47f67ebe4c52': { n: 30, w: true },
+  'c97e6d9ea026dfda41abab0e3500ec6a7446f84d42b278ebd3a5df2953db6cff': { paper: 30 },
+  '924cc8306fb22b17b48a401cd4a4575e3e815cec61b1be1ecabb38099360856b': { paper: 30, pap: true }
+};
 // Période de développement : sans code, « Valider » lance un test de 10 questions en conditions élève.
 // Cesse automatiquement de fonctionner après le 1er novembre 2026 à 23 h 59 (heure locale de l'appareil).
 const DEV_START = new Date(2026, 9, 19, 0, 0, 0), DEV_END = new Date(2026, 10, 1, 23, 59, 59);
@@ -597,34 +658,31 @@ document.getElementById('accessCodeBtn').onclick = () => {
   const entered = input.value.trim().toUpperCase();
   const base = getExpectedCode();
 
-  // Mot de passe administrateur : génère le PDF corrigé (30 questions)
-  if (entered === '#@') {
+  const hx = sha256hex(CODE_SALT + entered);
+  // Corrigé enseignant
+  if (hx === H_ANSWER_KEY) {
     input.value = '';
     document.getElementById('codeMsg').hidden = true;
     generateAnswerKeyPDF();
     return;
   }
 
-  // Version papier : <code du jour><A|B|C>COPIE[PAP] -> PDF à imprimer (10 / 20 / 30 questions, -30 % avec PAP)
-  const paper = entered.startsWith(base) ? entered.slice(base.length).match(/^([ABC])COPIE(PAP)?$/) : null;
-  if (paper) {
+  // Code du jour + suffixe : test (10 / 20 / 30 questions, réseau exigé ou non) ou version papier
+  const day = base && entered.startsWith(base) ? (H_DAILY[sha256hex(CODE_SALT + entered.slice(base.length))] || null) : null;
+  if (day && day.paper) {
     input.value = '';
     document.getElementById('codeMsg').hidden = true;
-    generatePaperPDF(CODE_LEVELS[paper[1]], !!paper[2]);   // ...COPIEPAP : 30 % de questions en moins (PAP)
+    generatePaperPDF(day.paper, !!day.pap);
     return;
   }
 
   let n = 0, admin = false, exempt = false;
-  const adm = entered.match(/^#@([ABC])$/);
-  if (adm) {
-    n = ADMIN_LEVELS[adm[1]]; admin = true;     // test enseignant : sécurités désactivées
-  } else if (entered.length === base.length + 1 && entered.startsWith(base) && CODE_LEVELS[entered.slice(-1)]) {
-    n = CODE_LEVELS[entered.slice(-1)];
-  } else if (entered.length === base.length + 2 && entered.startsWith(base) && entered.endsWith('W') && CODE_LEVELS[entered.charAt(base.length)]) {
-    n = CODE_LEVELS[entered.charAt(base.length)];   // ...W : même test, réseau non exigé
-    exempt = true;
+  if (H_ADMIN[hx]) {
+    n = H_ADMIN[hx]; admin = true;              // test enseignant : sécurités désactivées
+  } else if (day && day.n) {
+    n = day.n; exempt = !!day.w;                // exempt : réseau non exigé
   } else if (entered === '' && new Date() <= DEV_END) {
-    n = 10; exempt = true;                      // aucun code saisi = équivalent de <code du jour>AW (10 questions, réseau non exigé)
+    n = 10; exempt = true;                      // aucun code saisi pendant la période de développement : 10 questions, réseau non exigé
   }
 
   if (n) {
@@ -636,7 +694,7 @@ document.getElementById('accessCodeBtn').onclick = () => {
     document.getElementById('codeMsg').hidden = true;
     logIncident(admin
       ? `Mode enseignant activé : sécurités désactivées (code ${entered})`
-      : (entered ? `Code d'accès validé avec succès (${entered})` : "Test lancé sans code (équivalent AW)"));
+      : (entered ? `Code d'accès validé avec succès (${entered})` : "Test lancé sans code"));
     checkNetworkState();          // le bleu disparaît, le violet (question PAP) apparaît
   } else {
     logIncident("Code d'accès saisie incorrecte");
@@ -678,46 +736,6 @@ function getAlarmCtx() {
     } catch(e) {}
     if (c && c.state === 'running') ['pointerdown', 'keydown', 'touchstart'].forEach(x => window.removeEventListener(x, unlock, true));
   }, true));
-
-// ===== MODE OBSERVATION : ouverture probable de Siri sur iPhone (aucune alarme, simple relevé dans la copie élève) =====
-// Siri (appui long sur le bouton latéral) s'affiche par-dessus Safari sans changer d'onglet : « visibilitychange » ne voit rien.
-// Mais Siri prend le micro et le haut-parleur : iOS interrompt alors le son de la page. Un son inaudible est donc joué
-// pendant le test ; une interruption du son (ou un affichage figé) est notée avec l'heure et la question en cours.
-const OBS = [];
-let obsLastSpeak = 0, obsKeep = null, obsLastState = '', obsLastRaf = 0;
-function obsNote(kind, label) {
-  if (adminMode || !detectorsArmed() || testSubmitted || fraudTriggered || alarmPlaying) return;
-  if (Date.now() - obsLastSpeak < 2500) return;   // lecture vocale de la question en cours : interruption normale
-  const last = OBS[OBS.length - 1];
-  if (last && last.kind === kind && Date.now() - last.at < 4000) return;   // un seul relevé par épisode
-  OBS.push({ kind, label, at: Date.now(), q: questionsShownAt ? curQ + 1 : 0 });
-}
-setInterval(() => {
-  if ('speechSynthesis' in window && (speechSynthesis.speaking || speechSynthesis.pending)) obsLastSpeak = Date.now();
-  const c = ALARM_CTX;
-  if (!c) return;
-  if (!obsKeep && c.state === 'running' && detectorsArmed() && !testSubmitted) {
-    try {   // son continu inaudible : maintient la session audio de la page active
-      const o = c.createOscillator(), g = c.createGain();
-      g.gain.value = 0.00001; o.frequency.value = 40;
-      o.connect(g); g.connect(c.destination); o.start(); obsKeep = o;
-    } catch (e) {}
-  }
-  const s = c.state;
-  if (obsKeep && obsLastState === 'running' && s !== 'running' && !document.hidden)
-    obsNote('audio', 'son de la page interrompu par le téléphone (Siri, assistant vocal ou appel ?)');
-  obsLastState = s;
-}, 250);
-// après une interruption, le son est relancé au prochain toucher (iOS le relance aussi tout seul après Siri)
-['pointerdown', 'touchstart', 'keydown'].forEach(ev => window.addEventListener(ev, () => {
-  if (ALARM_CTX && ALARM_CTX.state !== 'running' && !alarmPlaying) { try { ALARM_CTX.resume(); } catch (e) {} }
-}, true));
-(function obsRaf(now) {
-  if (obsLastRaf && now - obsLastRaf > 1500 && !document.hidden && IS_TOUCH())
-    obsNote('gel', `affichage de la page figé pendant ${Math.round((now - obsLastRaf) / 1000)} s (fenêtre du système par-dessus le test ?)`);
-  obsLastRaf = now;
-  requestAnimationFrame(obsRaf);
-})(0);
 
 function playAlarmSound() {
   if (alarmPlaying) return;
@@ -889,7 +907,7 @@ function hasStudentStarted() {
   const nomv = document.getElementById('nom')?.value.trim() || '';
   const prenomv = document.getElementById('prenom')?.value.trim() || '';
   const clv = document.getElementById('classe')?.value || '';
-  const checkedOpts = document.querySelectorAll('input[type="radio"]:checked').length + [...document.querySelectorAll('input.numans')].filter(e => e.value.trim()).length;
+  const checkedOpts = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"].mq:checked').length + [...document.querySelectorAll('input.numans')].filter(e => e.value.trim()).length;
   return nomv !== '' || prenomv !== '' || clv !== '' || checkedOpts > 0;
 }
 
@@ -932,7 +950,7 @@ function fsAvailable() {
   const en = (document.fullscreenEnabled !== undefined) ? document.fullscreenEnabled : document.webkitFullscreenEnabled;
   return en !== false;   // le navigateur annonce que le plein écran n'est pas autorisé -> étape ignorée d'emblée
 }
-// Code se terminant par W (ex. 210100MOAW) : test identique, mais la coupure du réseau n'est pas exigée
+// Code « réseau non exigé » : test identique, mais la coupure du réseau n'est pas exigée
 let netExempt = false;
 const netCut = () => !navigator.onLine || netExempt;
 function fsRequired() { return fsAvailable() && papChosen && !adminMode && !testSubmitted && !fraudTriggered; }
@@ -1046,7 +1064,7 @@ document.addEventListener('selectstart', e => { if (!isField(e.target)) e.preven
 document.addEventListener('dragstart', e => { e.preventDefault(); }, true);
 // Firefox : empêche le début d'une sélection à la souris sur le texte (les champs, boutons et cases restent utilisables)
 document.addEventListener('mousedown', e => {
-  if (isField(e.target) || (e.target.closest && e.target.closest('button,a'))) return;
+  if (isField(e.target) || (e.target.closest && e.target.closest('button,a,.cdisp'))) return;   // .cdisp : écran de saisie numérique (clavier de l’ordinateur)
   if (e.detail > 1 || e.button === 0) e.preventDefault();
 }, true);
 // Dernier filet : toute sélection hors champ de saisie est effacée en continu
@@ -1234,14 +1252,8 @@ const ALL_QUESTIONS = [
 // Les questions de type « Toutes les réponses… / Aucune… » (ou marquées fixed:true) ne sont pas mélangées.
 // Question à valeur numérique : {t, n: valeur attendue, u: unité, tol: tolérance relative (défaut 1 %)}
 const isNumQ = q => q && typeof q.n === 'number';
-const fmtNum = v => String(Number(Number(v).toPrecision(10))).replace('.', ',');
-function parseNumAnswer(s) {
-  s = String(s || '').trim().replace(/\s+/g, '').replace(/,/g, '.').replace(/[×x*]10\^?/i, 'E').replace(/[−–]/g, '-');
-  s = s.replace(/[a-zA-Zµ\/°%]+$/, m => /^E/i.test(m) ? m : '');   // unité tapée à la fin : ignorée
-  if (s === '' || !/^[-+]?(\d+\.?\d*|\.\d+)(E[-+]?\d+)?$/i.test(s)) return null;
-  return Number(s);
-}
-function numAnswerOk(q, v) { return v !== null && Math.abs(v - q.n) <= Math.abs(q.n) * (q.tol === undefined ? 0.01 : q.tol) + 1e-12; }
+// Question à plusieurs bonnes réponses (cases à cocher) : {t, o: [...], a: [indices], m: true} — notée tout juste ou faux
+const isMultiQ = q => q && q.m === true;
 // Image sous l'énoncé (écran + PDF)
 const QIMG_PAD = 4;
 const qImgH = (q, colW) => q && q.img ? (colW - 2 * QIMG_PAD) * q.imgR + 2 : 0;
@@ -1274,6 +1286,80 @@ function packPdfRows(cards, y0, top, bottom, gapY) {
     y += hOf(row) + gapY;
   }
   return rows;
+}
+const letters = arr => arr.map(j => String.fromCharCode(65 + j)).join(', ');
+const fmtNum = v => String(Number(Number(v).toPrecision(10))).replace('.', ',');
+const numShow = q => q.d || fmtNum(q.n);   // valeur affichée comme réponse attendue (q.d si résultat arrondi)
+// Réponse tapée -> écriture normalisée « 1.8E3 » (accepte 1,8E3 · 1,8×10^3 · 1,8x10^3 · 1,8.10^3 · 1,8×10³ ; unité finale ignorée)
+function normNumAnswer(s) {
+  const SUP = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-' };
+  s = String(s || '').trim().replace(/\s+/g, '').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, m => '^' + [...m].map(c => SUP[c]).join(''))
+    .replace(/[−–]/g, '-').replace(/,/g, '.');
+  s = s.replace(/[a-zA-Zµ\/°%]+$/, m => /^E[-+]?$/i.test(m) || /^E/i.test(m) && /\d$/.test(m) ? m : '');   // unité tapée à la fin : ignorée
+  s = s.replace(/(\d)(?:[×x*·]|\.(?=10\^))10\^?([-+]?\d+)$/i, '$1E$2');
+  if (s === '' || !/^[-+]?(\d+\.?\d*|\.\d+)(E[-+]?\d+)?$/i.test(s)) return null;
+  return s.toUpperCase();
+}
+// ===== Saisie des réponses numériques « comme sur la calculatrice » =====
+// Valeur tapée gardée telle quelle (ex. 9,876E-4) ; affichage 9,876 × 10⁻⁴ ; « Réponse retenue » arrondie au nombre de chiffres significatifs demandé
+const NUMPAD_KEYS = [['7'], ['8'], ['9'], ['AC', 'k-op k-ac'], ['4'], ['5'], ['6'], ['⌫', 'k-op'], ['1'], ['2'], ['3'], ['(−)', 'k-op'], ['0'], ['.', 'k-op'], ['×10ˣ', 'k-op k-pow']];
+function numInput(i) { return document.querySelector(`input.numans[name=q${i}]`); }
+function numKey(i, k) {
+  const inp = numInput(i);
+  if (!inp) return;
+  let v = inp.value.replace(/\s+/g, '').replace(/,/g, '.').replace(/e/g, 'E');
+  const iE = v.indexOf('E');
+  if (k === 'AC') v = '';
+  else if (k === '⌫') v = v.slice(0, -1);
+  else if (/^\d$/.test(k)) { if (v.replace(/[^0-9]/g, '').length < 15) v += k; }
+  else if (k === '.') { if (iE < 0 && !/\./.test(v)) v += (v === '' || v === '-' ? '0.' : '.'); }
+  else if (k === '×10ˣ') { if (iE < 0 && /\d/.test(v)) v += 'E'; }
+  else if (k === '(−)') {
+    if (iE >= 0) v = v.slice(0, iE + 1) + (v[iE + 1] === '-' ? v.slice(iE + 2) : '-' + v.slice(iE + 1));
+    else v = v[0] === '-' ? v.slice(1) : '-' + v;
+  }
+  inp.value = v;
+  numRender(i);
+  testStarted = true; markAnswerStart();
+}
+function numKeydown(e, i) {   // ordinateur : clavier physique
+  const m = { Backspace: '⌫', Delete: 'AC', Escape: 'AC', ',': '.', '.': '.', e: '×10ˣ', E: '×10ˣ', '-': '(−)' };
+  const k = /^\d$/.test(e.key) ? e.key : m[e.key];
+  if (k) { e.preventDefault(); numKey(i, k); }
+}
+function numPretty(x, sig) {
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(Number(x.toPrecision(sig)))));
+  if (e < -2 || e >= sig) {
+    const m = (Number(x.toPrecision(sig)) / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',').replace('-', '−');
+    return m + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+  }
+  return Number(x.toPrecision(sig)).toFixed(Math.max(0, sig - 1 - e)).replace('.', ',').replace('-', '−');
+}
+function numRender(i) {
+  const row = document.querySelector(`.numrow.calcin[data-i="${i}"]`), inp = numInput(i), q = Q[i];
+  if (!row || !inp) return;
+  const v = inp.value.replace(/,/g, '.').replace(/e/g, 'E'), iE = v.indexOf('E');
+  const cval = row.querySelector('.cval'), pv = row.querySelector('.numprev');
+  const mant = (iE < 0 ? v : v.slice(0, iE)).replace('-', '−');
+  if (!v) cval.innerHTML = '<span class="ph">Touche les chiffres ci-dessous</span>';
+  else if (iE < 0) cval.textContent = mant;
+  else { const ex = v.slice(iE + 1).replace('-', '−'); cval.innerHTML = (mant || '') + ' × 10<sup>' + (/\d/.test(ex) ? ex : ex + '<span class="box"></span>') + '</sup>'; }
+  pv.classList.remove('warn');
+  if (!v) { pv.innerHTML = '&nbsp;'; return; }
+  const x = parseNumAnswer(v);
+  if (iE >= 0 && !/\d$/.test(v)) { pv.classList.add('warn'); pv.textContent = 'Il manque l’exposant de la puissance de 10'; return; }
+  if (x === null) { pv.innerHTML = '&nbsp;'; return; }
+  const sig = q && Array.isArray(q.sf) ? q.sf[0] : null;
+  pv.innerHTML = 'Réponse retenue : <b>' + (sig ? numPretty(x, sig) : String(x).replace('.', ',').replace('-', '−')) + (q && q.u ? ' ' + q.u : '') + '</b>';
+}
+document.addEventListener('input', e => { if (e.target.matches && e.target.matches('input.numans')) numRender(+e.target.name.slice(1)); });
+function parseNumAnswer(s) { const n = normNumAnswer(s); return n === null ? null : Number(n); }
+// sf: [2, 3] -> seule la valeur exacte arrondie à 2 ou 3 chiffres significatifs est acceptée ; sinon tolérance relative tol (défaut 1 %)
+function numAnswerOk(q, v, raw) {
+  if (v === null) return false;
+  if (Array.isArray(q.sf)) return q.sf.some(s => Math.abs(Number(v.toPrecision(s)) - Number(q.n.toPrecision(s))) <= Math.abs(q.n) * 1e-9);   // la saisie est arrondie au nombre de chiffres significatifs demandé (0,0009876 → 9,88×10⁻⁴)   // valeur exacte arrondie (1800 ou 1,8E3 acceptés)
+  return Math.abs(v - q.n) <= Math.abs(q.n) * (q.tol === undefined ? 0.01 : q.tol) + 1e-12;
 }
 function shuffleOptions(q) {
   if (isNumQ(q)) return Object.assign({}, q);
@@ -1404,8 +1490,8 @@ function calcTokenize(src) {
     const ch = src[i];
     if (/\s/.test(ch)) { i++; continue; }
     const rest = src.slice(i);
-    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/);
-    if (m) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+\-−]?\d+)?/);   // ×10ˣ puis la touche − : « 2.5E−3 » (signe moins typographique accepté)
+    if (m) { out.push({ t: 'num', v: parseFloat(m[0].replace('−', '-')) }); i += m[0].length; continue; }
     m = rest.match(/^(asin|acos|atan|sin|cos|tan|ln|log|Ans)/);
     if (m) { out.push({ t: m[0] === 'Ans' ? 'ans' : 'fn', v: m[0] }); i += m[0].length; continue; }
     if (ch === 'π') { out.push({ t: 'num', v: Math.PI, c: true }); i++; continue; }
@@ -1583,7 +1669,8 @@ function calcRender() {
   const g = id => document.getElementById(id);
   if (CALC.justEval && !CALC.err) { g('calcExpr').textContent = CALC.lastExpr + ' ='; g('calcRes').textContent = calcFormat(CALC.result); }
   else if (CALC.err) { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = 'Erreur'; }
-  else { g('calcExpr').textContent = CALC.expr; g('calcRes').textContent = CALC.expr ? '' : '0'; }
+  else { g('calcExpr').textContent = '\u00a0'; g('calcRes').textContent = CALC.expr || '0'; }   // pendant la frappe : le calcul s’écrit en grand (comme sur une calculatrice de lycée)
+  g('calcRes').scrollLeft = g('calcRes').scrollWidth;   // calcul long : on voit toujours la fin, là où l’on tape
   g('calcMsg').textContent = (CALC.mem !== 0 ? 'M = ' + calcFormat(CALC.mem) + '   ' : '') + CALC.note;
 }
 
@@ -1687,10 +1774,11 @@ function calcInject() {
   if (num) {
     const s = num.classList.contains('plain') ? calcFormat(v).replace('.', ',') : toNormalized(v, parseInt(num.dataset.sig, 10) || 3);
     if (s === null) { calcSay('Résultat impossible à utiliser'); return; }
-    num.value = s;
+    num.value = s.replace(/e/g, 'E');
     num.dispatchEvent(new Event('input', { bubbles: true }));
     num.dispatchEvent(new Event('change', { bubbles: true }));
     calcSay('✔ Réponse saisie : ' + s);
+    closeCalc();   // valeur prise : la calculatrice se referme, l’élève voit sa réponse retenue
     return;
   }
 
@@ -1705,6 +1793,7 @@ function calcInject() {
   r.checked = true;
   r.dispatchEvent(new Event('change', { bubbles: true }));
   calcSay('✔ Proposition ' + String.fromCharCode(65 + j) + ' sélectionnée');
+  closeCalc();   // proposition cochée : la calculatrice se referme
 }
 
 // Bandeau de la question dans la calculatrice : bouton « Lire toute la question » seulement si l'énoncé est coupé
@@ -1740,38 +1829,25 @@ function openCalc(i, btn) {
     document.getElementById('calcQtx').innerHTML = 'Q' + String(i + 1).padStart(2, '0') + ' · ' + noBreak(Q[i].t);
     requestAnimationFrame(calcQCheck);
   }
-  calcPlace();
   el.hidden = false;
   document.body.classList.add('calc-open');
   document.body.style.setProperty('--calc-h', el.offsetHeight + 'px');
   calcRender();
-  const small = calcSmall();
-  if (!IOS_PHONE && !small) { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } }   // iPhone : pas de focus (Safari ramènerait la page dessus à chaque défilement)
-  // Téléphone / petit écran : le HAUT de la calculatrice (avec la croix) est amené à l'écran
-  if (small) {
-    const show = () => {
-      if (IOS_FRAME) viewEl(el);
-      else { try { el.scrollIntoView({ block: 'start', inline: 'nearest' }); } catch (e) {} }
-    };
-    show();
-    setTimeout(show, 150);
+  if (!IOS_PHONE) { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } }   // iPhone : pas de focus (Safari ramènerait la page dessus à chaque défilement)
+  // Téléphone / petit écran : garde la question visible au-dessus du panneau
+  if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+    viewEl(el);
   }
 }
-// Petit écran : calculatrice placée dans la page juste sous la question ; grand écran : panneau fixé à droite
-function calcSmall() { return !!(window.matchMedia && window.matchMedia('(max-width: 899px), (max-height: 520px)').matches); }
-function calcPlace() {
-  const el = document.getElementById('calc'), bar = document.getElementById('bar1');
-  if (!el) return;
-  if (calcSmall() && bar) {
-    if (el.nextElementSibling !== bar) bar.parentNode.insertBefore(el, bar);   // hors de #quiz (vidé en cas de fraude)
-    el.classList.add('inflow');
-  } else {
-    if (el.parentNode !== document.body) document.body.appendChild(el);
-    el.classList.remove('inflow');
-  }
-}
-window.addEventListener('resize', () => { const el = document.getElementById('calc'); if (el && !el.hidden) calcPlace(); });
 
+// Remise à zéro totale de la calculatrice (calcul, résultat, Ans, mémoire, mode DEG)
+function calcResetAll() {
+  Object.assign(CALC, { expr: '', lastExpr: '', result: null, ans: 0, justEval: false, err: false, mem: 0, deg: true, note: '' });
+  if (!CALC.built) return;
+  const m = document.getElementById('calcMode');
+  if (m) m.textContent = 'DEG';
+  calcRender();
+}
 function closeCalc() {
   if (!CALC.built) return;
   document.getElementById('calc').hidden = true;
@@ -1826,7 +1902,7 @@ function startTest(n) {
   RES.length = 0;
   quiz.innerHTML = '';
   Q.forEach((q, i) => {
-    let body = isNumQ(q) ? `<div class="numrow"><label>Réponse : <input type="text" class="numans plain" inputmode="decimal" autocomplete="off" name="q${i}" data-sig="3" placeholder="valeur" oninput="testStarted=true;markAnswerStart()"></label>${q.u ? `<span class="unit">${q.u}</span>` : ''}</div>` : q.o.map((o, j) => `<div class="optrow"><label class="opt"><input type="radio" name="q${i}" value="${j}" onchange="testStarted=true;markAnswerStart()">${String.fromCharCode(65 + j)} : ${o}</label>${TTS_OK ? `<button type="button" class="tts sm" aria-label="Lire la réponse ${String.fromCharCode(65 + j)}" title="Lire la réponse" onclick="speakOption(this)">${TTS_ICON}</button>` : ''}</div>`).join("");
+    let body = isNumQ(q) ? `<div class="numrow calcin" data-i="${i}"><div class="cdisp" tabindex="0" role="textbox" aria-label="Réponse" onkeydown="numKeydown(event, ${i})"><span class="cval"><span class="ph">Touche les chiffres ci-dessous</span></span>${q.u ? `<span class="cunit">${q.u}</span>` : ''}</div><input type="text" class="numans plain" name="q${i}" data-sig="3" tabindex="-1" aria-hidden="true"><p class="numprev">&nbsp;</p><div class="numpad" onpointerdown="event.preventDefault()">${NUMPAD_KEYS.map(([k, c]) => `<button type="button" class="${c || ''}" onclick="numKey(${i}, '${k}')">${k}</button>`).join('')}</div><p class="numhelp">Exemple : 9,876 × 10<sup>−4</sup> → tape 9.876 puis ×10ˣ puis (−) puis 4</p></div>` : q.o.map((o, j) => `<div class="optrow"><label class="opt"><input type="${isMultiQ(q) ? 'checkbox' : 'radio'}"${isMultiQ(q) ? ' class="mq"' : ''} name="q${i}" value="${j}" onchange="testStarted=true;markAnswerStart()">${String.fromCharCode(65 + j)} : ${o}</label>${TTS_OK ? `<button type="button" class="tts sm" aria-label="Lire la réponse ${String.fromCharCode(65 + j)}" title="Lire la réponse" onclick="speakOption(this)">${TTS_ICON}</button>` : ''}</div>`).join("");
     quiz.insertAdjacentHTML('beforeend', `<section class="q" data-i="${i}"><h2><span class="n">${String(i + 1).padStart(2, '0')}</span><span>${noBreak(q.t)}${q.img ? `<img class="qimg" src="${q.img}" alt="Graphiques du document" draggable="false">` : ''}</span>${TTS_OK ? `<button type="button" class="tts" aria-label="Lire la question à voix haute" title="Lire la question" onclick="speakQuestion(${i}, this)">${TTS_ICON}</button>` : ''}${q.calc === false ? '' : `<button type="button" class="calcbtn" aria-label="Ouvrir la calculatrice" title="Calculatrice" onclick="openCalc(${i}, this)">${CALC_ICON}</button>`}</h2>${body}<div class="res" id="r${i}" hidden></div></section>`);
   });
   showQ(0);
@@ -1866,6 +1942,31 @@ function iosVisibleH() {
   const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
   return Math.min(window.innerHeight, (land ? a : b) - 230 - (IOS_PHONE ? 70 : 0));   // iPhone : marge du bandeau en plus
 }
+// Bouton « Question suivante » toujours à la même place : toutes les cartes ont la même hauteur minimale
+// (celle de la plus haute, plafonnée à ce que l’écran peut montrer) ; une question plus longue agrandit sa carte.
+let QMIN = null;
+function qMinTarget() {
+  if (QMIN !== null) return QMIN;
+  const cur = document.querySelector('#quiz section.q.cur');
+  if (!cur || !cur.offsetWidth) return 0;
+  const W = cur.offsetWidth;
+  let mx = 0;
+  document.querySelectorAll('#quiz section.q').forEach(sec => {
+    if (sec !== cur) { sec.classList.add('qmeas'); sec.style.width = W + 'px'; }
+    const mh = sec.style.minHeight; sec.style.minHeight = '';
+    mx = Math.max(mx, sec.offsetHeight);
+    sec.style.minHeight = mh;
+    if (sec !== cur) { sec.classList.remove('qmeas'); sec.style.width = ''; }
+  });
+  const L = Math.max(screen.width, screen.height), phone = Math.min(screen.width, screen.height) < 600;
+  return (QMIN = Math.min(mx, phone ? Math.max(300, L - 300) : 640));
+}
+function qMinApply() {
+  document.querySelectorAll('#quiz section.q').forEach(s => { s.style.minHeight = ''; });
+  const sec = document.querySelector('#quiz section.q.cur');
+  if (sec && !document.querySelector('main.done')) sec.style.minHeight = qMinTarget() + 'px';
+}
+window.addEventListener('resize', () => { QMIN = null; qMinApply(); });
 function fitQ() {
   if (!IOS_FRAME) return;
   document.querySelectorAll('#quiz section.q').forEach(sec => { sec.style.maxHeight = ''; sec.classList.remove('qscroll'); });
@@ -1875,7 +1976,9 @@ function fitQ() {
   const top = sec.getBoundingClientRect().top - tc.getBoundingClientRect().top + 16;   // titre, progression… au-dessus de la question
   const bar = document.getElementById('bar1').offsetHeight + 60;
   const maxH = Math.max(160, iosVisibleH() - top - bar);
+  sec.style.minHeight = '';
   if (sec.scrollHeight > maxH) { sec.style.maxHeight = maxH + 'px'; sec.classList.add('qscroll'); sec.scrollTop = 0; }
+  else sec.style.minHeight = Math.min(qMinTarget(), maxH) + 'px';
 }
 window.addEventListener('resize', () => { if (IOS_FRAME) fitQ(); });
 window.addEventListener('orientationchange', () => { if (IOS_FRAME) setTimeout(() => { fitQ(); if (testStarted || document.querySelector('#quiz section.q.cur')) viewTest(); }, 400); });
@@ -1907,12 +2010,14 @@ function viewTest() {
 // Une seule question à la fois : « Question suivante » avance, aucun retour en arrière possible
 let curQ = 0;
 function showQ(i) {
+  if (i !== curQ) calcResetAll();   // nouvelle question : calculatrice entièrement remise à zéro
   curQ = i;
   document.querySelectorAll('#quiz section.q').forEach(sec => sec.classList.toggle('cur', +sec.dataset.i === i));
   const n = Q.length, last = i >= n - 1;
   document.getElementById('subtitle').textContent = `Question ${i + 1} / ${n} - Test n°010`;
   document.querySelector('#qbar i').style.width = ((i + 1) / n * 100) + '%';
   document.getElementById('nextBtn').hidden = last;
+  qMinApply();
   fitQ();
   document.getElementById('val').hidden = !last;
 }
@@ -1947,25 +2052,25 @@ document.getElementById('val').onclick = () => {
     if (isNumQ(q)) {
       const raw = (document.querySelector(`input.numans[name=q${i}]`) || {}).value || '';
       const v = parseNumAnswer(raw);
-      ok = numAnswerOk(q, v);
+      ok = numAnswerOk(q, v, raw);
       const empty = raw.trim() === '';
       const pts = empty ? 0 : (ok ? 1 : -WRONG_PENALTY);
       RES[i] = { ok, ans: empty ? '(pas de réponse)' : raw.trim().replace(/\s*[a-zA-Zµ\/°%]+$/, m => /^\s*E[-+]?$/i.test(m) ? m : ''), pts, num: true };
       sc += pts;
       r.hidden = false;
       r.className = "res " + (ok ? "ok" : "ko");
-      r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${fmtNum(q.n)}${q.u ? ' ' + q.u : ''}`;
+      r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${numShow(q)}${q.u ? ' ' + q.u : ''}`;
       return;
     }
     const c = [...document.querySelectorAll(`input[name=q${i}]:checked`)].map(e => +e.value);
-    ok = c.length === 1 && c[0] === q.a[0];
-    const av = c.length > 0 ? String.fromCharCode(65 + c[0]) : '(pas de réponse)';
+    ok = isMultiQ(q) ? (c.length === q.a.length && q.a.every(j => c.includes(j))) : (c.length === 1 && c[0] === q.a[0]);
+    const av = c.length > 0 ? letters(c) : '(pas de réponse)';
     const pts = c.length === 0 ? 0 : (ok ? 1 : -WRONG_PENALTY);
-    RES[i] = { ok, ans: av, pts };
+    RES[i] = { ok, ans: av, pts, sel: c };
     sc += pts;
     r.hidden = false;
     r.className = "res " + (ok ? "ok" : "ko");
-    r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${String.fromCharCode(65 + q.a[0])}`;
+    r.innerHTML = (ok ? "✔ Correct. " : "✘ Incorrect. ") + `Réponse attendue : ${letters(q.a)}`;
   });
   stopSpeaking();
   closeCalc();
@@ -1974,6 +2079,7 @@ document.getElementById('val').onclick = () => {
   document.getElementById('score').textContent = `Note : ${fmtNote(sc)} / ${Q.length}`;
   document.getElementById('ph').textContent = `${nomv.toUpperCase()} ${prenomv} — ${clv} — Note : ${fmtNote(sc)} / ${Q.length}`;
   document.querySelector('main').classList.add('done', 'qrstep');
+  document.querySelectorAll('#quiz section.q').forEach(s => { s.style.minHeight = ''; });
   document.getElementById('val').disabled = true;
   document.querySelectorAll('#quiz input,#ident input,#ident select').forEach(e => e.disabled = true);
   // Écran de fin : encart jaune orangé (nom, classe, date, note) + bouton « GÉNÉRER LE PDF »
@@ -2113,7 +2219,7 @@ function generatePaperPDF(nBase, pap) {
     y += 24;
 
     font(8, false, C.mut);
-    doc.text(pc(`Coche UNE seule case par question${QS.some(isNumQ) ? ' (ou écris la valeur demandée)' : ''}.  Barème : +1 point par bonne réponse  ·  -${fmtNote(WRONG_PENALTY)} point par mauvaise réponse  ·  0 point sans réponse.`), M, y + 3);
+    doc.text(pc(`Coche UNE seule case par question${QS.some(isMultiQ) ? ' (plusieurs si « la ou les bonnes réponses »)' : ''}${QS.some(isNumQ) ? ' (ou écris la valeur demandée)' : ''}.  Barème : +1 point par bonne réponse  ·  -${fmtNote(WRONG_PENALTY)} point par mauvaise réponse  ·  0 point sans réponse.`), M, y + 3);
     y += 6;
 
     // --- Questions (2 colonnes ; une question à image occupe toute la largeur) ---
@@ -2144,7 +2250,7 @@ function generatePaperPDF(nBase, pap) {
           doc.line(x + 21, oy + 4, x + colW - 22, oy + 4);
           doc.setLineDashPattern([], 0);
           if (c.q.u) doc.text(pc(c.q.u), x + colW - 20, oy + 3.6);
-          if (key) { font(9, true, RED); doc.text(pc(fmtNum(c.q.n)), x + 24, oy + 3.2); }
+          if (key) { font(9, true, RED); pdfRichLine(doc, pdfRichSplit(doc, numShow(c.q), 999)[0], x + 24, oy + 3.2); }
           return;
         }
         c.opts.forEach((lines, j) => {
@@ -2152,13 +2258,13 @@ function generatePaperPDF(nBase, pap) {
           stroke(C.dark, 0.5);
           fill(C.white);
           doc.rect(x + 4, cy - 2, 4, 4, 'FD');
-          if (key && j === c.q.a[0]) {             // simple croix dans la case de la bonne réponse
+          if (key && c.q.a.includes(j)) {             // simple croix dans la case de la bonne réponse
             stroke(RED, 0.7);
             doc.line(x + 4.5, cy - 1.5, x + 7.5, cy + 1.5);
             doc.line(x + 7.5, cy - 1.5, x + 4.5, cy + 1.5);
           }
           font(9, false, C.txt);
-          lines.forEach((l, k2) => doc.text(l, x + 11, oy + 3.3 + k2 * LH));
+          lines.forEach((l, k2) => pdfRichLine(doc, l, x + 11, oy + 3.3 + k2 * LH));
           oy += lines.length * LH + 2.4;
         });
       });
@@ -2187,7 +2293,7 @@ function generatePaperPDF(nBase, pap) {
     font(9.2, true, BASE.dark);
     const qLines = pdfRichSplit(doc, q.t, colW - 21);
     font(9, false, BASE.dark);
-    const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => doc.splitTextToSize(pc(`${String.fromCharCode(65 + j)} : ${o}`), colW - 15));
+    const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 15));
     const tH = Math.max(5, qLines.length * 4.1), qH = tH;
     const oH = opts.reduce((t, l) => t + l.length * LH + 2.4, 0);
     const wide = !!q.img, imgW = FULL - colW - 6;
@@ -2272,9 +2378,9 @@ function generateAnswerKeyPDF() {
   const colW = 92, gap = 6, LH2 = 3.6, FULL = TW, imgW = FULL - colW - 6;
   const CARDS = ALL_QUESTIONS.map((q, k) => {
       font(8.8, true, C.dark);
-      const qLines = pdfRichSplit(doc, q.t, colW - 31);
+      const qLines = pdfRichSplit(doc, q.t, colW - 31 - (isMultiQ(q) ? 4 + 3.2 * q.a.length : 0));   // place pour la pastille des bonnes réponses
       font(8.5, true, C.dark);
-      const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => doc.splitTextToSize(pc(`${String.fromCharCode(65 + j)} : ${o}`), colW - 24));
+      const opts = isNumQ(q) ? [['']] : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 24));
       const tH = Math.max(5, qLines.length * 3.9), qH = tH;
       const oH = opts.reduce((s, l) => s + l.length * LH2 + 1.6, 0);
       const wide = !!q.img;   // question à image : texte et réponses à gauche, image à droite
@@ -2301,22 +2407,30 @@ function generateAnswerKeyPDF() {
 
       // Lettre de la bonne réponse (lecture rapide)
       fill(C.green);
+      if (isMultiQ(c.q)) {
+        const lt = c.q.a.map(j => String.fromCharCode(65 + j)).join(' ');
+        font(8.5, true, C.white);
+        const bw = doc.getTextWidth(lt) + 4;
+        doc.roundedRect(x + colW - 3.2 - bw, y + 3.4, bw, 5.6, 2.8, 2.8, 'F');
+        doc.text(lt, x + colW - 3.2 - bw / 2, y + 7.2, { align: 'center' });
+      } else {
       doc.circle(x + colW - 6, y + 6.2, 2.8, 'F');
       font(8.5, true, C.white);
       if (isNumQ(c.q)) tick(x + colW - 6, y + 6.2, 1.4, C.white, 0.65);
       else doc.text(String.fromCharCode(65 + c.q.a[0]), x + colW - 6, y + 7.2, { align: 'center' });
+      }
 
       let oy = y + 3.5 + c.qH + 2;
       if (isNumQ(c.q)) {
         fill(C.greenBg);
         doc.roundedRect(x + 2.5, oy, colW - 5, LH2 + 1.2, 1, 1, 'F');
         font(8.5, true, C.green);
-        doc.text(pc(`Réponse attendue : ${fmtNum(c.q.n)}${c.q.u ? ' ' + c.q.u : ''}`), x + 6.35, oy + 3.2);
+        pdfRichLine(doc, pdfRichSplit(doc, `Réponse attendue : ${numShow(c.q)}${c.q.u ? ' ' + c.q.u : ''}`, 999)[0], x + 6.35, oy + 3.2);
         tick(x + colW - 8, oy + 2.1, 1.3, C.green, 0.95);
         return;
       }
       c.opts.forEach((lines, j) => {
-        const isExp = j === c.q.a[0];
+        const isExp = c.q.a.includes(j);
         const bandH = lines.length * LH2 + 1.2;
         if (isExp) {
           fill(C.greenBg);
@@ -2328,7 +2442,7 @@ function generateAnswerKeyPDF() {
         doc.rect(x + 6.35, cy - 1.65, 3.3, 3.3, 'FD');
         if (isExp) tick(x + colW - 8, cy, 1.3, C.green, 0.95);
         font(8.5, isExp, isExp ? C.green : C.txt);
-        lines.forEach((l, n) => doc.text(l, x + 11.5, oy + 3.2 + n * LH2));
+        lines.forEach((l, n) => pdfRichLine(doc, l, x + 11.5, oy + 3.2 + n * LH2));
         oy += bandH + 0.4;
       });
     });
@@ -2694,30 +2808,16 @@ function generatePDF() {
     y += 2 * R + 6;
     y += 4;
 
-    // --- OBSERVATIONS (mode observation, sans sanction) : ouverture probable de Siri ---
-    if (OBS.length) {
-      section(`OBSERVATIONS (SANS SANCTION) : ${OBS.length}`, C.red, 'Possible ouverture de Siri / d’un assistant vocal');
-      OBS.forEach(o => {
-        ensure(5);
-        font(8, false, C.dark);
-        const qTxt = o.q ? `question ${o.q}` : 'avant les questions';
-        const lines = doc.splitTextToSize(pc(`${new Date(o.at).toLocaleTimeString('fr-FR')} — ${qTxt} — ${o.label}`), TW - 4);
-        doc.text(lines, M + 4, y + 3);
-        y += lines.length * 3.6 + 0.8;
-      });
-      y += 3;
-    }
-
     // --- DÉTAIL DES RÉPONSES (2 colonnes, cartes de même hauteur) ---
 
     const colW = 92, gap = 6, LH2 = 3.6, FULL = TW, imgW = FULL - colW - 6;
     const CARDS = Q.map((q, k) => {
         const rO = RES[k] || { ok: false, ans: '(pas de réponse)' };
-        const noAns = isNumQ(q) ? rO.ans === '(pas de réponse)' : !/^[A-Z]$/.test(rO.ans);
+        const noAns = rO.ans === '(pas de réponse)';
         font(8.8, true, C.dark);
         const qLines = pdfRichSplit(doc, q.t, colW - 31);
         font(8.5, true, C.dark);
-        const opts = isNumQ(q) ? (noAns || rO.ok ? [['']] : [[''], ['']]) : q.o.map((o, j) => doc.splitTextToSize(pc(`${String.fromCharCode(65 + j)} : ${o}`), colW - 24));
+        const opts = isNumQ(q) ? (noAns || rO.ok ? [['']] : [[''], ['']]) : q.o.map((o, j) => pdfRichSplit(doc, `${String.fromCharCode(65 + j)} : ${o}`, colW - 24));
         const tH = Math.max(5, qLines.length * 3.9), qH = tH;
         const oH = opts.reduce((s, l) => s + l.length * LH2 + 1.6, 0);
         const wide = !!q.img;   // question à image : texte et réponses à gauche, image à droite
@@ -2773,7 +2873,7 @@ function generatePDF() {
             fill(C.greenBg);
             doc.roundedRect(x + 4, oy, colW - 8, bandH, 1, 1, 'F');
             font(8.5, true, C.green);
-            doc.text(pc(`Réponse attendue : ${fmtNum(c.q.n)}${unit}`), x + 8, oy + 3.2);
+            pdfRichLine(doc, pdfRichSplit(doc, `Réponse attendue : ${numShow(c.q)}${unit}`, 999)[0], x + 8, oy + 3.2);
             tick(x + colW - 8, oy + 2.1, 1.3, C.green, 0.95);
             oy += bandH + 0.4;
           }
@@ -2782,23 +2882,23 @@ function generatePDF() {
         }
         c.opts.forEach((lines, j) => {
           const letter = String.fromCharCode(65 + j);
-          const isSel = rObj.ans === letter;
-          const isExp = j === c.q.a[0];
+          const isSel = Array.isArray(rObj.sel) ? rObj.sel.includes(j) : rObj.ans === letter;
+          const isExp = c.q.a.includes(j);
           const bandH = lines.length * LH2 + 1.2;
 
           if (isSel || isExp) {
-            fill(isSel && !rObj.ok ? C.redBg : C.greenBg);
+            fill(isSel && !isExp ? C.redBg : C.greenBg);
             doc.roundedRect(x + 4, oy, colW - 8, bandH, 1, 1, 'F');
           }
           const cy = oy + 2.1;
           chkBox(x + 8, cy, isSel);
           if (isExp) tick(x + colW - 8, cy, 1.3, C.green, 0.95);
-          if (isSel && !rObj.ok) cross(x + colW - 8, cy, 1.1, C.red, 0.95);
+          if (isSel && !isExp) cross(x + colW - 8, cy, 1.1, C.red, 0.95);
 
-          if (isSel) font(8.5, true, rObj.ok ? C.green : C.red);
+          if (isSel) font(8.5, true, isExp ? C.green : C.red);
           else if (isExp) font(8.5, true, C.green);
           else font(8.5, false, C.txt);
-          lines.forEach((l, n) => doc.text(l, x + 11.5, oy + 3.2 + n * LH2));
+          lines.forEach((l, n) => pdfRichLine(doc, l, x + 11.5, oy + 3.2 + n * LH2));
           oy += bandH + 0.4;
         });
         if (c.noAns) {

@@ -376,7 +376,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 06/11/2026 - 17h39</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 08/11/2026 - 07h47</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -1413,8 +1413,8 @@ function calcTokenize(src) {
     const ch = src[i];
     if (/\s/.test(ch)) { i++; continue; }
     const rest = src.slice(i);
-    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+-]?\d+)?/);
-    if (m) { out.push({ t: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    let m = rest.match(/^(\d+\.?\d*|\.\d+)(E[+\-−]?\d+)?/);   // ×10ˣ puis la touche − : « 2.5E−3 » (signe moins typographique accepté)
+    if (m) { out.push({ t: 'num', v: parseFloat(m[0].replace('−', '-')) }); i += m[0].length; continue; }
     m = rest.match(/^(asin|acos|atan|sin|cos|tan|ln|log|Ans)/);
     if (m) { out.push({ t: m[0] === 'Ans' ? 'ans' : 'fn', v: m[0] }); i += m[0].length; continue; }
     if (ch === 'π') { out.push({ t: 'num', v: Math.PI, c: true }); i++; continue; }
