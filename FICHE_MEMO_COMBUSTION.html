@@ -877,21 +877,36 @@ function calcRefreshTarget() {}
 
 // « Utiliser cette valeur comme réponse » : remplit la dernière case choisie de la question (sinon la première case vide)
 let lastNumInput = null;
-document.addEventListener('focusin', e => { if (e.target.matches && e.target.matches('.sheet input.num')) lastNumInput = e.target; });
+document.addEventListener('focusin', e => { if (e.target.matches && e.target.matches('.sheet input.num')) { lastNumInput = e.target; calcMarkTarget(); } });
+// Case qui recevra la valeur de la calculatrice : entourée en orange tant que la calculatrice est ouverte
+function calcTarget() {
+  if (CALC.q === null) return null;
+  const inputs = [...CALC.q.querySelectorAll('input.num')];
+  return inputs.includes(lastNumInput) ? lastNumInput : inputs.find(i => !i.value.trim()) || inputs[0] || null;
+}
+function calcMarkTarget() {
+  document.querySelectorAll('.sheet input.num.ctarget').forEach(i => i.classList.remove('ctarget'));
+  const el = document.getElementById('calc');
+  if (!el || el.hidden) return;
+  const t = calcTarget();
+  if (t) t.classList.add('ctarget');
+}
 function calcInject() {
   if (CALC.q === null) return;
   const v = calcValueNow();
   if (v === null) { calcSay('Calcule d’abord une valeur'); return; }
   const box = CALC.q;
   const inputs = [...box.querySelectorAll('input.num')];
-  let target = inputs.includes(lastNumInput) ? lastNumInput : inputs.find(i => !i.value.trim()) || inputs[0];
+  const target = calcTarget();
   if (!target) return;
   target.value = target.dataset.sig ? toNormalized(v, +target.dataset.sig) : calcFormat(v);
   target.dispatchEvent(new Event('input', { bubbles: true }));
   target.dispatchEvent(new Event('change', { bubbles: true }));
   calcSay('✔ Valeur saisie : ' + target.value);
   const next = inputs[inputs.indexOf(target) + 1];
-  lastNumInput = next || target;
+  closeCalc();                                              // valeur prise : la calculatrice se referme
+  if (typeof window.npadShow === 'function') window.npadShow(target);   // le pad s'ouvre sur la case remplie (« Réponse retenue »)
+  lastNumInput = next || target;                            // prochain calcul de cette question → case suivante
 }
 
 function openCalc(box, btn) {
@@ -899,17 +914,25 @@ function openCalc(box, btn) {
   const el = document.getElementById('calc');
   if (!el.hidden && CALC.q === box) { closeCalc(); return; }       // 2e clic sur la même icône = fermer
   if (CALC.btn) CALC.btn.classList.remove('on');
+  if (typeof window.npadClose === 'function') window.npadClose();   // une seule chose à la fois : la calculatrice remplace le pad
   CALC.q = box; CALC.btn = btn;
   btn.classList.add('on');
-  CALC.note = '';
+  CALC.note = box.querySelectorAll('input.num').length > 1 ? 'La valeur ira dans la case entourée en orange' : '';
   const qt = document.getElementById('calcQtxt');
   if (qt) qt.textContent = textToSay(box).slice(0, 160);
   el.hidden = false;
   document.body.classList.add('calc-open');
   calcRender();
+  calcMarkTarget();
   try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
   if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
-    try { el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' }); } catch (e) {}
+    // Téléphone : la calculatrice occupe le haut de l'écran ; on fait défiler la fiche pour que
+    // la case entourée en orange reste visible juste en dessous
+    const t = calcTarget(), r = el.getBoundingClientRect(), free = innerHeight - r.bottom;
+    if (t && free > 50) {
+      const tr = t.getBoundingClientRect(), want = r.bottom + Math.max(8, (free - tr.height) / 2);
+      window.scrollBy(0, tr.top - want);
+    }
   }
 }
 function closeCalc() {
@@ -917,6 +940,7 @@ function closeCalc() {
   document.getElementById('calc').hidden = true;
   document.body.classList.remove('calc-open');
   if (CALC.btn) { CALC.btn.classList.remove('on'); CALC.btn = null; }
+  calcMarkTarget();
 }
 
 /* ===== Ajout des icônes sur la fiche (appelé à chaque construction de la fiche) ===== */
@@ -1457,6 +1481,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
 #npad .numhelp{margin:6px 2px 0;font-size:.78rem;color:var(--muted)}
 body.npad-open{padding-bottom:var(--npad-h,360px)}
 .sheet input.num.npcur{outline:3px solid var(--focus);outline-offset:1px}
+.sheet input.num.ctarget{outline:3px dashed #ff8a1f;outline-offset:2px}
 body.locked #npad{display:none!important}
 </style>
 <script>
@@ -1468,7 +1493,7 @@ body.locked #npad{display:none!important}
   const KEYS = [['7'], ['8'], ['9'], ['AC', 'k-op k-ac'], ['4'], ['5'], ['6'], ['⌫', 'k-op'], ['1'], ['2'], ['3'], ['(−)', 'k-op'], ['0'], ['.', 'k-op'], ['×10ˣ', 'k-op k-pow']];
   const isNum = el => !!(el && el.matches && el.matches('.sheet input.num'));
   const isInt = el => !el.dataset.sig;
-  let pad = null, cur = null;
+  let pad = null, cur = null, openedAt = 0;
 
   function build() {
     if (pad) return;
@@ -1497,7 +1522,7 @@ body.locked #npad{display:none!important}
     build();
     if (cur && cur !== el) commit(cur);
     if (cur) cur.classList.remove('npcur');
-    cur = el; prep(el);
+    cur = el; prep(el); openedAt = Date.now();
     el.classList.add('npcur');
     pad.hidden = false;
     document.body.classList.add('npad-open');
@@ -1567,19 +1592,27 @@ body.locked #npad{display:none!important}
   }
 
   // Ouverture : toucher (ou atteindre au clavier) une case numérique
-  document.addEventListener('pointerdown', e => {
+  document.addEventListener('pointerdown', e => { if (isNum(e.target)) prep(e.target); }, true);
+  // Toucher ailleurs ferme le pad. Sur « click » (et non au toucher) : la page ne bouge pas pendant le geste,
+  // donc le bouton ou la case touchée reçoit bien le clic (icône calculatrice, cases à cocher…)
+  document.addEventListener('click', e => {
     const t = e.target;
-    if (isNum(t)) { prep(t); return; }
-    if (!cur || (pad && pad.contains(t))) return;
+    if (!cur || isNum(t) || (pad && pad.contains(t))) return;
+    if (Date.now() - openedAt < 600 && !(t.closest && t.closest('button,a,input,select,label'))) return;   // fin du toucher qui vient d'ouvrir le pad (la page a défilé entre-temps)
     if (t.closest && t.closest('#calc')) return;                        // calculatrice : « Utiliser cette valeur » remplit la case
     close();
   }, true);
-  document.addEventListener('focusin', e => { if (isNum(e.target) && e.target !== cur) open(e.target); });
+  document.addEventListener('focusin', e => {
+    if (!isNum(e.target) || e.target === cur) return;
+    if (document.body.classList.contains('calc-open')) return;     // calculatrice ouverte : la case touchée devient seulement la case cible
+    open(e.target);
+  });
+  window.npadClose = () => close();
+  window.npadShow = el => { prep(el); try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } if (cur !== el) open(el); };
   document.addEventListener('input', e => { if (e.target === cur) render(); });       // clavier de l'ordinateur, calculatrice
   document.addEventListener('change', e => { if (e.target === cur) setTimeout(render, 0); });
   document.addEventListener('keydown', e => { if (cur && e.target === cur && e.key === 'Enter') { e.preventDefault(); close(); } });
   // Calculatrice ouverte, fraude, changement de carburant, « Tout effacer » : le pad se ferme ou se met à jour
-  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.calcbtn')) close(); }, true);
   new MutationObserver(() => { if (document.body.classList.contains('locked')) close(); })
     .observe(document.body, { attributes: true, attributeFilter: ['class'] });
   new MutationObserver(() => { if (cur && !cur.isConnected) { cur = null; if (pad) pad.hidden = true; document.body.classList.remove('npad-open'); } else render(); })
