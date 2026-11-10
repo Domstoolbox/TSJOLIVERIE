@@ -9,7 +9,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
-<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}/* Plein écran obligatoire (comme dans les tests) */
+#fswarning{max-width:560px;margin:max(24px,12vh) auto 24px;background:#0f766e;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);padding:clamp(20px,4vw,30px) clamp(14px,3vw,24px);font-family:var(--f-body)}
+#fswarning h2{font-family:var(--f-head);font-weight:400;font-size:clamp(1.25rem,3.4vw,1.6rem);margin:0 0 10px}
+#fswarning p{margin:0 0 16px;line-height:1.5}
+#fswarning #fsBtn{background:#fff;color:#0f766e;font:700 1.1rem var(--f-body);padding:12px 26px;border:0;border-radius:12px;cursor:pointer}
+body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important}
+@media (max-width:600px){#fswarning{margin:16px 12px}}
+</style>
 <style>
 /* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
 :root{
@@ -373,6 +380,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   <p>Tes réponses ont été effacées. Appelle ton enseignant.</p>
 </div>
 
+<div id="fswarning" hidden>
+  <h2>Plein écran obligatoire</h2>
+  <p>Pour afficher la fiche, passe en plein écran. Si tu quittes le plein écran ou si tu modifies la taille de la fenêtre pendant que tu complètes la fiche, une alarme sera déclenchée.</p>
+  <button type="button" id="fsBtn">Passer en plein écran</button>
+</div>
 <div class="sheet">
   <header class="head">
     <div class="head-top">
@@ -432,18 +444,26 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   const fsMeasure = () => { const r = window.devicePixelRatio || 1; return {w: innerWidth*r, h: innerHeight*r}; };
   function fsRebase(){ fsSettleUntil = Date.now() + 1200; setTimeout(() => { fsBase = fsMeasure(); }, 1200); }
 
-  // Plein écran demandé discrètement au premier clic ou à la première touche (le navigateur l'exige)
+  // Plein écran OBLIGATOIRE (comme dans les tests) : la fiche n'apparaît qu'en plein écran.
+  // Plein écran refusé ou impossible sur l'appareil (ex. iPhone) : l'étape est ignorée au lieu de bloquer l'élève.
   let fsAsked = false;
-  function askFs(){
-    if (fsAsked || adminMode || fraudTriggered || !fsAvailable() || inFullscreen()) return;
+  const fsNeed = () => fsAvailable() && !adminMode && !fraudTriggered && !window.FICHE_DONE && !inFullscreen();
+  function updateFsGate(){
+    const need = fsNeed();
+    document.body.classList.toggle('need-fs', need);
+    document.getElementById('fswarning').hidden = !need;
+  }
+  document.getElementById('fsBtn').addEventListener('click', () => {
     fsAsked = true;
     const req = FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen;
-    try { const pr = req.call(FS_ROOT); if (pr && pr.catch) pr.catch(() => { fsSkipped = true; }); } catch(e) { fsSkipped = true; }
-  }
-  // Plein écran activé automatiquement au premier clic ou à la première touche (le navigateur exige un geste de l'élève)
-  document.addEventListener('pointerdown', askFs, true);
-  document.addEventListener('keydown', askFs, true);
+    const skip = () => { if (inFullscreen() || fsSkipped) return; fsSkipped = true; updateFsGate(); };
+    try { const pr = req.call(FS_ROOT); if (pr && pr.catch) pr.catch(skip); } catch(e) { skip(); return; }
+    setTimeout(() => { if (!inFullscreen()) skip(); }, 1500);       // le navigateur n'a pas réagi
+  });
+  updateFsGate();
+  setInterval(updateFsGate, 700);
   function onFsChange(){
+    updateFsGate();
     if (inFullscreen()) { fsRebase(); return; }
     if (fsRequired()) triggerFraud('Sortie du mode plein écran');
   }
