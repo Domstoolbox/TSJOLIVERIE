@@ -1131,10 +1131,14 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     S.MF = r1(12.0 * F.C + 1.0 * F.H + 16.0 * F.O);
     S.MO = 32.0; S.MC = 44.0; S.MH = 18.0;
     S.lim = pickLimitant(S);
-    S.n0 = [0.5, 1, 1.5, 2, 2.5, 3, 4][rnd(0, 6)];
+    // Valeurs tirées au hasard à chaque choix de carburant (réalistes) :
+    // masse brûlée en laboratoire / petit brûleur : 0,5 à 6,0 mol, soit quelques dizaines à quelques centaines de grammes ;
+    // masse brûlée « en vrai » (bouteille de gaz, réservoir) : 1,0 à 40,0 kg
+    S.n0 = rnd(5, 60) / 10;
     S.m0 = Number((S.n0 * S.MF).toPrecision(3));
+    S.mk = Number((rnd(10, 400) / 10).toPrecision(3));
     const nF = S.m0 / S.MF, nCO2 = nF * S.kC / S.kF;
-    S.ans = {n: nF, nCO2, V: nCO2 * 24.0, En: nF * F.E, mCO2kg: 3.50 * S.kC * S.MC / (S.kF * S.MF)};
+    S.ans = {n: nF, nCO2, V: nCO2 * 24.0, En: nF * F.E, mCO2kg: S.mk * S.kC * S.MC / (S.kF * S.MF)};
     const fuelM = M(F.f, 'c-ch4');
     const coef = c => c === 1 ? '' : `<span class="c-k">${c}</span>&nbsp;`;
     const MOLS = {fuel: F.f, o2: 'O2', co2: 'CO2', h2o: 'H2O'};
@@ -1210,7 +1214,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       <div class="q block" data-q="grammes"><div class="para">Pour bien brûler ${F.du}, il faut donc respecter les proportions suivantes :
         ${num('g-fuel',3)} g ${F.de} en présence de ${num('g-o2',3)} g de dioxygène.
         À la fin de la combustion, on a fabriqué ${num('g-co2',3)} g de dioxyde de carbone et ${num('g-h2o',3)} g d'eau.</div><p class="fb"></p></div>
-      <div class="q block" data-q="masseco2"><div class="para">Si l'on brûle 3,50 kg ${F.de}, on rejette dans l'atmosphère
+      <div class="q block" data-q="masseco2"><div class="para">Si l'on brûle ${fr(S.mk, 3)} kg ${F.de}, on rejette dans l'atmosphère
         ${num('m-co2',3,true)} <select id="m-co2-unit" class="unit" aria-label="unité"><option value="">unité</option><option value="g">g</option><option value="kg">kg</option><option value="t">t</option></select>
         de dioxyde de carbone.</div><p class="fb"></p></div>
       </div></section>`;
