@@ -401,7 +401,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 10/11/2026 - 10h04</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 11/11/2026 - 07h54</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -2527,7 +2527,7 @@ function pdfRichSplit(doc, html, maxW) {
   const f0 = doc.getFont();
   const width = (t, k) => {
     if (k === 'grk') return symWidth(doc, t);
-    doc.setFontSize(k ? fs * 0.68 : fs); const w = doc.getTextWidth(t); doc.setFontSize(fs); return w;
+    doc.setFontSize(k ? fs * 0.68 : fs); const w = pdfTw(doc, t); doc.setFontSize(fs); return w;
   };
   // Découpage en mots (un mot peut contenir plusieurs morceaux : 10 + exposant)
   const words = [[]];
@@ -2552,15 +2552,23 @@ function pdfRichSplit(doc, html, maxW) {
   const merged = lines.map(l => l.reduce((acc, s) => { const last = acc[acc.length - 1]; if (last && last.k === s.k) last.t += s.t; else acc.push({ t: s.t, k: s.k }); return acc; }, []));
   return merged.length ? merged : [[{ t: '', k: '' }]];
 }
+function pdfTw(doc, t) { let w = 0; for (const c of String(t)) w += doc.getTextWidth(c) + (c === '€' ? doc.getTextWidth(' ') : 0); return w; }   // largeur lettre par lettre (€ : tracé plus large par les lecteurs PDF)
 function pdfRichLine(doc, line, x, y) {
   const fs = doc.getFontSize(), pt = 0.3528, f0 = doc.getFont();
   line.forEach(s => {
     if (s.k === 'grk') { const w = symWidth(doc, s.t); doc.setFont('symbol', 'normal'); doc.text(s.t, x, y); doc.setFont(f0.fontName, f0.fontStyle); x += w; return; }
     if (s.k) doc.setFontSize(fs * 0.68);
+    if (s.k === 'sup' || s.k === 'sub') x += fs * pt * 0.05;   // petite marge de sécurité : l’exposant ou l’indice ne touche jamais le chiffre, quel que soit le lecteur PDF
     if (s.k === 'sup' && /^[-−]/.test(s.t)) x += fs * pt * 0.09;   // petit espace : le signe moins de l’exposant ne touche pas la lettre (m.s⁻¹)
     const dy = s.k === 'sup' ? -fs * 0.33 * pt : s.k === 'sub' ? fs * 0.18 * pt : 0;
-    doc.text(s.t, x, y + dy);
-    x += doc.getTextWidth(s.t);
+    // mot par mot, chacun à sa position calculée lettre par lettre : les écarts de largeur ne s’accumulent pas avant un exposant
+    const ws = [];
+    s.t.split(' ').forEach(w => { const L = ws.length; if (L && (/€$/.test(ws[L - 1]) || /^€/.test(w))) ws[L - 1] += ' ' + w; else ws.push(w); });
+    ws.forEach((w, i) => {
+      if (i > 0) x += pdfTw(doc, ' ');
+      if (w) doc.text(w, x, y + dy);
+      x += pdfTw(doc, w);
+    });
     doc.setFontSize(fs);
   });
 }
