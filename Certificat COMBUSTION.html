@@ -1663,7 +1663,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     [nom, pre, cls].forEach(el => { el.tabIndex = -1; el.classList.remove('f-todo'); });
     $('ident').classList.add('locked');
     go.classList.add('ok');
-    go.innerHTML = '<p>✔ Identité validée : ' + (pre.value + ' ' + nom.value + ' · ' + cls.value).replace(/[&<>]/g, '') + '</p>';
+    go.innerHTML = '<p>✔ Identité validée</p>';
     document.body.classList.remove('no-id');
     $('sheetBody').inert = document.body.classList.contains('no-fuel');
   });
