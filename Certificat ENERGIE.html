@@ -1114,7 +1114,24 @@ function closeCalc() {
 
 /* ===== Ajout des icônes sur la fiche (appelé à chaque construction de la fiche) ===== */
 const CALC_ON = ['conv', 'appA', 'eB', 'etaval', 'p3val', 'eu'];
+// Typographie française : espace insécable avant : ; ! ? » (jamais de signe seul en début de ligne)
+function frTypo(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  const L = []; while (w.nextNode()) L.push(w.currentNode);
+  L.forEach(n => { const t = n.nodeValue.replace(/[ \t\n]+([:;!?»])/g, ' $1').replace(/«[ \t\n]+/g, '« ')
+    .replace(/[ \t\n]+=[ \t\n]+/g, ' = ')                          // jamais de coupure autour d'un « = »
+    .replace(/(\d)[ \t\n]+(?=[A-Za-zµ°%€ΩΔ])/g, '$1 ');                 // ni entre un nombre et son unité
+    if (t !== n.nodeValue) n.nodeValue = t; });
+  // « = » au bord d'un nœud : l'espace voisine est dans le nœud d'à côté
+  L.forEach(n => {
+    if (/^[ \t\n ]*=/.test(n.nodeValue)) { n.nodeValue = n.nodeValue.replace(/^[ \t\n]+/, ' ').replace(/^( ?=)[ \t\n]+/, '$1 '); const p = n.previousSibling, last = p && (p.nodeType === 3 ? p : p.lastChild); if (last && last.nodeType === 3) last.nodeValue = last.nodeValue.replace(/[ \t\n]+$/, ' '); }
+    if (/=[ \t\n ]*$/.test(n.nodeValue)) { n.nodeValue = n.nodeValue.replace(/[ \t\n]+=[ \t\n]*$/, ' =').replace(/=[ \t\n]+$/, '= '); const q = n.nextSibling, first = q && (q.nodeType === 3 ? q : q.firstChild); if (first && first.nodeType === 3) first.nodeValue = first.nodeValue.replace(/^[ \t\n]+/, ' '); }
+  });
+  // signe placé en tête d'un élément (ex. « <b>…</b> : ») : l'espace qui précède est dans le nœud précédent
+  L.forEach(n => { if (/^[:;!?»]/.test(n.nodeValue)) { const p = n.previousSibling; const last = p && (p.nodeType === 3 ? p : p.lastChild); if (last && last.nodeType === 3) last.nodeValue = last.nodeValue.replace(/[ \t\n]+$/, ' '); } });
+}
 function addTools(root) {
+  frTypo(root);
   [...root.querySelectorAll('.q, .recipe, .situation, p.lead')].forEach(box => {
     if (box.classList.contains('has-tools')) return;
     const tools = document.createElement('div');
@@ -2630,6 +2647,7 @@ body.cert-open{overflow:hidden}
 
   // Champs de la fiche -> cases à remplir / propositions à cocher (vides, ou remplies sur le corrigé)
   function prepare(root, K, corr) {
+    if (typeof frTypo === 'function') frTypo(root);
     root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
     root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
     const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };

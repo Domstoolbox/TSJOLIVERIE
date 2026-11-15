@@ -1146,7 +1146,24 @@ function closeCalc() {
 
 /* ===== Ajout des icônes sur la fiche (appelé à chaque construction de la fiche) ===== */
 const CALC_ON = ['e1val', 'p1val', 'elval', 'epval', 'e3val', 'bC', 'bD', 'esval', 'psval'];
+// Typographie française : espace insécable avant : ; ! ? » (jamais de signe seul en début de ligne)
+function frTypo(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {acceptNode: n => n.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  const L = []; while (w.nextNode()) L.push(w.currentNode);
+  L.forEach(n => { const t = n.nodeValue.replace(/[ \t\n]+([:;!?»])/g, ' $1').replace(/«[ \t\n]+/g, '« ')
+    .replace(/[ \t\n]+=[ \t\n]+/g, ' = ')                          // jamais de coupure autour d'un « = »
+    .replace(/(\d)[ \t\n]+(?=[A-Za-zµ°%€ΩΔ])/g, '$1 ');                 // ni entre un nombre et son unité
+    if (t !== n.nodeValue) n.nodeValue = t; });
+  // « = » au bord d'un nœud : l'espace voisine est dans le nœud d'à côté
+  L.forEach(n => {
+    if (/^[ \t\n ]*=/.test(n.nodeValue)) { n.nodeValue = n.nodeValue.replace(/^[ \t\n]+/, ' ').replace(/^( ?=)[ \t\n]+/, '$1 '); const p = n.previousSibling, last = p && (p.nodeType === 3 ? p : p.lastChild); if (last && last.nodeType === 3) last.nodeValue = last.nodeValue.replace(/[ \t\n]+$/, ' '); }
+    if (/=[ \t\n ]*$/.test(n.nodeValue)) { n.nodeValue = n.nodeValue.replace(/[ \t\n]+=[ \t\n]*$/, ' =').replace(/=[ \t\n]+$/, '= '); const q = n.nextSibling, first = q && (q.nodeType === 3 ? q : q.firstChild); if (first && first.nodeType === 3) first.nodeValue = first.nodeValue.replace(/^[ \t\n]+/, ' '); }
+  });
+  // signe placé en tête d'un élément (ex. « <b>…</b> : ») : l'espace qui précède est dans le nœud précédent
+  L.forEach(n => { if (/^[:;!?»]/.test(n.nodeValue)) { const p = n.previousSibling; const last = p && (p.nodeType === 3 ? p : p.lastChild); if (last && last.nodeType === 3) last.nodeValue = last.nodeValue.replace(/[ \t\n]+$/, ' '); } });
+}
 function addTools(root) {
+  frTypo(root);
   [...root.querySelectorAll('.q, .recipe, .situation, p.lead')].forEach(box => {
     if (box.classList.contains('has-tools')) return;
     const tools = document.createElement('div');
@@ -1381,7 +1398,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     h += `<section><h2>L'énergie de combustion</h2><div class="qlist">
       <div class="q block" data-q="formc"><div class="stmt">L'<b>énergie de combustion</b> E d'une masse m de combustible est donnée par :</div>${radios('formc', [
         ['ok', 'E (en J) = m (en kg) × PC (en J/kg)'], ['div', 'E (en J) = m (en kg) / PC (en J/kg)'], ['inv', 'E (en J) = PC (en J/kg) / m (en kg)'], ['plus', 'E (en J) = m (en kg) + PC (en J/kg)']])}<p class="fb"></p></div>
-      <div class="q block" data-q="pcnom"><div class="stmt">Dans cette formule, <b>PC</b> est le :</div>${radios('pcnom', [['ok', 'pouvoir calorifique du combustible'], ['pc', 'point de combustion du combustible'], ['pu', 'puissance de combustion du combustible'], ['pr', 'pression du combustible']])}<p class="fb"></p></div>
+      <div class="q block" data-q="pcnom"><div class="stmt">Que représente <b>PC</b> ?</div>${radios('pcnom', [['ok', 'le pouvoir calorifique du combustible'], ['pc', 'le point de combustion du combustible'], ['pu', 'la puissance de combustion du combustible'], ['pr', 'la pression du combustible']])}<p class="fb"></p></div>
       <div class="q block" data-q="pcu"><div class="stmt">Dans le tableau des pouvoirs calorifiques, PC est exprimé en <b>MJ.kg<sup>−1</sup></b>. Écris cette unité différemment (ça veut dire la même chose !) :</div>${radiosFixed('pcu', [['ok', 'MJ/kg'], ['x', 'MJ × kg'], ['inv', 'kg/MJ'], ['m', 'MJ − kg']])}<p class="fb"></p></div>
       <div class="q block" data-q="prefixes"><div class="stmt">Associe chaque préfixe à la bonne <b>puissance de 10</b> (1 kW = 10<sup>?</sup> W, 1 MJ = 10<sup>?</sup> J…).</div>
         <div class="pgrid">${PREF.map(p => `<div class="pcell"><span>${p[1]}</span>${selectH('pre-' + p[0], POW_OPTS).replace('class="unit"', 'class="unit pwsel" tabindex="-1"')}<button type="button" class="pw" data-for="pre-${p[0]}" data-name="${p[1]}" aria-label="Choisir la puissance de 10 pour ${p[1]}"></button></div>`).join('')}</div>
@@ -1419,7 +1436,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       <div class="q block" data-q="formt"><div class="stmt">L'énergie nécessaire pour faire passer une masse m d'un corps de T<sub>i</sub> à T<sub>f</sub> (avec T<sub>f</sub> &gt; T<sub>i</sub>, <b>sans changer son état</b>) est :</div>${radiosCol('formt', [
         ['ok', 'E (en J) = m (en kg) × c (en J/°C.kg) × (T<sub>f</sub> − T<sub>i</sub>)'], ['inv', 'E (en J) = m (en kg) × c (en J/°C.kg) × (T<sub>i</sub> − T<sub>f</sub>)'],
         ['plus', 'E (en J) = m (en kg) × c (en J/°C.kg) × (T<sub>f</sub> + T<sub>i</sub>)'], ['L', 'E (en J) = m (en kg) × L (en J/kg)']])}<p class="fb"></p></div>
-      <div class="q block" data-q="cnom"><div class="stmt">Dans cette formule, <b>c</b> est la :</div>${radios('cnom', [['ok', 'capacité thermique massique du corps'], ['ch', 'chaleur latente du corps'], ['co', 'concentration massique du corps'], ['ce', 'célérité du corps']])}<p class="fb"></p></div>
+      <div class="q block" data-q="cnom"><div class="stmt">Que représente <b>c</b> ?</div>${radios('cnom', [['ok', 'la capacité thermique massique du corps'], ['ch', 'la chaleur latente du corps'], ['co', 'la concentration massique du corps'], ['ce', 'la célérité du corps']])}<p class="fb"></p></div>
       </div></section>`;
 
     const potTxt = `${pot.nom} en <b>${pot.mat}</b>`;
@@ -2603,6 +2620,7 @@ body.cert-open{overflow:hidden}
 
   // Champs de la fiche -> cases à remplir / propositions à cocher (vides, ou remplies sur le corrigé)
   function prepare(root, K, corr) {
+    if (typeof frTypo === 'function') frTypo(root);
     root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
     root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
     const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
