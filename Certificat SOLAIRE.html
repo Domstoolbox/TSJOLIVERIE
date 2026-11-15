@@ -23,6 +23,9 @@
 #fswarning #fsTts.on{background:#ffd84d}
 body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important}
 @media (max-width:600px){#fswarning{margin:16px 12px;padding-top:64px}#fswarning #fsTts{top:12px;right:12px;width:42px;height:42px}}
+
+/* Une précision entre parenthèses (ex. « (3 chiffres significatifs) ») ne se coupe jamais */
+small.muted{white-space:nowrap}
 </style>
 <style>
 /* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
@@ -1430,15 +1433,15 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'cel', name:'La vitesse de la lumière', check: rq('cel', 'ok')});
     C.push({key:'kmh', name:'La vitesse de la lumière en km/h', check: nq('ckmh', 1.08e9)});
     C.push({key:'ratio', name:'Combien de fois plus vite ?', check: nq('rat', RAT, 0.008)});
-    C.push({key:'nomI', name:'L’éclairement énergétique', check: rq('nomI', 'ok')});
+    C.push({key:'nomI', name:'Le nom de la puissance reçue par 1 m²', check: rq('nomI', 'ok')});
     C.push({key:'unitI', name:'Les unités de l’éclairement énergétique', check(){
       const all = ['wm2', 'wmm', 'w', 'wxm', 'wh'], good = ['wm2', 'wmm'];
       if (!all.some(k => $('ui-' + k).checked)) return {st:'todo'};
       return {st: all.every(k => $('ui-' + k).checked === good.includes(k)) ? 'ok' : 'bad'};
     }});
-    C.push({key:'op', name:'L’opérateur de P = I × S', check(){ const v = $('op').value; if (!v) return {st:'todo', empty:['op']}; return v === 'x' ? {st:'ok'} : {st:'bad', bad:['op']}; }});
-    C.push({key:'pyra', name:'Le pyranomètre', check: rq('pyra', 'ok')});
-    C.push({key:'mot', name:'Le mot « convertisseur »', check(){
+    C.push({key:'op', name:'L’opérateur manquant', check(){ const v = $('op').value; if (!v) return {st:'todo', empty:['op']}; return v === 'x' ? {st:'ok'} : {st:'bad', bad:['op']}; }});
+    C.push({key:'pyra', name:'L’appareil de mesure', check: rq('pyra', 'ok')});
+    C.push({key:'mot', name:'Le mot à compléter', check(){
       const v = $('conv').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.!]$/, '');
       if (!v) return {st:'todo'};
       return v === 'convertisseur' ? {st:'ok'} : {st:'bad', bad:['conv']};

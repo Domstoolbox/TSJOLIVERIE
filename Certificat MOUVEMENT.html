@@ -23,6 +23,9 @@
 #fswarning #fsTts.on{background:#ffd84d}
 body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important}
 @media (max-width:600px){#fswarning{margin:16px 12px;padding-top:64px}#fswarning #fsTts{top:12px;right:12px;width:42px;height:42px}}
+
+/* Une précision entre parenthèses (ex. « (3 chiffres significatifs) ») ne se coupe jamais */
+small.muted{white-space:nowrap}
 </style>
 <style>
 /* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
@@ -2555,6 +2558,12 @@ body.cert-open{overflow:hidden}
     root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
     root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
     const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    // Le texte d'une case à cocher forme un seul bloc (sinon « W.m<sup>−2</sup> » est coupé en morceaux espacés)
+    root.querySelectorAll('label').forEach(lb => {
+      const inp = lb.querySelector(':scope > input');
+      if (!inp || [...lb.childNodes].filter(n => n !== inp && !(n.nodeType === 3 && !n.nodeValue.trim())).length < 2) return;
+      const w = document.createElement('span'); [...lb.childNodes].filter(n => n !== inp).forEach(n => w.appendChild(n)); lb.appendChild(w);
+    });
     root.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
         const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));

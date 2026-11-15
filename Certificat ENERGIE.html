@@ -23,6 +23,9 @@
 #fswarning #fsTts.on{background:#ffd84d}
 body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important}
 @media (max-width:600px){#fswarning{margin:16px 12px;padding-top:64px}#fswarning #fsTts{top:12px;right:12px;width:42px;height:42px}}
+
+/* Une précision entre parenthèses (ex. « (3 chiffres significatifs) ») ne se coupe jamais */
+small.muted{white-space:nowrap}
 </style>
 <style>
 /* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
@@ -1537,7 +1540,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'unitE', name:'Les unités d’énergie', check: boxes('ue', ['J', 'kJ', 'Wh'])});
     C.push({key:'unitP', name:'Les unités de puissance', check: boxes('up', ['W', 'kW'])});
     C.push({key:'legale', name:'L’unité légale de l’énergie', check: rq('legale', 'J')});
-    C.push({key:'wjs', name:'1 W = 1 J / s', check: rq('wjs', 'js')});
+    C.push({key:'wjs', name:'Le watt et le joule', check: rq('wjs', 'js')});
     C.push({key:'formules', name:'Les unités des formules de l’énergie', check(){
       const G = {f1p:'W', f1t:'s', f2p:'W', f2t:'h', f3p:'kW', f3t:'h'};
       const bad = [], empty = [];
@@ -1566,7 +1569,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       const wh = u === 'J' ? n / 3600 : u === 'kWh' ? n * 1000 : n;
       return numOk(wh, EB, 3, 0.006) ? {st:'ok'} : {st:'bad', bad:['eB']};
     }});
-    C.push({key:'mot', name:'Le mot « efficacité »', check(){
+    C.push({key:'mot', name:'Le mot à compléter', check(){
       const v = $('mot').value.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[.!]$/, '');
       if (!v) return {st:'todo'};
       return v === 'efficacite' ? {st:'ok'} : {st:'bad', bad:['mot']};
@@ -1601,7 +1604,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'p3val', name:'La valeur des pertes', check:() => numsQ([['p3', P3, 3, 0.006]])});
     C.push({key:'eu', name:'La question bonus (énergie utile)', check:() => numsQ([['eu', EU, 3, 0.006]])});
     C.push({key:'inf', name:'Un rendement est toujours…', check: rq('inf', 'inf')});
-    C.push({key:'cop', name:'Le COP', check: sq('cop', 'COP')});
+    C.push({key:'cop', name:'Le coefficient de la pompe à chaleur', check: sq('cop', 'COP')});
     QCM.forEach((q, i) => C.push({key:'qcm' + i, name:'Mini-QCM, question ' + (i + 1), check: rq('qcm' + i, '1')}));
     if (!paper) CHECKS = C;
     // Clé de correction pour les PDF (liens cachés) : même convertisseur et mêmes valeurs que la fiche à l'écran
@@ -2651,6 +2654,12 @@ body.cert-open{overflow:hidden}
     root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
     root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
     const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    // Le texte d'une case à cocher forme un seul bloc (sinon « W.m<sup>−2</sup> » est coupé en morceaux espacés)
+    root.querySelectorAll('label').forEach(lb => {
+      const inp = lb.querySelector(':scope > input');
+      if (!inp || [...lb.childNodes].filter(n => n !== inp && !(n.nodeType === 3 && !n.nodeValue.trim())).length < 2) return;
+      const w = document.createElement('span'); [...lb.childNodes].filter(n => n !== inp).forEach(n => w.appendChild(n)); lb.appendChild(w);
+    });
     root.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
         const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));

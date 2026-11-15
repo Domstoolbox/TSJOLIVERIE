@@ -23,6 +23,9 @@
 #fswarning #fsTts.on{background:#ffd84d}
 body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important}
 @media (max-width:600px){#fswarning{margin:16px 12px;padding-top:64px}#fswarning #fsTts{top:12px;right:12px;width:42px;height:42px}}
+
+/* Une précision entre parenthèses (ex. « (3 chiffres significatifs) ») ne se coupe jamais */
+small.muted{white-space:nowrap}
 </style>
 <style>
 /* Mise en page : une feuille d'exercice centrée, découpée en parties ; chaque question = une ligne compacte (énoncé à gauche, réponse à droite) */
@@ -1523,9 +1526,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'o2f', name:'La formule du dioxygène', check: rq('o2f', 'O2')});
     C.push({key:'o2r', name:'Le rôle du dioxygène', check: rq('o2r', 'cbr')});
     C.push({key:'syn', name:'Un synonyme de combustible', check: wq('syn', ['carburant'])});
-    C.push({key:'exo', name:'Une réaction exothermique', check: rq('exo', 'exo')});
+    C.push({key:'exo', name:'Le type de réaction', check: rq('exo', 'exo')});
     C.push({key:'formc', name:'La formule de l’énergie de combustion', check: rq('formc', 'ok')});
-    C.push({key:'pcnom', name:'Le pouvoir calorifique', check: rq('pcnom', 'ok')});
+    C.push({key:'pcnom', name:'Ce que représente PC', check: rq('pcnom', 'ok')});
     C.push({key:'pcu', name:'L’unité MJ.kg⁻¹', check: rq('pcu', 'ok')});
     C.push({key:'prefixes', name:'Les multiples d’unités', check(){
       const bad = [], empty = [];
@@ -1538,9 +1541,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'phr1', name:'La petite phrase', check: rq('phr1', 'ok')});
     C.push({key:'p1val', name:'La question bonus (puissance de chauffe)', check: n3('p1', P1)});
     // Partie 2
-    C.push({key:'interne', name:'L’énergie interne', check: wq('interne', ['interne'])});
-    C.push({key:'formt', name:'La formule E = m × c × (Tf − Ti)', check: rq('formt', 'ok')});
-    C.push({key:'cnom', name:'La capacité thermique massique', check: rq('cnom', 'ok')});
+    C.push({key:'interne', name:'Le mot à compléter', check: wq('interne', ['interne'])});
+    C.push({key:'formt', name:'L’énergie pour changer la température', check: rq('formt', 'ok')});
+    C.push({key:'cnom', name:'Ce que représente c', check: rq('cnom', 'ok')});
     C.push({key:'elexpr', name:'L’expression littérale de E₁', check: rq('elexpr', 'ok')});
     C.push({key:'elval', name:'L’application numérique de E₁', check: n3('el', EL)});
     C.push({key:'epexpr', name:'L’expression littérale de E₂', check: rq('epexpr', 'ok')});
@@ -1563,7 +1566,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       return {st: nb ? 'bad' : ne ? 'todo' : 'ok', msg: nb ? (nb === 1 ? '1 réponse est fausse.' : nb + ' réponses sont fausses.') : ne ? 'Il manque des réponses.' : ''};
     }});
     C.push({key:'tcst', name:'La température pendant un changement d’état', check: rq('tcst', 'cst')});
-    C.push({key:'lnom', name:'L’énergie massique de changement d’état', check: rq('lnom', 'ok')});
+    C.push({key:'lnom', name:'Ce que représente L', check: rq('lnom', 'ok')});
     C.push({key:'diag', name:'Les noms des changements d’état', check(){
       const bad = [], empty = [];
       ASK.forEach(k => { const id = 'ch-' + k, v = $(id).value, g = CHANGES.find(c => c[0] === k)[3]; if (!v) empty.push(id); else if (v !== g) bad.push(id); });
@@ -2624,6 +2627,12 @@ body.cert-open{overflow:hidden}
     root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
     root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
     const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    // Le texte d'une case à cocher forme un seul bloc (sinon « W.m<sup>−2</sup> » est coupé en morceaux espacés)
+    root.querySelectorAll('label').forEach(lb => {
+      const inp = lb.querySelector(':scope > input');
+      if (!inp || [...lb.childNodes].filter(n => n !== inp && !(n.nodeType === 3 && !n.nodeValue.trim())).length < 2) return;
+      const w = document.createElement('span'); [...lb.childNodes].filter(n => n !== inp).forEach(n => w.appendChild(n)); lb.appendChild(w);
+    });
     root.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
         const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));
