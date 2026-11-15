@@ -1269,24 +1269,14 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
 
   // ---------- Banque de questions du mini-QCM (la 1re proposition est la bonne) ----------
   const QCM_BANK = [
-    {t:'Une combustion est une réaction chimique :', o:['exothermique (elle libère de l’énergie)','endothermique (elle absorbe de l’énergie)','sans échange d’énergie','qui ne se produit qu’avec de l’eau']},
-    {t:'Sans dioxygène, un combustible :', o:['ne peut pas brûler','brûle plus vite','brûle normalement','se transforme en dioxygène']},
-    {t:'1 MJ (mégajoule) vaut :', o:['10<sup>6</sup> J','10<sup>3</sup> J','10<sup>9</sup> J','10<sup>−6</sup> J']},
-    {t:'1 kJ (kilojoule) vaut :', o:['10<sup>3</sup> J','10<sup>6</sup> J','10<sup>−3</sup> J','10<sup>2</sup> J']},
     {t:'Avec E = m × PC, si on brûle deux fois plus de combustible, l’énergie libérée :', o:['double','reste la même','est divisée par deux','est multipliée par quatre']},
-    {t:'Pour chauffer un corps de 20 °C à 50 °C, la variation de température (T<sub>f</sub> − T<sub>i</sub>) vaut :', o:['30 °C','70 °C','−30 °C','2,5 °C']},
-    {t:'Il faut 4180 J pour chauffer 1 kg d’eau liquide de 1 °C. Pour chauffer 2 kg d’eau de 1 °C, il faut :', o:['8360 J','2090 J','4180 J','4182 J']},
-    {t:'Quand on chauffe un corps (sans changer son état), on augmente :', o:['l’agitation de ses molécules','la masse de ses molécules','le nombre de ses molécules','la taille de ses molécules']},
-    {t:'Le passage de l’état SOLIDE à l’état LIQUIDE s’appelle :', o:['la fusion','la solidification','la vaporisation','la sublimation']},
-    {t:'Le passage de l’état LIQUIDE à l’état GAZEUX s’appelle :', o:['la vaporisation','la liquéfaction','la fusion','la condensation']},
-    {t:'Le passage de l’état GAZEUX à l’état LIQUIDE s’appelle :', o:['la liquéfaction','la vaporisation','la fusion','la sublimation']},
-    {t:'Pendant la fusion de la glace (eau pure), la température :', o:['reste égale à 0 °C','augmente','diminue','dépend de la masse de glace']},
-    {t:'Dans E = m × L, L s’exprime en :', o:['J/kg','J','J/(°C·kg)','W']},
-    {t:'Une substance qui passe de l’état GAZEUX à l’état LIQUIDE :', o:['cède de l’énergie','absorbe de l’énergie','ne change pas d’énergie','perd de la masse']},
-    {t:'L’énergie thermique s’exprime, dans le système international, en :', o:['joules (J)','watts (W)','degrés Celsius (°C)','kilogrammes (kg)']},
-    {t:'La puissance de chauffe P d’un appareil qui fournit une énergie E pendant une durée Δt vaut :', o:['P = E / Δt','P = E × Δt','P = Δt / E','P = E + Δt']},
     {t:'Le pouvoir calorifique du bois sec (14,0 MJ/kg) est plus petit que celui du butane (45,6 MJ/kg). Pour libérer la même énergie, il faut :', o:['une plus grande masse de bois','une plus petite masse de bois','la même masse de bois','autant de dioxygène que de bois']},
-    {t:'L’énergie interne d’un corps est plus grande quand il est à l’état :', o:['gazeux','solide','liquide','cela ne dépend pas de l’état']}
+    {t:'Le pouvoir calorifique d’un combustible correspond à l’énergie libérée par la combustion de :', o:['1 kg de ce combustible','1 L de dioxygène','1 mol de dioxyde de carbone','1 minute de chauffe']},
+    {t:'Dans l’expérience de la bougie, le pouvoir calorifique « mesuré » est plus petit que la valeur des tables, car :', o:['une partie de l’énergie chauffe l’air et non la canette','la bougie ne contient pas de paraffine','la température de l’huile baisse','la masse de la bougie augmente']},
+    {t:'Un glaçon à 0 °C refroidit davantage une boisson que la même masse d’eau liquide à 0 °C, car :', o:['il absorbe de l’énergie pour fondre','il est plus lourd','il contient plus de molécules','il dégage de l’énergie en fondant']},
+    {t:'La transpiration nous rafraîchit, car en s’évaporant la sueur :', o:['absorbe de l’énergie à la peau','cède de l’énergie à la peau','ne change pas d’état','devient solide']},
+    {t:'On fournit la même énergie à 1 kg de cuivre et à 1 kg d’eau liquide. Celui dont la température augmente le plus est :', o:['le cuivre (c plus petite)','l’eau liquide (c plus grande)','aucun : ils chauffent autant','cela dépend du récipient']},
+    {t:'Lequel de ces combustibles n’est PAS un combustible fossile ?', o:['le bois','le charbon','le fioul','le butane']}
   ];
   const QCM_N = 5;
 
@@ -1478,7 +1468,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       <div class="q block" data-q="cede"><div class="stmt">Une substance qui change d'état <b>CÈDE</b> ou <b>ABSORBE</b> de l'énergie ?</div>
         ${TRANS.map((c, i) => `<div class="trow"><span class="tl">De l'état ${c[1]} à l'état ${c[2]} :</span>${radiosFixed('ca' + i, [['cede', 'CÈDE'], ['abs', 'ABSORBE']])}</div>`).join('')}<p class="fb"></p></div>
       <div class="q block" data-q="tcst"><div class="stmt">Lorsqu'un corps pur change d'état, sa température :</div>${radiosFixed('tcst', [['cst', 'reste constante'], ['aug', 'augmente toujours'], ['dim', 'diminue toujours']])}<p class="fb"></p></div>
-      <div class="q block" data-q="lnom"><div class="stmt">L'énergie nécessaire pour changer l'état d'une masse m d'un corps est <b>E (en J) = m (en kg) × L (en J/kg)</b>. <b>L</b> est :</div>${radiosCol('lnom', [
+      <div class="q block" data-q="lnom"><div class="stmt">Pour calculer l'énergie nécessaire pour changer l'état d'un corps, on utilise une grandeur notée <b>L</b>. <b>L</b> est :</div>${radiosCol('lnom', [
         ['ok', 'l’énergie (ou enthalpie, ou chaleur latente) massique de changement d’état du corps'], ['c', 'la capacité thermique massique du corps'], ['pc', 'le pouvoir calorifique du corps'], ['lg', 'la longueur du corps']])}<p class="fb"></p></div>
       <div class="q block" data-q="diag"><div class="stmt">Complète le diagramme avec les <b>noms des changements d'état</b> manquants :</div>
         <div class="chg">${CHANGES.map(c => `<div class="chrow"><span class="chs1">${c[1]}</span><span class="char" aria-hidden="true">➜</span><span class="chs1">${c[2]}</span><span class="chn">${ASK.includes(c[0]) ? selectH('ch-' + c[0], CH_OPTS) : '<b>' + c[3].charAt(0).toUpperCase() + c[3].slice(1) + '</b>'}</span></div>`).join('')}</div><p class="fb"></p></div>
@@ -2567,6 +2557,8 @@ body.cert-open{overflow:hidden}
     .card.wide{grid-column:1/-1}
     .card .chd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
     .card .badge{background:var(--th);color:#fff;font-weight:700;font-size:10.5px;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card .dlbl{background:#1c2333;color:#fff;font-weight:700;font-size:9.5px;letter-spacing:.08em;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card.data{background:#fbfcff}
     .card .slbl{font-size:9.5px;color:#7a8396;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
     .card .q{display:block!important;border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0!important}
     .card .q.danger{border:0!important}
@@ -2665,17 +2657,25 @@ body.cert-open{overflow:hidden}
         c.innerHTML = `<div class="chd">${badge ? '<span class="badge"></span>' : ''}<span class="slbl">${esc(title)}</span></div>`;
         ctxEls.forEach(x => c.appendChild(x));
         if (qEl) c.appendChild(qEl);
-        const wide = ctxEls.length > 0 || !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
+        const wide = !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
         if (wide) c.classList.add('wide');
         return {el: c, wide, sec: title, dep: after};
       };
+      // Les données (texte, tableau, schéma…) forment leur propre carte, sans numéro, juste avant les questions qui s'en servent
+      const flush = () => {
+        if (!ctx.length) return;
+        const d = mk(null, ctx, false);
+        const isData = ctx.some(x => x.matches('.situation,.dtab,.chronobox,.conv,.recipe,table,svg') || x.querySelector('table,svg'));
+        d.el.classList.add('data');
+        d.el.querySelector('.chd').insertAdjacentHTML('afterbegin', `<span class="dlbl">${isData ? 'DONNÉES' : 'CONSIGNE'}</span>`);
+        d.data = true; out.push(d); ctx = []; after = true;
+      };
       items.forEach(it => {
         if (it.ctx) { ctx.push(it.ctx); return; }
-        const hadCtx = ctx.length > 0;
-        out.push(mk(it.q, ctx, true)); ctx = [];
-        if (hadCtx) after = true;
+        flush();
+        out.push(mk(it.q, [], true));
       });
-      if (ctx.length) out.push(mk(null, ctx, false));       // partie sans question (ex. « La recette du chef »)
+      flush();                                              // partie sans question (ex. « La recette du chef »)
     });
     return out;
   }
@@ -2685,7 +2685,7 @@ body.cert-open{overflow:hidden}
     while (pend.length) {
       const c = pend.shift();
       if (c.wide) { rows.push([c]); continue; }
-      const j = pend.findIndex(d => !d.wide && d.sec === c.sec);
+      const j = pend.length && !pend[0].wide && pend[0].sec === c.sec ? 0 : -1;
       if (j < 0) { c.el.classList.add('wide', 'solo'); c.wide = true; rows.push([c]); }   // seule : toute la largeur, sur une ligne
       else rows.push([c, pend.splice(j, 1)[0]]);
     }
@@ -2751,11 +2751,13 @@ body.cert-open{overflow:hidden}
         const lim = LIMIT - extra;
         while (pend.length) {
           const i = pend[0];
+          const isData = rows[i].length === 1 && rows[i][0].data, nx = pend[1];
+          if (isData && nx !== undefined && pages[pages.length - 1].length && y + H.rows[i] + GAP + H.rows[nx] > lim) { pages.push([]); y = TOP; continue; }
           if (y + H.rows[i] <= lim) { pages[pages.length - 1].push(i); y += H.rows[i] + GAP; pend.shift(); continue; }
           let placed = false;
           for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
             const j = pend[s], r = rows[j];
-            if (r.some(c => c.dep) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
+            if (r.some(c => c.dep || c.data) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
             if (y + H.rows[j] <= lim) { pages[pages.length - 1].push(j); y += H.rows[j] + GAP; pend.splice(s, 1); placed = true; }
           }
           if (!placed) { pages.push([i]); y = TOP + H.rows[i] + GAP; pend.shift(); }

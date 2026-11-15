@@ -1242,24 +1242,14 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
 
   // ---------- Banque de questions du mini-QCM (la 1re proposition est la bonne) ----------
   const QCM_BANK = [
-    {t:'« Rien ne se perd, rien ne se crée, tout se transforme. » Pour un convertisseur, cela signifie :', o:['P<sub>absorbée</sub> = P<sub>utile</sub> + P<sub>perdue</sub>','P<sub>utile</sub> = P<sub>absorbée</sub> + P<sub>perdue</sub>','P<sub>perdue</sub> = P<sub>absorbée</sub> + P<sub>utile</sub>','P<sub>absorbée</sub> = P<sub>utile</sub> × P<sub>perdue</sub>']},
     {t:'Un panneau photovoltaïque est principalement composé de :', o:['silicium','plutonium','joliverium','cuivre']},
-    {t:'Dans le système international, l’unité légale de l’énergie est :', o:['le joule (J)','le wattheure (Wh)','le watt (W)','le kilowattheure (kWh)']},
-    {t:'1 W correspond à :', o:['1 J / s','1 J × s','1 s / J','1 Wh']},
-    {t:'1 MW (mégawatt) vaut :', o:['10<sup>6</sup> W','10<sup>3</sup> W','10<sup>9</sup> W','10<sup>−6</sup> W']},
-    {t:'Le préfixe micro (µ) correspond à :', o:['10<sup>−6</sup>','10<sup>−3</sup>','10<sup>−9</sup>','10<sup>6</sup>']},
     {t:'Pour trouver la puissance UTILE d’un dispositif, on se pose la question :', o:['Pourquoi achète-t-on ce dispositif ?','Combien coûte ce dispositif ?','Quelle énergie perd-il ?','Combien pèse-t-il ?']},
-    {t:'Dans la plupart des convertisseurs, la puissance perdue est surtout sous forme :', o:['thermique','électrique','rayonnante','mécanique']},
     {t:'Un dispositif absorbe 200 W et a un rendement de 50 %. Sa puissance utile vaut :', o:['100 W','400 W','150 W','250 W']},
-    {t:'Un moteur absorbe 500 W et fournit 400 W de puissance utile. Les pertes valent :', o:['100 W','900 W','80 W','400 W']},
     {t:'Avec E = P × Δt, si la durée de fonctionnement double (même puissance), l’énergie :', o:['double','reste la même','est divisée par deux','est multipliée par quatre']},
-    {t:'30 min correspondent à :', o:['0,50 h','0,30 h','3,0 h','1,5 h']},
-    {t:'Pour calculer une énergie en Wh, la puissance doit être en W et la durée en :', o:['heures (h)','secondes (s)','minutes (min)','jours']},
-    {t:'Une puissance peut s’exprimer en :', o:['kilowatts (kW)','joules (J)','wattheures (Wh)','kilojoules (kJ)']},
-    {t:'Le résultat d’un calcul se donne avec un nombre de chiffres significatifs égal :', o:['au plus petit nombre de chiffres significatifs des données','au plus grand nombre de chiffres significatifs des données','au nombre de chiffres après la virgule','toujours à 3']},
-    {t:'Combien de chiffres significatifs dans 0,0450 ?', o:['3','4','5','2']},
-    {t:'1,1448 écrit avec 3 chiffres significatifs donne :', o:['1,14','1,15','1,145','1,1']},
-    {t:'Un rendement s’exprime généralement :', o:['en pourcentage (%)','en watts (W)','en joules (J)','en wattheures (Wh)']}
+    {t:'1 kWh (kilowattheure) vaut :', o:['3,6 × 10<sup>6</sup> J','1 000 J','3 600 J','10<sup>3</sup> Wh']},
+    {t:'Un convertisseur d’énergie :', o:['transforme une forme d’énergie en une autre','crée de l’énergie à partir de rien','stocke l’énergie sans la transformer','détruit l’énergie qu’il reçoit']},
+    {t:'Une pompe à chaleur a un COP de 3. Cela signifie qu’elle fournit :', o:['3 J de chaleur pour 1 J d’électricité consommé','1 J de chaleur pour 3 J d’électricité consommés','3 % de chaleur en plus','3 W de pertes']},
+    {t:'Une lampe LED et une lampe à incandescence éclairent autant. La lampe LED :', o:['a un meilleur rendement','a un moins bon rendement','a le même rendement','a un rendement supérieur à 100 %']}
   ];
   const QCM_N = 5;
 
@@ -1483,7 +1473,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     h += `<section><h2>Rendement… ou COP ?</h2><div class="qlist">
       <div class="q" data-q="inf"><div class="stmt">Un rendement est toujours :</div>${radiosFixed('inf', [['inf', 'inférieur à 100 %'], ['eg', 'égal à 100 %'], ['sup', 'supérieur à 100 %']])}<p class="fb"></p></div>
       <div class="q block" data-q="cop"><div class="para">Sauf pour un frigo ou une PAC (Pompe À Chaleur) : on parle alors de
-        ${selectH('cop', [['COP', 'COP'], ['NCS', 'NCS'], ['LEM', 'LEM'], ['TGV', 'TGV']])} (COefficient de Performance) et non de rendement !</div><p class="fb"></p></div>
+        ${selectH('cop', [['COP', 'COP'], ['NCS', 'NCS'], ['LEM', 'LEM'], ['TGV', 'TGV']])} et non de rendement !</div><p class="fb"></p></div>
       </div></section>`;
 
     h += `<section><h2>Mini-QCM <span class="tag">${QCM_N} questions tirées au hasard</span></h2><div class="qlist">` +
@@ -2594,6 +2584,8 @@ body.cert-open{overflow:hidden}
     .card.wide{grid-column:1/-1}
     .card .chd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
     .card .badge{background:var(--th);color:#fff;font-weight:700;font-size:10.5px;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card .dlbl{background:#1c2333;color:#fff;font-weight:700;font-size:9.5px;letter-spacing:.08em;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card.data{background:#fbfcff}
     .card .slbl{font-size:9.5px;color:#7a8396;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
     .card .q{display:block!important;border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0!important}
     .card .q.danger{border:0!important}
@@ -2692,17 +2684,25 @@ body.cert-open{overflow:hidden}
         c.innerHTML = `<div class="chd">${badge ? '<span class="badge"></span>' : ''}<span class="slbl">${esc(title)}</span></div>`;
         ctxEls.forEach(x => c.appendChild(x));
         if (qEl) c.appendChild(qEl);
-        const wide = ctxEls.length > 0 || !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
+        const wide = !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
         if (wide) c.classList.add('wide');
         return {el: c, wide, sec: title, dep: after};
       };
+      // Les données (texte, tableau, schéma…) forment leur propre carte, sans numéro, juste avant les questions qui s'en servent
+      const flush = () => {
+        if (!ctx.length) return;
+        const d = mk(null, ctx, false);
+        const isData = ctx.some(x => x.matches('.situation,.dtab,.chronobox,.conv,.recipe,table,svg') || x.querySelector('table,svg'));
+        d.el.classList.add('data');
+        d.el.querySelector('.chd').insertAdjacentHTML('afterbegin', `<span class="dlbl">${isData ? 'DONNÉES' : 'CONSIGNE'}</span>`);
+        d.data = true; out.push(d); ctx = []; after = true;
+      };
       items.forEach(it => {
         if (it.ctx) { ctx.push(it.ctx); return; }
-        const hadCtx = ctx.length > 0;
-        out.push(mk(it.q, ctx, true)); ctx = [];
-        if (hadCtx) after = true;
+        flush();
+        out.push(mk(it.q, [], true));
       });
-      if (ctx.length) out.push(mk(null, ctx, false));       // partie sans question (ex. « La recette du chef »)
+      flush();                                              // partie sans question (ex. « La recette du chef »)
     });
     return out;
   }
@@ -2712,7 +2712,7 @@ body.cert-open{overflow:hidden}
     while (pend.length) {
       const c = pend.shift();
       if (c.wide) { rows.push([c]); continue; }
-      const j = pend.findIndex(d => !d.wide && d.sec === c.sec);
+      const j = pend.length && !pend[0].wide && pend[0].sec === c.sec ? 0 : -1;
       if (j < 0) { c.el.classList.add('wide', 'solo'); c.wide = true; rows.push([c]); }   // seule : toute la largeur, sur une ligne
       else rows.push([c, pend.splice(j, 1)[0]]);
     }
@@ -2778,11 +2778,13 @@ body.cert-open{overflow:hidden}
         const lim = LIMIT - extra;
         while (pend.length) {
           const i = pend[0];
+          const isData = rows[i].length === 1 && rows[i][0].data, nx = pend[1];
+          if (isData && nx !== undefined && pages[pages.length - 1].length && y + H.rows[i] + GAP + H.rows[nx] > lim) { pages.push([]); y = TOP; continue; }
           if (y + H.rows[i] <= lim) { pages[pages.length - 1].push(i); y += H.rows[i] + GAP; pend.shift(); continue; }
           let placed = false;
           for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
             const j = pend[s], r = rows[j];
-            if (r.some(c => c.dep) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
+            if (r.some(c => c.dep || c.data) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
             if (y + H.rows[j] <= lim) { pages[pages.length - 1].push(j); y += H.rows[j] + GAP; pend.splice(s, 1); placed = true; }
           }
           if (!placed) { pages.push([i]); y = TOP + H.rows[i] + GAP; pend.shift(); }

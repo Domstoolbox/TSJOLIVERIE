@@ -1143,12 +1143,10 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   // ---------- Banque de questions du mini-QCM (la 1re proposition est la bonne) ----------
   const QCM_BANK = [
     {t:'Dans une équation bilan ajustée, il y a conservation :', o:['du nombre d’atomes de chaque élément','du nombre de molécules','du nombre de moles de réactifs et de produits','du volume des gaz']},
-    {t:'Le réactif limitant est :', o:['le réactif entièrement consommé en premier','le réactif introduit en plus grande quantité','toujours le dioxygène','le produit formé en plus petite quantité']},
     {t:'Le triangle du feu réunit :', o:['un combustible, un comburant et une énergie d’activation','un combustible, de l’eau et de la chaleur','du dioxygène, du dioxyde de carbone et de l’eau','un carburant, du diazote et une étincelle']},
     {t:'Au cours d’une réaction chimique, la masse totale des réactifs consommés et des produits formés :', o:['se conserve','augmente','diminue','dépend de la température']},
     {t:'Le dioxyde de carbone rejeté par les combustions pose problème car :', o:['c’est un gaz à effet de serre','il détruit la couche d’ozone','il est très toxique, même à faible dose','il rend l’air inflammable']},
     {t:'L’unité de la quantité de matière est :', o:['la mole (mol)','le gramme (g)','le litre (L)','le joule (J)']},
-    {t:'La relation entre quantité de matière n, masse m et masse molaire M est :', o:['n = m / M','n = m × M','n = M / m','n = m + M']},
     {t:'L’air contient environ :', o:['21 % de dioxygène et 78 % de diazote','78 % de dioxygène et 21 % de diazote','50 % de dioxygène et 50 % de diazote','100 % de dioxygène']},
     {t:'On met en évidence le dioxyde de carbone avec :', o:['l’eau de chaux, qui se trouble','le sulfate de cuivre anhydre, qui bleuit','une allumette, qui se rallume','du papier pH, qui devient bleu']},
     {t:'On met en évidence l’eau formée avec :', o:['le sulfate de cuivre anhydre, qui bleuit','l’eau de chaux, qui se trouble','une allumette, qui s’éteint','une bougie, qui fond']},
@@ -2380,6 +2378,8 @@ body.cert-open{overflow:hidden}
     .card.wide{grid-column:1/-1}
     .card .chd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
     .card .badge{background:var(--th);color:#fff;font-weight:700;font-size:10.5px;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card .dlbl{background:#1c2333;color:#fff;font-weight:700;font-size:9.5px;letter-spacing:.08em;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card.data{background:#fbfcff}
     .card .slbl{font-size:9.5px;color:#7a8396;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
     .card .q{display:block!important;border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0!important}
     .card .q.danger{border:0!important}
@@ -2478,17 +2478,25 @@ body.cert-open{overflow:hidden}
         c.innerHTML = `<div class="chd">${badge ? '<span class="badge"></span>' : ''}<span class="slbl">${esc(title)}</span></div>`;
         ctxEls.forEach(x => c.appendChild(x));
         if (qEl) c.appendChild(qEl);
-        const wide = ctxEls.length > 0 || !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
+        const wide = !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
         if (wide) c.classList.add('wide');
         return {el: c, wide, sec: title, dep: after};
       };
+      // Les données (texte, tableau, schéma…) forment leur propre carte, sans numéro, juste avant les questions qui s'en servent
+      const flush = () => {
+        if (!ctx.length) return;
+        const d = mk(null, ctx, false);
+        const isData = ctx.some(x => x.matches('.situation,.dtab,.chronobox,.conv,.recipe,table,svg') || x.querySelector('table,svg'));
+        d.el.classList.add('data');
+        d.el.querySelector('.chd').insertAdjacentHTML('afterbegin', `<span class="dlbl">${isData ? 'DONNÉES' : 'CONSIGNE'}</span>`);
+        d.data = true; out.push(d); ctx = []; after = true;
+      };
       items.forEach(it => {
         if (it.ctx) { ctx.push(it.ctx); return; }
-        const hadCtx = ctx.length > 0;
-        out.push(mk(it.q, ctx, true)); ctx = [];
-        if (hadCtx) after = true;
+        flush();
+        out.push(mk(it.q, [], true));
       });
-      if (ctx.length) out.push(mk(null, ctx, false));       // partie sans question (ex. « La recette du chef »)
+      flush();                                              // partie sans question (ex. « La recette du chef »)
     });
     return out;
   }
@@ -2498,7 +2506,7 @@ body.cert-open{overflow:hidden}
     while (pend.length) {
       const c = pend.shift();
       if (c.wide) { rows.push([c]); continue; }
-      const j = pend.findIndex(d => !d.wide && d.sec === c.sec);
+      const j = pend.length && !pend[0].wide && pend[0].sec === c.sec ? 0 : -1;
       if (j < 0) { c.el.classList.add('wide', 'solo'); c.wide = true; rows.push([c]); }   // seule : toute la largeur, sur une ligne
       else rows.push([c, pend.splice(j, 1)[0]]);
     }
@@ -2564,11 +2572,13 @@ body.cert-open{overflow:hidden}
         const lim = LIMIT - extra;
         while (pend.length) {
           const i = pend[0];
+          const isData = rows[i].length === 1 && rows[i][0].data, nx = pend[1];
+          if (isData && nx !== undefined && pages[pages.length - 1].length && y + H.rows[i] + GAP + H.rows[nx] > lim) { pages.push([]); y = TOP; continue; }
           if (y + H.rows[i] <= lim) { pages[pages.length - 1].push(i); y += H.rows[i] + GAP; pend.shift(); continue; }
           let placed = false;
           for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
             const j = pend[s], r = rows[j];
-            if (r.some(c => c.dep) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
+            if (r.some(c => c.dep || c.data) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
             if (y + H.rows[j] <= lim) { pages[pages.length - 1].push(j); y += H.rows[j] + GAP; pend.splice(s, 1); placed = true; }
           }
           if (!placed) { pages.push([i]); y = TOP + H.rows[i] + GAP; pend.shift(); }
