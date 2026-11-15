@@ -1204,8 +1204,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   }
 
   // ---------- Construction de la fiche pour un carburant ----------
-  function build(F) {
-    done1 = false; done2 = false;                    // nouvelle fiche : les deux parties sont à refaire (les compteurs d'envois, eux, sont gardés)
+  function build(F, paper) {                        // paper = true : copie papier (rien n'est modifié à l'écran)
+    if (!paper) done1 = false, done2 = false;                    // nouvelle fiche : les deux parties sont à refaire (les compteurs d'envois, eux, sont gardés)
     const a2 = F.C + F.H / 4 - F.O / 2;              // O2 pour 1 carburant
     const k = Number.isInteger(a2) ? 1 : 2;
     const S = {kF: k, kO: a2 * k, kC: F.C * k, kH: F.H / 2 * k};
@@ -1347,11 +1347,10 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
         `</div><p class="fb"></p></div>`).join('') + `</div></section>`;
 
     h += `</div>`;
-    $('content').innerHTML = h;
-    $('submitAll').hidden = true;
+    if (!paper) { $('content').innerHTML = h; $('submitAll').hidden = true; }
 
     // Bouton AIDE : le champ devient un menu de 10 mots (HYDROCARBURE + 9 mots de la combustion tirés au hasard)
-    const helpBtn = $('hydro-help');
+    const helpBtn = paper ? null : $('hydro-help');
     if (helpBtn) helpBtn.addEventListener('click', () => {
       // Uniquement des mots masculins (la phrase dit « c'est un … »)
       const WORDS = ['ENDOTHERMIQUE','EXOTHERMIQUE','RÉACTIF','PRODUIT','COMBURANT','COMBUSTIBLE','CARBURANT','LIMITANT','ATOME','GAZ',
@@ -1420,6 +1419,15 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     QCM.forEach((q, i) => C.push({key:'qcm' + i, name:'Mini-QCM, question ' + (i + 1), check(){
       const r = radio('qcm' + i); return {st: !r ? 'todo' : r === '1' ? 'ok' : 'bad'};
     }}));
+    // Clé de correction (copie papier : lien caché « H » de FICHE)
+    const KEY = {num: {}, word: {'hydro-mot': 'HYDROCARBURE', 'co-nom': 'monoxyde de carbone'}, radio: {thermo: 'exo', limitant: L.lim, reste: L.reste, 'co-f': 'CO'}, box: ['fam-' + F.fam], selv: {'m-co2-unit': 'kg'}};
+    Object.assign(KEY.num, {'fam-n': [F.C, 0], 'mol-fuel': [S.kF, 0], 'mol-o2': [S.kO, 0], 'mol-co2': [S.kC, 0], 'mol-h2o': [S.kH, 0],
+      'M-fuel': [S.MF, 3], 'M-o2': [S.MO, 3], 'M-co2': [S.MC, 3], 'M-h2o': [S.MH, 3],
+      'g-fuel': [S.kF * S.MF, 3], 'g-o2': [S.kO * S.MO, 3], 'g-co2': [S.kC * S.MC, 3], 'g-h2o': [S.kH * S.MH, 3],
+      'm-co2': [S.ans.mCO2kg, 3], 'reste-n': [L.rest, 2], 'v-n': [S.ans.n, 3], 'v-nco2': [S.ans.nCO2, 3], 'v-v': [S.ans.V, 3], 'e-e': [S.ans.En, 3]});
+    RP.forEach(q => q[3].forEach(k => KEY.box.push(q[2] + '-' + k)));
+    QCM.forEach((q, i) => KEY.radio['qcm' + i] = '1');
+    if (paper) return {html: h, KEY};
     CHECKS = C;
     window.FICHE_DATA = {F, S, L, nq: C.length, RP: Object.fromEntries(RP.map(q => [q[2], q[3]]))};   // pour les PDF (liens cachés)
 
@@ -1575,6 +1583,12 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   }
   sel.addEventListener('change', applyFuel);
   applyFuel();
+  // Copie papier (lien caché « H » de FICHE) : liste des carburants et construction hors écran
+  window.PAPER = {
+    title: 'CERTIFICAT COMBUSTION', file: 'CERTIFICAT_COMBUSTION', what: 'carburant',
+    list: () => FUELS.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(F => ({id: F.id, label: F.nom.charAt(0).toUpperCase() + F.nom.slice(1)})),
+    make: id => { const F = FUELS.find(x => x.id === id); const r = build(F, true); return {html: r.html, KEY: r.KEY, label: 'COMBUSTION ' + F.du.toUpperCase(), short: F.nom}; }
+  };
 
   // ---------- Tirage au sort du carburant : machine à sous au lancement ----------
   // Le menu du titre est verrouillé : c'est la machine qui choisit, l'élève ne peut pas changer de carburant.
@@ -2321,6 +2335,299 @@ body.cert-open{overflow:hidden}
     const d = document.getElementById('hidCert');
     if (d) d.addEventListener('click', () => window.showCertificate(true));
   }
+})();
+</script>
+<style>
+/* ===== Copie papier : fenêtre de choix (lien caché « H » de FICHE) ===== */
+#paperOv{position:fixed;inset:0;z-index:130;background:rgba(10,20,30,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+#paperOv .box{background:var(--paper);color:var(--ink);border-radius:14px;padding:18px;width:100%;max-width:400px;box-shadow:0 14px 40px rgba(0,0,0,.35);font-family:var(--f-body);display:flex;flex-direction:column;gap:12px}
+#paperOv h3{margin:0;font-size:1.05rem}
+#paperOv p{margin:0;font-size:.85rem;color:var(--muted)}
+#paperOv select{width:100%;height:40px;font-weight:600}
+#paperOv .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#paperOv .go{background:#0b5ed7;color:#fff;border:0}
+#paperOv .go:disabled{opacity:.6;cursor:progress}
+#paperOv .no{background:transparent;border:1px solid var(--line);color:var(--muted)}
+</style>
+<script>
+/* ===== Lien caché « H » de FICHE : copie papier à imprimer + corrigé spécifique (même version), présentation du TEST 009 =====
+   Le professeur choisit le convertisseur / carburant ; les valeurs sont tirées au hasard pour cette copie.
+   Un seul PDF : la copie (bleu, cadre NOM / PRÉNOM / CLASSE / DATE / NOTE) puis son corrigé (rouge, même numéro de VERSION). */
+(function(){
+  const LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+  const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  const PW = 794, PH = 1123, PADX = 36, PADT = 32, FOOT = 46, SAFE = 14;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function fmtSig(x, sig) {
+    if (!sig) return String(x).replace('.', ',');
+    if (x === 0) return '0';
+    const r = Number(Number(x).toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    if (e < -3 || e >= sig + 1) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
+  }
+  const ansHTML = v => Array.isArray(v) ? fmtSig(v[0], v[1]) : String(v);
+
+  const CSS = `
+    html{font-size:13px}
+    html,body{margin:0!important;padding:0!important;background:#fff!important}
+    body{width:${PW}px;color:#1c2333;-webkit-font-smoothing:antialiased;font-size:12px;line-height:1.4}
+    #stage{position:absolute;left:0;top:0;width:${PW - 2 * PADX}px;visibility:hidden}
+    .pg{position:relative;width:${PW}px;height:${PH}px;overflow:hidden;background:#fff;padding:${PADT}px ${PADX}px 0;box-sizing:border-box;--th:#0b5ed7;--thbg:#e8f0fd}
+    .pg.corr{--th:#b42318;--thbg:#fde8e6}
+    .pgc{display:flex;flex-direction:column;gap:7px}
+    .pgf{position:absolute;left:${PADX}px;right:${PADX}px;bottom:18px;display:flex;justify-content:space-between;border-top:1px solid #d9deea;padding-top:7px;font-size:9.5px;color:#5b6478}
+    .pban{display:flex;justify-content:space-between;align-items:center;background:var(--th);color:#fff;border-radius:7px;padding:7px 8px 7px 14px;font-weight:700;font-size:14.5px;letter-spacing:.02em}
+    .pban .ver{background:#fff;color:var(--th);border-radius:5px;padding:3px 12px;font-size:13.5px;letter-spacing:.06em}
+    .pid{border:1.5px solid #969eaf;border-radius:7px;padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;font-size:12px;font-weight:700}
+    .pid span{display:flex;align-items:flex-end;gap:6px;white-space:nowrap}
+    .pid span i{flex:1;border-bottom:1px solid #969eaf;height:1em}
+    .pid .l3{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
+    .pid .nt i{flex:0 0 52px}
+    .pg.corr .pid{border-color:var(--th);display:flex;align-items:center;justify-content:center;height:70px;font-family:var(--f-head);font-size:34px;color:var(--th);letter-spacing:.04em}
+    .pins{font-size:10.5px;color:#5b6478;margin:-2px 0 2px}
+    .prow{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+    .card{border:1px solid #c9d0de;border-radius:7px;padding:6px 10px 7px;background:#fff;box-sizing:border-box;min-width:0}
+    .card.wide{grid-column:1/-1}
+    .card .chd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .card .badge{background:var(--th);color:#fff;font-weight:700;font-size:10.5px;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card .slbl{font-size:9.5px;color:#7a8396;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+    .card .q{display:block!important;border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0!important}
+    .card .q.danger{border:0!important}
+    .card .q>*+*{margin-top:5px}
+    .card .situation,.card .recipe,.card .conv,.card .lead,.card .note,.card .danger{margin:0 0 6px!important}
+    .card .situation{background:var(--thbg)!important;border:0!important}
+    .card .lead{font-size:11.5px}
+    .tools,.fb,.help,.pw,.submit,.result,#npad,#calc{display:none!important}
+    .q .key{text-decoration:none!important}
+    .para{line-height:2.1!important}
+    .choices{gap:3px 14px!important}
+    .ncsrow,.rrow,.crow,.pcell{padding:4px 8px!important}
+    .opt{padding:5px 9px!important}
+    .tablewrap{overflow:visible!important}
+    .q.tbl table{table-layout:fixed;min-width:0!important;width:100%}
+    .q.tbl th:first-child,.q.tbl td.data{width:27%}
+    .q.tbl td{white-space:normal!important}
+    .q.tbl .pans{min-width:0;width:100%}
+    .pans{display:inline-block;box-sizing:border-box;min-width:6.6em;height:24px;line-height:21px;padding:0 6px;border:0;border-bottom:1.5px dotted #6b7385;text-align:center;vertical-align:middle;font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+    .pans.int{min-width:3em}
+    .pans.word{min-width:11em;font-family:var(--f-body)}
+    .pans.exp{min-width:1.8em;height:15px;line-height:13px;font-size:10px;vertical-align:baseline}
+    .pans.ok{color:var(--th);font-weight:700;border-bottom-color:var(--th)}
+    .pans sup{font-size:.7em;line-height:0}
+    .pow{font-weight:700;font-size:15px;white-space:nowrap}
+    .pow sup{vertical-align:8px;font-size:inherit}
+    .pck{display:inline-block;box-sizing:border-box;flex:none;width:13px;height:13px;border:1.4px solid #3a4253;border-radius:2px;vertical-align:-2px;margin-right:3px;background:#fff;position:relative}
+    .pck.rd{border-radius:2px}
+    .pck.on{border-color:var(--th)}
+    .pck.on::before,.pck.on::after{content:"";position:absolute;left:5px;top:-1px;width:1.8px;height:13px;background:var(--th);transform:rotate(45deg)}
+    .pck.on::after{transform:rotate(-45deg)}
+    label.pok,.chi.pok{color:var(--th);font-weight:700}
+    .chs{display:inline-flex;flex-wrap:wrap;gap:2px 10px;vertical-align:middle;border:1px dashed #b9c1cf;border-radius:5px;padding:1px 7px;margin:0 2px;line-height:1.7}
+    .chi{display:inline-flex;align-items:center;white-space:nowrap}
+    .blank{display:inline-block;min-width:150px;margin:0 3px;border-bottom:1.5px dotted #6b7385;color:transparent!important;font-size:0!important;height:1.2em;vertical-align:-2px}
+    .conv{padding:8px!important}
+    .card.solo .q:not(.block){display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 22px}
+    .card.solo .q:not(.block)>*+*{margin-top:0}
+    .card.solo .qcm .choices{flex-direction:row!important;flex-wrap:wrap;gap:3px 18px!important}
+    .pans.op{min-width:4em;height:26px;font-size:16px;font-weight:700;margin:0 4px}
+    .equation{font-size:1.6rem!important}`;
+
+  // Champs de la fiche -> cases à remplir / propositions à cocher (vides, ou remplies sur le corrigé)
+  function prepare(root, K, corr) {
+    root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
+    root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
+    const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    root.querySelectorAll('input').forEach(inp => {
+      if (inp.type === 'checkbox' || inp.type === 'radio') {
+        const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));
+        inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (ok ? ' on' : ''), ''));
+        return;
+      }
+      const isNum = inp.classList.contains('num'), a = isNum ? K.num[inp.id] : K.word[inp.id];
+      const show = corr && a !== undefined;
+      inp.replaceWith(span('pans' + (inp.classList.contains('int') ? ' int' : isNum ? '' : ' word') + (show ? ' ok' : ''), show ? ansHTML(a) : '&nbsp;'));
+    });
+    root.querySelectorAll('select').forEach(s => {
+      const good = (K.selv || {})[s.id];
+      if (s.dataset.paper === 'blank') {                 // à écrire à la main (ex. l'opérateur manquant)
+        const o = [...s.options].find(x => x.value === good);
+        s.replaceWith(span('pans op' + (corr ? ' ok' : ''), corr && o ? esc(o.text) : '&nbsp;'));
+        return;
+      }
+      if (s.classList.contains('pwsel')) {
+        s.replaceWith(span('pow', '10<sup>' + (corr ? '<span class="pans exp ok">' + String(good).replace('-', '−') + '</span>' : '<span class="pans exp">&nbsp;</span>') + '</sup>'));
+        return;
+      }
+      const opts = [...s.options].filter(o => o.value);
+      s.replaceWith(span('chs', opts.map(o => { const on = corr && o.value === good; return `<span class="chi${on ? ' pok' : ''}"><span class="pck${on ? ' on' : ''}"></span>${esc(o.text)}</span>`; }).join('')));
+    });
+    if (corr) root.querySelectorAll('.pck.on').forEach(c => { const lb = c.closest('label'); if (lb) lb.classList.add('pok'); });
+  }
+
+  // Cartes : une par question (les textes d'introduction d'une partie vont dans la carte de la question qui suit)
+  const WIDE = '.para,.ncsgrid,.rgrid,.pgrid,.cgrid,.forml,.trow,table,.family,.forms,.choices.col,.conv,.equation';
+  function cards(doc, root) {
+    const out = [];
+    root.querySelectorAll('section').forEach(sec => {
+      const h2 = sec.querySelector(':scope > h2');
+      const title = h2 ? (h2.childNodes[0] ? h2.childNodes[0].textContent : h2.textContent).trim() : '';
+      let ctx = [], after = false;      // after : questions qui suivent un énoncé de la partie (elles ne sont jamais avancées)
+      const items = [];
+      [...sec.children].forEach(ch => {
+        if (ch === h2) return;
+        if (ch.classList.contains('qlist')) [...ch.children].forEach(q => items.push({q}));
+        else items.push({ctx: ch});
+      });
+      const mk = (qEl, ctxEls, badge) => {
+        const c = doc.createElement('div');
+        c.className = 'card';
+        c.innerHTML = `<div class="chd">${badge ? '<span class="badge"></span>' : ''}<span class="slbl">${esc(title)}</span></div>`;
+        ctxEls.forEach(x => c.appendChild(x));
+        if (qEl) c.appendChild(qEl);
+        const wide = ctxEls.length > 0 || !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
+        if (wide) c.classList.add('wide');
+        return {el: c, wide, sec: title, dep: after};
+      };
+      items.forEach(it => {
+        if (it.ctx) { ctx.push(it.ctx); return; }
+        const hadCtx = ctx.length > 0;
+        out.push(mk(it.q, ctx, true)); ctx = [];
+        if (hadCtx) after = true;
+      });
+      if (ctx.length) out.push(mk(null, ctx, false));       // partie sans question (ex. « La recette du chef »)
+    });
+    return out;
+  }
+  // Lignes : une carte large, ou deux cartes étroites d'une même partie côte à côte
+  function rowsOf(list) {
+    const pend = list.slice(), rows = [];
+    while (pend.length) {
+      const c = pend.shift();
+      if (c.wide) { rows.push([c]); continue; }
+      const j = pend.findIndex(d => !d.wide && d.sec === c.sec);
+      if (j < 0) { c.el.classList.add('wide', 'solo'); c.wide = true; rows.push([c]); }   // seule : toute la largeur, sur une ligne
+      else rows.push([c, pend.splice(j, 1)[0]]);
+    }
+    return rows;
+  }
+
+  async function make(id, btn) {
+    const P = window.PAPER;
+    const data = P.make(id);
+    const VL = 'ABCDEFGHJKLMNPRSTUVWXYZ', VER = VL.charAt(Math.floor(Math.random() * VL.length)) + String(10 + Math.floor(Math.random() * 90));
+    await Promise.all(LIBS.map(load));
+    const fr = document.createElement('iframe');
+    fr.setAttribute('aria-hidden', 'true');
+    fr.style.cssText = `position:fixed;left:-20000px;top:0;width:${PW}px;height:${PH}px;border:0`;
+    document.body.appendChild(fr);
+    try {
+      const styles = [...document.querySelectorAll('link[rel="stylesheet"], style')].map(e => e.outerHTML).join('\n');
+      const doc = fr.contentDocument;
+      doc.open();
+      doc.write('<!doctype html><html lang="fr" data-theme="light"><head><meta charset="utf-8">' + styles + '<style>' + CSS + '</style></head><body><div id="stage"></div><div id="pages"></div></body></html>');
+      doc.close();
+      await new Promise(r => setTimeout(r, 150));
+      try { await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+      // Deux versions des mêmes cartes : copie vierge et corrigé
+      const build = corr => { const box = doc.createElement('div'); box.className = 'content'; box.innerHTML = data.html; prepare(box, data.KEY, corr); return cards(doc, box); };
+      const C0 = build(false), C1 = build(true);
+      C0.forEach((c, i) => { c.el.dataset.k = i; C1[i].el.dataset.k = i; });
+      const rows = rowsOf(C0);
+      const nQ = C0.filter(c => c.el.querySelector('.badge')).length;
+      const pagesEl = doc.getElementById('pages');
+      const head = corr => `<div class="pban"><span>${esc(P.title)} · ${esc(data.label)} · ${nQ} QUESTIONS</span><span class="ver">VERSION ${VER}</span></div>` +
+        (corr ? '<div class="pid">CORRIGÉ</div>' :
+          '<div class="pid"><span>NOM :<i></i></span><span>PRÉNOM :<i></i></span><div class="l3"><span>CLASSE :<i></i></span><span>DATE :<i></i></span><span class="nt">NOTE :<i></i>/ 20</span></div></div>') +
+        '<div class="pins">Coche la ou les bonnes cases et écris tes réponses sur les pointillés, avec le bon nombre de chiffres significatifs quand il est demandé.</div>';
+      // Mise en pages de la copie : une ligne qui ne tient plus passe à la page suivante (une ligne plus courte peut être avancée)
+      const LIMIT = PH - FOOT - SAFE;
+      let pgc = null;
+      const newPage = first => {
+        const pg = doc.createElement('div'); pg.className = 'pg';
+        pg.innerHTML = '<div class="pgc">' + (first ? head(false) : '') + '</div><div class="pgf"></div>';
+        pagesEl.appendChild(pg); pgc = pg.querySelector('.pgc');
+      };
+      const fits = () => pgc.getBoundingClientRect().bottom - pgc.parentNode.getBoundingClientRect().top <= LIMIT;
+      const rowEl = r => { const d = doc.createElement('div'); d.className = 'prow'; r.forEach(c => d.appendChild(c.el)); return d; };
+      newPage(true);
+      const pend = rows.slice();
+      while (pend.length) {
+        let el = rowEl(pend[0]); pgc.appendChild(el);
+        if (fits()) { pend.shift(); continue; }
+        el.remove();
+        let placed = false;
+        for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
+          if (pend[s].some(c => c.dep) || pend.slice(0, s).some(r => r.some(c => c.dep && c.sec === pend[s][0].sec))) continue;
+          const e2 = rowEl(pend[s]); pgc.appendChild(e2);
+          if (fits()) { pend.splice(s, 1); placed = true; } else e2.remove();
+        }
+        if (!placed) { newPage(false); el = rowEl(pend[0]); pgc.appendChild(el); pend.shift(); }
+      }
+      // Numérotation Q01, Q02… dans l'ordre d'affichage (identique sur le corrigé)
+      let n = 0;
+      const num = {};
+      pagesEl.querySelectorAll('.card').forEach(c => { const b = c.querySelector('.badge'); if (b) { n++; b.textContent = 'Q' + String(n).padStart(2, '0'); num[c.dataset.k] = b.textContent; } });
+      C1.forEach(c => { const b = c.el.querySelector('.badge'); if (b) b.textContent = num[c.el.dataset.k]; });
+      // Corrigé : mêmes pages, mêmes cartes, en rouge
+      const copyPages = [...pagesEl.querySelectorAll('.pg')];
+      copyPages.forEach((pg, i) => {
+        const cp = pg.cloneNode(true); cp.classList.add('corr');
+        if (i === 0) { const h = doc.createElement('div'); h.innerHTML = head(true); const c0 = cp.querySelector('.pgc'); [...c0.children].forEach(ch => { if (!ch.classList.contains('prow')) ch.remove(); }); [...h.children].reverse().forEach(x => c0.prepend(x)); }
+        cp.querySelectorAll('.card').forEach(card => { const twin = C1[+card.dataset.k].el.cloneNode(true); card.replaceWith(twin); });
+        pagesEl.appendChild(cp);
+      });
+      // Équations sur une ligne
+      doc.querySelectorAll('.equation').forEach(el => { let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize); while (el.scrollWidth > el.clientWidth + 1 && fs > 10) { fs -= 0.5; el.style.fontSize = fs + 'px'; } });
+      const all = [...pagesEl.querySelectorAll('.pg')], half = copyPages.length;
+      all.forEach((pg, i) => {
+        const corr = i >= half, k = corr ? i - half + 1 : i + 1;
+        pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
+      });
+      doc.getElementById('stage').remove();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      for (let i = 0; i < all.length; i++) {
+        if (i) pdf.addPage();
+        const c = await window.html2canvas(all[i], { scale: 2.2, backgroundColor: '#ffffff', logging: false, width: PW, height: PH, windowWidth: PW });
+        pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+      }
+      const plain = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').toUpperCase();
+      pdf.save(`${P.file}-COPIE-ET-CORRIGE-${plain(data.short)}-${VER}.pdf`);
+    } finally { fr.remove(); }
+  }
+
+  function openDialog() {
+    const P = window.PAPER;
+    if (!P || document.getElementById('paperOv')) return;
+    const ov = document.createElement('div');
+    ov.id = 'paperOv';
+    ov.innerHTML = `<div class="box" role="dialog" aria-label="Copie papier"><h3>Copie papier à imprimer</h3>
+      <p>Choisis le ${P.what}. Le PDF contient la copie de l'élève puis son corrigé (même numéro de version). Les valeurs sont tirées au hasard à chaque copie.</p>
+      <select id="paperSel"><option value="">Choisir le ${P.what}…</option>${P.list().map(o => `<option value="${o.id}">${esc(o.label)}</option>`).join('')}</select>
+      <div class="row"><button type="button" class="no">Fermer</button><button type="button" class="go" disabled>Générer une copie PDF</button></div></div>`;
+    document.body.appendChild(ov);
+    const sel = ov.querySelector('#paperSel'), go = ov.querySelector('.go');
+    sel.addEventListener('change', () => { go.disabled = !sel.value; });
+    ov.querySelector('.no').addEventListener('click', () => ov.remove());
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    go.addEventListener('click', async () => {
+      if (!sel.value) return;
+      go.disabled = true; const old = go.textContent; go.textContent = 'Création du PDF…';
+      try { await make(sel.value); } catch (e) { console.error('Copie papier', e); }
+      go.textContent = old; go.disabled = false;
+    });
+  }
+
+  // Lien caché : le « H » de FICHE (en haut à gauche)
+  const memo = document.querySelector('.memo');
+  if (memo && memo.firstChild && memo.firstChild.nodeType === 3 && /FIC(H)E/.test(memo.firstChild.textContent)) {
+    const t = memo.firstChild, i = t.textContent.indexOf('H');
+    const rest = t.splitText(i); rest.textContent = rest.textContent.slice(1);
+    const h = document.createElement('span'); h.id = 'hidPaper'; h.textContent = 'H';
+    memo.insertBefore(h, rest);
+    h.addEventListener('click', openDialog);
+  }
+  window.paperMake = make;      // (tests)
 })();
 </script>
 </body>

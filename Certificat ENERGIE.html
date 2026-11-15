@@ -1198,7 +1198,6 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     {id:'eolienne',      nom:'éolienne',               g:'f', ico:'🌬️', in:'meca', out:'elec', eta:[35,50], P:[2,8,'MW'],    h:[10,60], verbe:'produit'},
     {id:'hydrolienne',   nom:'hydrolienne',            g:'f', ico:'🌊', in:'meca', out:'elec', eta:[35,45], P:[1,3,'MW'],    h:[10,60], verbe:'produit'},
     {id:'alternateur',   nom:'alternateur de barrage',  g:'m', ico:'⚡', in:'meca', out:'elec', eta:[90,98], P:[50,300,'MW'], h:[5,48],  verbe:'produit'},
-    {id:'dynamo',        nom:'dynamo de vélo',         g:'f', ico:'🚲', in:'meca', out:'elec', eta:[40,65], P:[3,12,'W'],    h:[2,9],   verbe:'fournit'},
     {id:'moteur',        nom:'moteur électrique',      g:'m', ico:'⚙️', in:'elec', out:'meca', eta:[75,95], P:[300,950,'W'], h:[2,12],  verbe:'fournit'},
     {id:'trottinette',   nom:'moteur de trottinette',  g:'m', ico:'🛴', in:'elec', out:'meca', eta:[75,90], P:[250,600,'W'], h:[2,8],   verbe:'fournit'},
     {id:'ventilateur',   nom:'ventilateur',            g:'m', ico:'🌀', in:'elec', out:'meca', eta:[50,75], P:[20,80,'W'],   h:[3,24],  verbe:'fournit'},
@@ -1321,8 +1320,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   }
 
   // ---------- Construction de la fiche pour un convertisseur ----------
-  function build(F) {
-    done1 = false; done2 = false;
+  function build(F, paper) {                        // paper = true : copie papier (rien n'est modifié à l'écran)
+    if (!paper) done1 = false, done2 = false;
     const num = (id, sig, lg) => `<input type="text" class="num${lg ? ' lg' : ''}${sig ? '' : ' int'}" id="${id}"${sig ? ` data-sig="${sig}"` : ''} inputmode="decimal" autocomplete="off" aria-label="valeur">`;
     const raw = id => `<input type="text" class="num lg" id="${id}" data-raw="1" inputmode="decimal" autocomplete="off" aria-label="valeur">`;
     const radios = (name, list) => '<div class="choices">' + shuffle(list).map(([v, html]) => `<label><input type="radio" name="${name}" value="${v}"> <span>${html}</span></label>`).join('') + '</div>';
@@ -1390,7 +1389,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       <div class="q block" data-q="unitE"><div class="stmt">Une <span class="key">énergie</span> peut s'exprimer en :</div>${ckb('ue', UNITS)}<p class="fb"></p></div>
       <div class="q block" data-q="unitP"><div class="stmt">Une <span class="key">puissance</span> peut s'exprimer en :</div>${ckb('up', UNITS)}<p class="fb"></p></div>
       <div class="q" data-q="legale"><div class="stmt">Dans le système international, l'unité <b>légale</b> de l'énergie est le :</div>${radiosFixed('legale', [['J', 'JOULE'], ['Wh', 'WATTHEURE']])}<p class="fb"></p></div>
-      <div class="q block" data-q="wjs"><div class="para">À savoir par cœur : 1 W = 1 ${selectH('wjs-a', [['J', 'J'], ['Wh', 'Wh'], ['W', 'W'], ['N', 'N']])} / ${selectH('wjs-b', [['s', 's'], ['h', 'h'], ['min', 'min'], ['J', 'J']])}</div><p class="fb"></p></div>
+      <div class="q" data-q="wjs"><div class="stmt">À savoir par cœur : <b>1 W</b> est équivalent à :</div>${radios('wjs', [['js', '1 J/s'], ['j', '1 J'], ['wh', '1 Wh'], ['jxs', '1 J × s']])}<p class="fb"></p></div>
       <div class="q block" data-q="formules"><div class="stmt">Complète avec les bonnes unités (énergie <b>E</b>, puissance <b>P</b>, durée <b>Δt</b>) :</div>
         <div class="forml">
           <div><b>E</b> (en J) = <b>P</b> (en ${selectH('f1p', PU)}) × <b>Δt</b> (en ${selectH('f1t', TU)})</div>
@@ -1419,7 +1418,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
           ['h',  'E<sub>1</sub> (en J) = P<sub>1</sub> (en W) × Δt<sub>1</sub> (en h)'],
           ['d',  'E<sub>1</sub> (en J) = P<sub>1</sub> (en W) / Δt<sub>1</sub> (en s)'],
           ['w',  'E<sub>1</sub> (en W) = P<sub>1</sub> (en J) × Δt<sub>1</sub> (en s)']])}<p class="fb"></p></div>
-        <div class="q block" data-q="ncsA"><div class="para"><span class="step s3">2</span> <b>RÉFLEXION NCS</b> : P<sub>1</sub> a ${num('ncsP', 0)} CS et Δt<sub>1</sub> a ${num('ncsT', 0)} CS, donc on garde ${num('ncsR', 0)} CS (c'est le plus petit qui gagne !).</div><p class="fb"></p></div>
+        <div class="q block" data-q="ncsA"><div class="para"><span class="step s3">2</span> <b>RÉFLEXION NCS</b> <small class="muted">(NCS = Nombre de Chiffres Significatifs ; CS = Chiffres Significatifs)</small> : P<sub>1</sub> a ${num('ncsP', 0)} CS et Δt<sub>1</sub> a ${num('ncsT', 0)} CS, donc on garde ${num('ncsR', 0)} CS (c'est le plus petit qui gagne !).</div><p class="fb"></p></div>
         <div class="q block" data-q="appA"><div class="para"><span class="step s2">3</span> <b>APPLICATION NUMÉRIQUE</b> : E<sub>1</sub> = ${PA} W × ${TA} s = ${raw('eA')} J <small class="muted">(avec le bon nombre de chiffres significatifs)</small></div><p class="fb"></p></div>
         <div class="q block" data-q="phrA"><div class="stmt"><span class="step s4">4</span> <b>COURTE PHRASE</b> résumant ce que tu viens de trouver :</div><div class="choices col">${PHR.map(([v, t]) => `<label><input type="radio" name="phrA" value="${v}"> <span>${t}</span></label>`).join('')}</div><p class="fb"></p></div>
         <div class="q block" data-q="eB"><div class="para">${who2[0]} roule avec ${who2[1]} (moteur de puissance constante <b>P<sub>2</sub> = ${PB} W</b>) pendant <b>Δt<sub>2</sub> = ${HB} h et ${MB} min</b>.
@@ -1455,7 +1454,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
           <div class="trow"><span class="tl">${P(2)} utile :</span>${typeRadios('t2')}</div>
           <div class="trow"><span class="tl">${P(3)} perdue :</span>${typeRadios('t3')}</div>
           <p class="fb"></p></div>
-        <div class="q block" data-q="bilan"><div class="para">Rien ne se perd, rien ne se crée, tout se transforme ! Mets « = » ou « + » : <span class="nw">${P(1)} ${selectH('b1', [['=', '='], ['+', '+']])} ${P(3)} ${selectH('b2', [['=', '='], ['+', '+']])} ${P(2)}</span></div><p class="fb"></p></div>
+        <div class="q block" data-q="bilan"><div class="para">Rien ne se perd, rien ne se crée, tout se transforme ! Écris l'<b>opérateur mathématique</b> manquant entre ${P(2)} et ${P(3)} pour que l'égalité soit vérifiée : <span class="nw big-eq">${P(1)} = ${P(2)} ${selectH('b2', [['+', '+'], ['-', '−'], ['x', '×'], ['/', '÷']]).replace('class="unit"', 'class="unit" data-paper="blank"')} ${P(3)}</span></div><p class="fb"></p></div>
         <div class="q block" data-q="hautbas"><div class="stmt">Dans la formule du rendement <span class="nw">η = <span class="frac"><span>HAUT</span><span>BAS</span></span> × 100</span> :</div>
           <div class="trow"><span class="tl">En <b>HAUT</b> on met ce qui est :</span>${radiosFixed('haut', [['abs', 'ABSORBÉ au départ'], ['ut', 'UTILE'], ['per', 'PERDU']])}</div>
           <div class="trow"><span class="tl">En <b>BAS</b> on met ce qui est :</span>${radiosFixed('bas', [['abs', 'ABSORBÉ au départ'], ['ut', 'UTILE'], ['per', 'PERDU']])}</div>
@@ -1478,7 +1477,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
         ['inv', `${P(3)} (en ${U}) = ${P(2)} (en ${U}) − ${P(1)} (en ${U})`], ['mul', `${P(3)} (en ${U}) = ${P(1)} (en ${U}) × ${P(2)} (en ${U})`]])}<p class="fb"></p></div>
       <div class="q block" data-q="p3val"><div class="para">Fais l'<b>application numérique</b> : ${P(3)} = ${num('p3', 3)} ${U} <small class="muted">(3 chiffres significatifs)</small></div><p class="fb"></p></div>
       <div class="q block bonus" data-q="eu"><div class="para"><span class="bonus-t">LA QUESTION BONUS !</span> Si ${F.le} fonctionne pendant <b>Δt = ${DT} h</b>, quelle énergie utile E ${F.g === 'f' ? 'fournit-elle' : 'fournit-il'} ?
-        E (en ${U}h) = ${P(2)} (en ${U}) × Δt (en h) = ${num('eu', 3, true)} ${U}h <small class="muted">(3 chiffres significatifs)</small></div><p class="fb"></p></div>
+        <span class="nw">E (en ${U}h)</span> = <span class="nw">${P(2)} (en ${U})</span> × <span class="nw">Δt (en h)</span> = <span class="nw">${num('eu', 3, true)} ${U}h</span> <small class="muted">(3 chiffres significatifs)</small></div><p class="fb"></p></div>
       </div></section>`;
 
     h += `<section><h2>Rendement… ou COP ?</h2><div class="qlist">
@@ -1492,8 +1491,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
         q.o.map(o => `<label><input type="radio" name="qcm${i}" value="${o.ok ? 1 : 0}"> <span>${o.txt}</span></label>`).join('') +
         `</div><p class="fb"></p></div>`).join('') + `</div></section>`;
     h += `</div>`;
-    $('content').innerHTML = h;
-    $('submitAll').hidden = true;
+    if (!paper) { $('content').innerHTML = h; $('submitAll').hidden = true; }
 
     // ---------- Correction (dans l'ordre d'affichage) ----------
     const C = [];
@@ -1532,12 +1530,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'unitE', name:'Les unités d’énergie', check: boxes('ue', ['J', 'kJ', 'Wh'])});
     C.push({key:'unitP', name:'Les unités de puissance', check: boxes('up', ['W', 'kW'])});
     C.push({key:'legale', name:'L’unité légale de l’énergie', check: rq('legale', 'J')});
-    C.push({key:'wjs', name:'1 W = 1 J / s', check(){
-      const a = $('wjs-a').value, b = $('wjs-b').value;
-      if (!a && !b) return {st:'todo'};
-      const bad = []; if (a && a !== 'J') bad.push('wjs-a'); if (b && b !== 's') bad.push('wjs-b');
-      return {st: bad.length ? 'bad' : (!a || !b) ? 'todo' : 'ok', bad, empty: [!a && 'wjs-a', !b && 'wjs-b'].filter(Boolean)};
-    }});
+    C.push({key:'wjs', name:'1 W = 1 J / s', check: rq('wjs', 'js')});
     C.push({key:'formules', name:'Les unités des formules de l’énergie', check(){
       const G = {f1p:'W', f1t:'s', f2p:'W', f2t:'h', f3p:'kW', f3t:'h'};
       const bad = [], empty = [];
@@ -1584,10 +1577,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       return {st: nb ? 'bad' : ne ? 'todo' : 'ok', msg: nb ? (nb === 1 ? '1 forme de puissance est fausse.' : nb + ' formes de puissance sont fausses.') : ne ? 'Il manque des réponses.' : ''};
     }});
     C.push({key:'bilan', name:'Le bilan des puissances', check(){
-      const a = $('b1').value, b = $('b2').value;
-      if (!a && !b) return {st:'todo'};
-      const bad = []; if (a && a !== '=') bad.push('b1'); if (b && b !== '+') bad.push('b2');
-      return {st: bad.length ? 'bad' : (!a || !b) ? 'todo' : 'ok', bad, empty: [!a && 'b1', !b && 'b2'].filter(Boolean)};
+      const b = $('b2').value;
+      if (!b) return {st:'todo', empty:['b2']};
+      return b === '+' ? {st:'ok'} : {st:'bad', bad:['b2']};
     }});
     C.push({key:'hautbas', name:'Le haut et le bas de la formule', check(){
       const a = radio('haut'), b = radio('bas');
@@ -1604,7 +1596,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'inf', name:'Un rendement est toujours…', check: rq('inf', 'inf')});
     C.push({key:'cop', name:'Le COP', check: sq('cop', 'COP')});
     QCM.forEach((q, i) => C.push({key:'qcm' + i, name:'Mini-QCM, question ' + (i + 1), check: rq('qcm' + i, '1')}));
-    CHECKS = C;
+    if (!paper) CHECKS = C;
     // Clé de correction pour les PDF (liens cachés) : même convertisseur et mêmes valeurs que la fiche à l'écran
     const KEY = {num: {}, sel: {}, radio: {}, box: [], word: {mot: 'efficacité'}, hint: {'eB-u': 'J, Wh ou kWh'}};
     NCS.forEach((v, i) => KEY.num['ncs' + i] = String(v.n));
@@ -1612,11 +1604,14 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     CONV.forEach((c, i) => KEY.num['cv' + i] = fx(c.v));
     Object.assign(KEY.num, {ncsP: '3', ncsT: String(String(TA).length), ncsR: String(csA), eA: fx(EA, csA), eB: fx(EB), eta: fx(ETA), p3: fx(P3), eu: fx(EU)});
     PREF.forEach(p => KEY.sel['pre-' + p[0]] = '10<sup>' + String(p[2]).replace('-', '−') + '</sup>');
-    Object.assign(KEY.sel, {'wjs-a': 'J', 'wjs-b': 's', f1p: 'W', f1t: 's', f2p: 'W', f2t: 'h', f3p: 'kW', f3t: 'h', b1: '=', b2: '+', cop: 'COP', 'eB-u': 'Wh'});
-    Object.assign(KEY.radio, {virgule: 'non', grandeur: 'g', legale: 'J', litt: 'ok', phrA: 'ok', lettre: 'eta', pron: 'eta', t1: F.in, t2: F.out, t3: 'ther',
+    Object.assign(KEY.sel, {f1p: 'W', f1t: 's', f2p: 'W', f2t: 'h', f3p: 'kW', f3t: 'h', b2: '+', cop: 'COP', 'eB-u': 'Wh'});
+    Object.assign(KEY.radio, {wjs: 'js', virgule: 'non', grandeur: 'g', legale: 'J', litt: 'ok', phrA: 'ok', lettre: 'eta', pron: 'eta', t1: F.in, t2: F.out, t3: 'ther',
       haut: 'ut', bas: 'abs', etaexpr: 'ok', phr2: 'ok', p3expr: 'ok', inf: 'inf'});
     QCM.forEach((q, i) => KEY.radio['qcm' + i] = '1');
     KEY.box = ['ue-J', 'ue-kJ', 'ue-Wh', 'up-W', 'up-kW'];
+    KEY.selv = {f1p: 'W', f1t: 's', f2p: 'W', f2t: 'h', f3p: 'kW', f3t: 'h', b2: '+', cop: 'COP', 'eB-u': 'Wh'};
+    PREF.forEach(p => KEY.selv['pre-' + p[0]] = String(p[2]));
+    if (paper) return {html: h, KEY};
     window.FICHE_DATA = {F, S, NCS, RND, PREF, CONV, KEY, nq: C.length};
 
     if (typeof addTools === 'function') addTools($('content'));
@@ -1782,6 +1777,12 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   }
   sel.addEventListener('change', applyFuel);
   applyFuel();
+  // Copie papier (lien caché « H » de FICHE) : liste des convertisseurs et construction hors écran
+  window.PAPER = {
+    title: 'CERTIFICAT ÉNERGIE', file: 'CERTIFICAT_ENERGIE', what: 'convertisseur',
+    list: () => FUELS.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(F => ({id: F.id, label: F.nom.charAt(0).toUpperCase() + F.nom.slice(1)})),
+    make: id => { const F = FUELS.find(x => x.id === id); const r = build(F, true); return {html: r.html, KEY: r.KEY, label: F.Le.toUpperCase(), short: F.nom}; }
+  };
 
   // ---------- Titre : le nom du convertisseur tient toujours sur une ligne (taille adaptée à l'écran) ----------
   const fitCtx = document.createElement('canvas').getContext('2d');
@@ -2533,6 +2534,299 @@ body.cert-open{overflow:hidden}
     const d = document.getElementById('hidCert');
     if (d) d.addEventListener('click', () => window.showCertificate(true));
   }
+})();
+</script>
+<style>
+/* ===== Copie papier : fenêtre de choix (lien caché « H » de FICHE) ===== */
+#paperOv{position:fixed;inset:0;z-index:130;background:rgba(10,20,30,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+#paperOv .box{background:var(--paper);color:var(--ink);border-radius:14px;padding:18px;width:100%;max-width:400px;box-shadow:0 14px 40px rgba(0,0,0,.35);font-family:var(--f-body);display:flex;flex-direction:column;gap:12px}
+#paperOv h3{margin:0;font-size:1.05rem}
+#paperOv p{margin:0;font-size:.85rem;color:var(--muted)}
+#paperOv select{width:100%;height:40px;font-weight:600}
+#paperOv .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#paperOv .go{background:#0b5ed7;color:#fff;border:0}
+#paperOv .go:disabled{opacity:.6;cursor:progress}
+#paperOv .no{background:transparent;border:1px solid var(--line);color:var(--muted)}
+</style>
+<script>
+/* ===== Lien caché « H » de FICHE : copie papier à imprimer + corrigé spécifique (même version), présentation du TEST 009 =====
+   Le professeur choisit le convertisseur / carburant ; les valeurs sont tirées au hasard pour cette copie.
+   Un seul PDF : la copie (bleu, cadre NOM / PRÉNOM / CLASSE / DATE / NOTE) puis son corrigé (rouge, même numéro de VERSION). */
+(function(){
+  const LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+  const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  const PW = 794, PH = 1123, PADX = 36, PADT = 32, FOOT = 46, SAFE = 14;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function fmtSig(x, sig) {
+    if (!sig) return String(x).replace('.', ',');
+    if (x === 0) return '0';
+    const r = Number(Number(x).toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    if (e < -3 || e >= sig + 1) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
+  }
+  const ansHTML = v => Array.isArray(v) ? fmtSig(v[0], v[1]) : String(v);
+
+  const CSS = `
+    html{font-size:13px}
+    html,body{margin:0!important;padding:0!important;background:#fff!important}
+    body{width:${PW}px;color:#1c2333;-webkit-font-smoothing:antialiased;font-size:12px;line-height:1.4}
+    #stage{position:absolute;left:0;top:0;width:${PW - 2 * PADX}px;visibility:hidden}
+    .pg{position:relative;width:${PW}px;height:${PH}px;overflow:hidden;background:#fff;padding:${PADT}px ${PADX}px 0;box-sizing:border-box;--th:#0b5ed7;--thbg:#e8f0fd}
+    .pg.corr{--th:#b42318;--thbg:#fde8e6}
+    .pgc{display:flex;flex-direction:column;gap:7px}
+    .pgf{position:absolute;left:${PADX}px;right:${PADX}px;bottom:18px;display:flex;justify-content:space-between;border-top:1px solid #d9deea;padding-top:7px;font-size:9.5px;color:#5b6478}
+    .pban{display:flex;justify-content:space-between;align-items:center;background:var(--th);color:#fff;border-radius:7px;padding:7px 8px 7px 14px;font-weight:700;font-size:14.5px;letter-spacing:.02em}
+    .pban .ver{background:#fff;color:var(--th);border-radius:5px;padding:3px 12px;font-size:13.5px;letter-spacing:.06em}
+    .pid{border:1.5px solid #969eaf;border-radius:7px;padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px 22px;font-size:12px;font-weight:700}
+    .pid span{display:flex;align-items:flex-end;gap:6px;white-space:nowrap}
+    .pid span i{flex:1;border-bottom:1px solid #969eaf;height:1em}
+    .pid .l3{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
+    .pid .nt i{flex:0 0 52px}
+    .pg.corr .pid{border-color:var(--th);display:flex;align-items:center;justify-content:center;height:70px;font-family:var(--f-head);font-size:34px;color:var(--th);letter-spacing:.04em}
+    .pins{font-size:10.5px;color:#5b6478;margin:-2px 0 2px}
+    .prow{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+    .card{border:1px solid #c9d0de;border-radius:7px;padding:6px 10px 7px;background:#fff;box-sizing:border-box;min-width:0}
+    .card.wide{grid-column:1/-1}
+    .card .chd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .card .badge{background:var(--th);color:#fff;font-weight:700;font-size:10.5px;border-radius:4px;padding:1px 7px;line-height:1.5}
+    .card .slbl{font-size:9.5px;color:#7a8396;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+    .card .q{display:block!important;border:0!important;padding:0!important;background:none!important;box-shadow:none!important;margin:0!important}
+    .card .q.danger{border:0!important}
+    .card .q>*+*{margin-top:5px}
+    .card .situation,.card .recipe,.card .conv,.card .lead,.card .note,.card .danger{margin:0 0 6px!important}
+    .card .situation{background:var(--thbg)!important;border:0!important}
+    .card .lead{font-size:11.5px}
+    .tools,.fb,.help,.pw,.submit,.result,#npad,#calc{display:none!important}
+    .q .key{text-decoration:none!important}
+    .para{line-height:2.1!important}
+    .choices{gap:3px 14px!important}
+    .ncsrow,.rrow,.crow,.pcell{padding:4px 8px!important}
+    .opt{padding:5px 9px!important}
+    .tablewrap{overflow:visible!important}
+    .q.tbl table{table-layout:fixed;min-width:0!important;width:100%}
+    .q.tbl th:first-child,.q.tbl td.data{width:27%}
+    .q.tbl td{white-space:normal!important}
+    .q.tbl .pans{min-width:0;width:100%}
+    .pans{display:inline-block;box-sizing:border-box;min-width:6.6em;height:24px;line-height:21px;padding:0 6px;border:0;border-bottom:1.5px dotted #6b7385;text-align:center;vertical-align:middle;font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+    .pans.int{min-width:3em}
+    .pans.word{min-width:11em;font-family:var(--f-body)}
+    .pans.exp{min-width:1.8em;height:15px;line-height:13px;font-size:10px;vertical-align:baseline}
+    .pans.ok{color:var(--th);font-weight:700;border-bottom-color:var(--th)}
+    .pans sup{font-size:.7em;line-height:0}
+    .pow{font-weight:700;font-size:15px;white-space:nowrap}
+    .pow sup{vertical-align:8px;font-size:inherit}
+    .pck{display:inline-block;box-sizing:border-box;flex:none;width:13px;height:13px;border:1.4px solid #3a4253;border-radius:2px;vertical-align:-2px;margin-right:3px;background:#fff;position:relative}
+    .pck.rd{border-radius:2px}
+    .pck.on{border-color:var(--th)}
+    .pck.on::before,.pck.on::after{content:"";position:absolute;left:5px;top:-1px;width:1.8px;height:13px;background:var(--th);transform:rotate(45deg)}
+    .pck.on::after{transform:rotate(-45deg)}
+    label.pok,.chi.pok{color:var(--th);font-weight:700}
+    .chs{display:inline-flex;flex-wrap:wrap;gap:2px 10px;vertical-align:middle;border:1px dashed #b9c1cf;border-radius:5px;padding:1px 7px;margin:0 2px;line-height:1.7}
+    .chi{display:inline-flex;align-items:center;white-space:nowrap}
+    .blank{display:inline-block;min-width:150px;margin:0 3px;border-bottom:1.5px dotted #6b7385;color:transparent!important;font-size:0!important;height:1.2em;vertical-align:-2px}
+    .conv{padding:8px!important}
+    .card.solo .q:not(.block){display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 22px}
+    .card.solo .q:not(.block)>*+*{margin-top:0}
+    .card.solo .qcm .choices{flex-direction:row!important;flex-wrap:wrap;gap:3px 18px!important}
+    .pans.op{min-width:4em;height:26px;font-size:16px;font-weight:700;margin:0 4px}
+    .equation{font-size:1.6rem!important}`;
+
+  // Champs de la fiche -> cases à remplir / propositions à cocher (vides, ou remplies sur le corrigé)
+  function prepare(root, K, corr) {
+    root.querySelectorAll('[hidden]').forEach(e => e.removeAttribute('hidden'));
+    root.querySelectorAll('.tools,.fb,.help,.pw,.submit,.result').forEach(e => e.remove());
+    const span = (cls, html) => { const s = document.createElement('span'); s.className = cls; s.innerHTML = html; return s; };
+    root.querySelectorAll('input').forEach(inp => {
+      if (inp.type === 'checkbox' || inp.type === 'radio') {
+        const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));
+        inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (ok ? ' on' : ''), ''));
+        return;
+      }
+      const isNum = inp.classList.contains('num'), a = isNum ? K.num[inp.id] : K.word[inp.id];
+      const show = corr && a !== undefined;
+      inp.replaceWith(span('pans' + (inp.classList.contains('int') ? ' int' : isNum ? '' : ' word') + (show ? ' ok' : ''), show ? ansHTML(a) : '&nbsp;'));
+    });
+    root.querySelectorAll('select').forEach(s => {
+      const good = (K.selv || {})[s.id];
+      if (s.dataset.paper === 'blank') {                 // à écrire à la main (ex. l'opérateur manquant)
+        const o = [...s.options].find(x => x.value === good);
+        s.replaceWith(span('pans op' + (corr ? ' ok' : ''), corr && o ? esc(o.text) : '&nbsp;'));
+        return;
+      }
+      if (s.classList.contains('pwsel')) {
+        s.replaceWith(span('pow', '10<sup>' + (corr ? '<span class="pans exp ok">' + String(good).replace('-', '−') + '</span>' : '<span class="pans exp">&nbsp;</span>') + '</sup>'));
+        return;
+      }
+      const opts = [...s.options].filter(o => o.value);
+      s.replaceWith(span('chs', opts.map(o => { const on = corr && o.value === good; return `<span class="chi${on ? ' pok' : ''}"><span class="pck${on ? ' on' : ''}"></span>${esc(o.text)}</span>`; }).join('')));
+    });
+    if (corr) root.querySelectorAll('.pck.on').forEach(c => { const lb = c.closest('label'); if (lb) lb.classList.add('pok'); });
+  }
+
+  // Cartes : une par question (les textes d'introduction d'une partie vont dans la carte de la question qui suit)
+  const WIDE = '.para,.ncsgrid,.rgrid,.pgrid,.cgrid,.forml,.trow,table,.family,.forms,.choices.col,.conv,.equation';
+  function cards(doc, root) {
+    const out = [];
+    root.querySelectorAll('section').forEach(sec => {
+      const h2 = sec.querySelector(':scope > h2');
+      const title = h2 ? (h2.childNodes[0] ? h2.childNodes[0].textContent : h2.textContent).trim() : '';
+      let ctx = [], after = false;      // after : questions qui suivent un énoncé de la partie (elles ne sont jamais avancées)
+      const items = [];
+      [...sec.children].forEach(ch => {
+        if (ch === h2) return;
+        if (ch.classList.contains('qlist')) [...ch.children].forEach(q => items.push({q}));
+        else items.push({ctx: ch});
+      });
+      const mk = (qEl, ctxEls, badge) => {
+        const c = doc.createElement('div');
+        c.className = 'card';
+        c.innerHTML = `<div class="chd">${badge ? '<span class="badge"></span>' : ''}<span class="slbl">${esc(title)}</span></div>`;
+        ctxEls.forEach(x => c.appendChild(x));
+        if (qEl) c.appendChild(qEl);
+        const wide = ctxEls.length > 0 || !qEl || !!qEl.querySelector(WIDE) || (!qEl.classList.contains('qcm') && (qEl.textContent || '').length > 150);
+        if (wide) c.classList.add('wide');
+        return {el: c, wide, sec: title, dep: after};
+      };
+      items.forEach(it => {
+        if (it.ctx) { ctx.push(it.ctx); return; }
+        const hadCtx = ctx.length > 0;
+        out.push(mk(it.q, ctx, true)); ctx = [];
+        if (hadCtx) after = true;
+      });
+      if (ctx.length) out.push(mk(null, ctx, false));       // partie sans question (ex. « La recette du chef »)
+    });
+    return out;
+  }
+  // Lignes : une carte large, ou deux cartes étroites d'une même partie côte à côte
+  function rowsOf(list) {
+    const pend = list.slice(), rows = [];
+    while (pend.length) {
+      const c = pend.shift();
+      if (c.wide) { rows.push([c]); continue; }
+      const j = pend.findIndex(d => !d.wide && d.sec === c.sec);
+      if (j < 0) { c.el.classList.add('wide', 'solo'); c.wide = true; rows.push([c]); }   // seule : toute la largeur, sur une ligne
+      else rows.push([c, pend.splice(j, 1)[0]]);
+    }
+    return rows;
+  }
+
+  async function make(id, btn) {
+    const P = window.PAPER;
+    const data = P.make(id);
+    const VL = 'ABCDEFGHJKLMNPRSTUVWXYZ', VER = VL.charAt(Math.floor(Math.random() * VL.length)) + String(10 + Math.floor(Math.random() * 90));
+    await Promise.all(LIBS.map(load));
+    const fr = document.createElement('iframe');
+    fr.setAttribute('aria-hidden', 'true');
+    fr.style.cssText = `position:fixed;left:-20000px;top:0;width:${PW}px;height:${PH}px;border:0`;
+    document.body.appendChild(fr);
+    try {
+      const styles = [...document.querySelectorAll('link[rel="stylesheet"], style')].map(e => e.outerHTML).join('\n');
+      const doc = fr.contentDocument;
+      doc.open();
+      doc.write('<!doctype html><html lang="fr" data-theme="light"><head><meta charset="utf-8">' + styles + '<style>' + CSS + '</style></head><body><div id="stage"></div><div id="pages"></div></body></html>');
+      doc.close();
+      await new Promise(r => setTimeout(r, 150));
+      try { await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
+      // Deux versions des mêmes cartes : copie vierge et corrigé
+      const build = corr => { const box = doc.createElement('div'); box.className = 'content'; box.innerHTML = data.html; prepare(box, data.KEY, corr); return cards(doc, box); };
+      const C0 = build(false), C1 = build(true);
+      C0.forEach((c, i) => { c.el.dataset.k = i; C1[i].el.dataset.k = i; });
+      const rows = rowsOf(C0);
+      const nQ = C0.filter(c => c.el.querySelector('.badge')).length;
+      const pagesEl = doc.getElementById('pages');
+      const head = corr => `<div class="pban"><span>${esc(P.title)} · ${esc(data.label)} · ${nQ} QUESTIONS</span><span class="ver">VERSION ${VER}</span></div>` +
+        (corr ? '<div class="pid">CORRIGÉ</div>' :
+          '<div class="pid"><span>NOM :<i></i></span><span>PRÉNOM :<i></i></span><div class="l3"><span>CLASSE :<i></i></span><span>DATE :<i></i></span><span class="nt">NOTE :<i></i>/ 20</span></div></div>') +
+        '<div class="pins">Coche la ou les bonnes cases et écris tes réponses sur les pointillés, avec le bon nombre de chiffres significatifs quand il est demandé.</div>';
+      // Mise en pages de la copie : une ligne qui ne tient plus passe à la page suivante (une ligne plus courte peut être avancée)
+      const LIMIT = PH - FOOT - SAFE;
+      let pgc = null;
+      const newPage = first => {
+        const pg = doc.createElement('div'); pg.className = 'pg';
+        pg.innerHTML = '<div class="pgc">' + (first ? head(false) : '') + '</div><div class="pgf"></div>';
+        pagesEl.appendChild(pg); pgc = pg.querySelector('.pgc');
+      };
+      const fits = () => pgc.getBoundingClientRect().bottom - pgc.parentNode.getBoundingClientRect().top <= LIMIT;
+      const rowEl = r => { const d = doc.createElement('div'); d.className = 'prow'; r.forEach(c => d.appendChild(c.el)); return d; };
+      newPage(true);
+      const pend = rows.slice();
+      while (pend.length) {
+        let el = rowEl(pend[0]); pgc.appendChild(el);
+        if (fits()) { pend.shift(); continue; }
+        el.remove();
+        let placed = false;
+        for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
+          if (pend[s].some(c => c.dep) || pend.slice(0, s).some(r => r.some(c => c.dep && c.sec === pend[s][0].sec))) continue;
+          const e2 = rowEl(pend[s]); pgc.appendChild(e2);
+          if (fits()) { pend.splice(s, 1); placed = true; } else e2.remove();
+        }
+        if (!placed) { newPage(false); el = rowEl(pend[0]); pgc.appendChild(el); pend.shift(); }
+      }
+      // Numérotation Q01, Q02… dans l'ordre d'affichage (identique sur le corrigé)
+      let n = 0;
+      const num = {};
+      pagesEl.querySelectorAll('.card').forEach(c => { const b = c.querySelector('.badge'); if (b) { n++; b.textContent = 'Q' + String(n).padStart(2, '0'); num[c.dataset.k] = b.textContent; } });
+      C1.forEach(c => { const b = c.el.querySelector('.badge'); if (b) b.textContent = num[c.el.dataset.k]; });
+      // Corrigé : mêmes pages, mêmes cartes, en rouge
+      const copyPages = [...pagesEl.querySelectorAll('.pg')];
+      copyPages.forEach((pg, i) => {
+        const cp = pg.cloneNode(true); cp.classList.add('corr');
+        if (i === 0) { const h = doc.createElement('div'); h.innerHTML = head(true); const c0 = cp.querySelector('.pgc'); [...c0.children].forEach(ch => { if (!ch.classList.contains('prow')) ch.remove(); }); [...h.children].reverse().forEach(x => c0.prepend(x)); }
+        cp.querySelectorAll('.card').forEach(card => { const twin = C1[+card.dataset.k].el.cloneNode(true); card.replaceWith(twin); });
+        pagesEl.appendChild(cp);
+      });
+      // Équations sur une ligne
+      doc.querySelectorAll('.equation').forEach(el => { let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize); while (el.scrollWidth > el.clientWidth + 1 && fs > 10) { fs -= 0.5; el.style.fontSize = fs + 'px'; } });
+      const all = [...pagesEl.querySelectorAll('.pg')], half = copyPages.length;
+      all.forEach((pg, i) => {
+        const corr = i >= half, k = corr ? i - half + 1 : i + 1;
+        pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
+      });
+      doc.getElementById('stage').remove();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      for (let i = 0; i < all.length; i++) {
+        if (i) pdf.addPage();
+        const c = await window.html2canvas(all[i], { scale: 2.2, backgroundColor: '#ffffff', logging: false, width: PW, height: PH, windowWidth: PW });
+        pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+      }
+      const plain = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').toUpperCase();
+      pdf.save(`${P.file}-COPIE-ET-CORRIGE-${plain(data.short)}-${VER}.pdf`);
+    } finally { fr.remove(); }
+  }
+
+  function openDialog() {
+    const P = window.PAPER;
+    if (!P || document.getElementById('paperOv')) return;
+    const ov = document.createElement('div');
+    ov.id = 'paperOv';
+    ov.innerHTML = `<div class="box" role="dialog" aria-label="Copie papier"><h3>Copie papier à imprimer</h3>
+      <p>Choisis le ${P.what}. Le PDF contient la copie de l'élève puis son corrigé (même numéro de version). Les valeurs sont tirées au hasard à chaque copie.</p>
+      <select id="paperSel"><option value="">Choisir le ${P.what}…</option>${P.list().map(o => `<option value="${o.id}">${esc(o.label)}</option>`).join('')}</select>
+      <div class="row"><button type="button" class="no">Fermer</button><button type="button" class="go" disabled>Générer une copie PDF</button></div></div>`;
+    document.body.appendChild(ov);
+    const sel = ov.querySelector('#paperSel'), go = ov.querySelector('.go');
+    sel.addEventListener('change', () => { go.disabled = !sel.value; });
+    ov.querySelector('.no').addEventListener('click', () => ov.remove());
+    ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    go.addEventListener('click', async () => {
+      if (!sel.value) return;
+      go.disabled = true; const old = go.textContent; go.textContent = 'Création du PDF…';
+      try { await make(sel.value); } catch (e) { console.error('Copie papier', e); }
+      go.textContent = old; go.disabled = false;
+    });
+  }
+
+  // Lien caché : le « H » de FICHE (en haut à gauche)
+  const memo = document.querySelector('.memo');
+  if (memo && memo.firstChild && memo.firstChild.nodeType === 3 && /FIC(H)E/.test(memo.firstChild.textContent)) {
+    const t = memo.firstChild, i = t.textContent.indexOf('H');
+    const rest = t.splitText(i); rest.textContent = rest.textContent.slice(1);
+    const h = document.createElement('span'); h.id = 'hidPaper'; h.textContent = 'H';
+    memo.insertBefore(h, rest);
+    h.addEventListener('click', openDialog);
+  }
+  window.paperMake = make;      // (tests)
 })();
 </script>
 </body>
