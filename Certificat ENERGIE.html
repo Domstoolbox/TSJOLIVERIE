@@ -1227,7 +1227,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     sig = sig || 3;
     if (x === 0) return '0';
     const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
-    if (e < -3 || e >= sig) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    if (e < -3 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
   const fxs = (x, sig) => fx(x, sig).replace(/ × 10<sup>(.*)<\/sup>/, (m, e) => ' × 10' + sup(e.replace('−', '-')));   // version texte (menus déroulants)
@@ -2162,7 +2162,7 @@ body.locked #npad{display:none!important}
     if (!sig) return String(x).replace('.', ',');
     if (x === 0) return '0';
     const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
-    if (e < -2 || e >= sig + 1) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    if (e < -2 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
 
@@ -2177,6 +2177,10 @@ body.locked #npad{display:none!important}
     clone.querySelectorAll('#part2[hidden]').forEach(e => e.removeAttribute('hidden'));
     clone.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
+        if (corr && inp.type === 'radio' && K.blank && K.blank[inp.name] !== undefined && isOk(inp)) {   // bonne phrase : on y écrit le résultat
+          const lb = inp.closest('label'), bl = lb && lb.querySelector('.blank');
+          if (bl) bl.replaceWith(span('pans ok', K.blank[inp.name]));
+        }
         inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (corr && isOk(inp) ? ' on' : ''), ''));
         return;
       }
@@ -2558,11 +2562,11 @@ body.cert-open{overflow:hidden}
   const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   const PW = 794, PH = 1123, PADX = 36, PADT = 32, FOOT = 46, SAFE = 20;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  function fmtSig(x, sig) {
+  function fmtSig(x, sig) {          // jamais de nombre ambigu : 2050 (3 CS) → 2,05 × 10³ ; 120 → 1,20 × 10²
     if (!sig) return String(x).replace('.', ',');
     if (x === 0) return '0';
     const r = Number(Number(x).toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
-    if (e < -3 || e >= sig + 1) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
+    if (e < -3 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
   const ansHTML = v => Array.isArray(v) ? fmtSig(v[0], v[1]) : String(v);
