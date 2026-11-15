@@ -2356,7 +2356,7 @@ body.cert-open{overflow:hidden}
 (function(){
   const LIBS = ['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
   const load = src => new Promise((ok, ko) => { if ([...document.scripts].some(s => s.src === src)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
-  const PW = 794, PH = 1123, PADX = 36, PADT = 32, FOOT = 46, SAFE = 14;
+  const PW = 794, PH = 1123, PADX = 36, PADT = 32, FOOT = 46, SAFE = 20;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   function fmtSig(x, sig) {
     if (!sig) return String(x).replace('.', ',');
@@ -2426,7 +2426,7 @@ body.cert-open{overflow:hidden}
     .chi{display:inline-flex;align-items:center;white-space:nowrap}
     .blank{display:inline-block;min-width:150px;margin:0 3px;border-bottom:1.5px dotted #6b7385;color:transparent!important;font-size:0!important;height:1.2em;vertical-align:-2px}
     .conv{padding:8px!important}
-    .card.solo .q:not(.block){display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 22px}
+    .card.solo .q:not(.block){display:flex!important;flex-wrap:wrap;align-items:center;gap:4px 18px}
     .card.solo .q:not(.block)>*+*{margin-top:0}
     .card.solo .qcm .choices{flex-direction:row!important;flex-wrap:wrap;gap:3px 18px!important}
     .pans.op{min-width:4em;height:26px;font-size:16px;font-weight:700;margin:0 4px}
@@ -2440,6 +2440,10 @@ body.cert-open{overflow:hidden}
     root.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
         const ok = corr && (inp.type === 'radio' ? K.radio[inp.name] === inp.value : K.box.includes(inp.id));
+        if (ok && inp.type === 'radio' && K.blank && K.blank[inp.name] !== undefined) {   // la bonne phrase : on y écrit le résultat
+          const lb = inp.closest('label'), bl = lb && lb.querySelector('.blank');
+          if (bl) bl.replaceWith(span('pans ok', ansHTML(K.blank[inp.name])));
+        }
         inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (ok ? ' on' : ''), ''));
         return;
       }
@@ -2526,59 +2530,94 @@ body.cert-open{overflow:hidden}
       doc.open();
       doc.write('<!doctype html><html lang="fr" data-theme="light"><head><meta charset="utf-8">' + styles + '<style>' + CSS + '</style></head><body><div id="stage"></div><div id="pages"></div></body></html>');
       doc.close();
-      await new Promise(r => setTimeout(r, 150));
-      try { await Promise.race([doc.fonts.ready, new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
-      // Deux versions des mêmes cartes : copie vierge et corrigé
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      const frames = () => new Promise(r => fr.contentWindow.requestAnimationFrame(() => fr.contentWindow.requestAnimationFrame(r)));
+      // 1) Feuilles de style (polices Google…) réellement chargées dans la page de travail
+      await Promise.all([...doc.querySelectorAll('link[rel="stylesheet"]')].map(l => l.sheet ? 1 : new Promise(r => { l.onload = l.onerror = r; setTimeout(r, 5000); })));
+      // 2) Deux versions des mêmes cartes : copie vierge et corrigé
       const build = corr => { const box = doc.createElement('div'); box.className = 'content'; box.innerHTML = data.html; prepare(box, data.KEY, corr); return cards(doc, box); };
       const C0 = build(false), C1 = build(true);
       C0.forEach((c, i) => { c.el.dataset.k = i; C1[i].el.dataset.k = i; });
       const rows = rowsOf(C0);
+      C1.forEach((c, i) => { c.el.className = C0[i].el.className; });          // même largeur sur le corrigé que sur la copie
       const nQ = C0.filter(c => c.el.querySelector('.badge')).length;
-      const pagesEl = doc.getElementById('pages');
+      // Numérotation Q01, Q02… : fixée après la mise en pages (même numéro sur la copie et le corrigé)
+      const pagesEl = doc.getElementById('pages'), stage = doc.getElementById('stage');
       const head = corr => `<div class="pban"><span>${esc(P.title)} · ${esc(data.label)} · ${nQ} QUESTIONS</span><span class="ver">VERSION ${VER}</span></div>` +
         (corr ? '<div class="pid">CORRIGÉ</div>' :
           '<div class="pid"><span>NOM :<i></i></span><span>PRÉNOM :<i></i></span><div class="l3"><span>CLASSE :<i></i></span><span>DATE :<i></i></span><span class="nt">NOTE :<i></i>/ 20</span></div></div>') +
         '<div class="pins">Coche la ou les bonnes cases et écris tes réponses sur les pointillés, avec le bon nombre de chiffres significatifs quand il est demandé.</div>';
-      // Mise en pages de la copie : une ligne qui ne tient plus passe à la page suivante (une ligne plus courte peut être avancée)
-      const LIMIT = PH - FOOT - SAFE;
-      let pgc = null;
-      const newPage = first => {
-        const pg = doc.createElement('div'); pg.className = 'pg';
-        pg.innerHTML = '<div class="pgc">' + (first ? head(false) : '') + '</div><div class="pgf"></div>';
-        pagesEl.appendChild(pg); pgc = pg.querySelector('.pgc');
+      const rowEl = (r, twins) => { const d = doc.createElement('div'); d.className = 'prow'; r.forEach(c => d.appendChild(twins ? C1[+c.el.dataset.k].el : c.el)); return d; };
+      const headEl = corr => { const d = doc.createElement('div'); d.className = 'pgc'; d.innerHTML = head(corr); return d; };
+      // 3) Tout est d'abord posé hors page : le navigateur charge les vraies polices avant toute mesure
+      stage.style.visibility = 'hidden';
+      [headEl(false), headEl(true)].concat(rows.map(r => rowEl(r, false)), rows.map(r => rowEl(r, true))).forEach(x => stage.appendChild(x));
+      void stage.offsetHeight;
+      try { await Promise.race([doc.fonts.ready, sleep(6000)]); } catch (e) {}
+      await frames();
+      const GAP = 7, TOP = PADT, LIMIT = PH - FOOT - SAFE;
+      // Hauteur réservée pour une ligne = la plus haute de ses deux versions (copie / corrigé)
+      const measure = () => {
+        stage.innerHTML = '';
+        doc.querySelectorAll('.equation').forEach(el => el.style.fontSize = '');
+        const hc = headEl(false), hr = headEl(true); stage.append(hc, hr);
+        const els = rows.map(r => { const a = rowEl(r, false), b = rowEl(r, true); stage.append(a, b); return [a, b]; });
+        // équations sur une ligne
+        stage.querySelectorAll('.equation').forEach(el => { let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize); while (el.scrollWidth > el.clientWidth + 1 && fs > 10) { fs -= 0.5; el.style.fontSize = fs + 'px'; } });
+        return { head: Math.max(hc.getBoundingClientRect().height, hr.getBoundingClientRect().height), rows: els.map(([a, b]) => Math.ceil(Math.max(a.getBoundingClientRect().height, b.getBoundingClientRect().height))) };
       };
-      const fits = () => pgc.getBoundingClientRect().bottom - pgc.parentNode.getBoundingClientRect().top <= LIMIT;
-      const rowEl = r => { const d = doc.createElement('div'); d.className = 'prow'; r.forEach(c => d.appendChild(c.el)); return d; };
-      newPage(true);
-      const pend = rows.slice();
-      while (pend.length) {
-        let el = rowEl(pend[0]); pgc.appendChild(el);
-        if (fits()) { pend.shift(); continue; }
-        el.remove();
-        let placed = false;
-        for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
-          if (pend[s].some(c => c.dep) || pend.slice(0, s).some(r => r.some(c => c.dep && c.sec === pend[s][0].sec))) continue;
-          const e2 = rowEl(pend[s]); pgc.appendChild(e2);
-          if (fits()) { pend.splice(s, 1); placed = true; } else e2.remove();
+      // Plan des pages (en nombres) : une ligne qui ne tient plus passe à la page suivante ; une ligne plus courte peut être avancée,
+      // sauf les questions qui suivent un énoncé (elles restent toujours après lui)
+      const plan = (H, extra) => {
+        const pages = [[]]; let y = TOP + H.head + GAP;
+        const pend = rows.map((r, i) => i);
+        const lim = LIMIT - extra;
+        while (pend.length) {
+          const i = pend[0];
+          if (y + H.rows[i] <= lim) { pages[pages.length - 1].push(i); y += H.rows[i] + GAP; pend.shift(); continue; }
+          let placed = false;
+          for (let s = 1; s < Math.min(pend.length, 4) && !placed; s++) {
+            const j = pend[s], r = rows[j];
+            if (r.some(c => c.dep) || pend.slice(0, s).some(k => rows[k].some(c => c.dep && c.sec === r[0].sec))) continue;
+            if (y + H.rows[j] <= lim) { pages[pages.length - 1].push(j); y += H.rows[j] + GAP; pend.splice(s, 1); placed = true; }
+          }
+          if (!placed) { pages.push([i]); y = TOP + H.rows[i] + GAP; pend.shift(); }
         }
-        if (!placed) { newPage(false); el = rowEl(pend[0]); pgc.appendChild(el); pend.shift(); }
+        return pages;
+      };
+      const render = P0 => {
+        pagesEl.innerHTML = '';
+        const H = measure();
+        stage.innerHTML = '';
+        const pl = plan(H, P0);
+        const mk = (rowsIdx, corr, first, n) => {
+          const pg = doc.createElement('div'); pg.className = 'pg' + (corr ? ' corr' : '');
+          pg.innerHTML = '<div class="pgc">' + (first ? head(corr) : '') + '</div><div class="pgf"></div>';
+          const c = pg.querySelector('.pgc');
+          rowsIdx.forEach(i => { const e = rowEl(rows[i], corr); e.style.minHeight = H.rows[i] + 'px'; c.appendChild(e); });
+          pagesEl.appendChild(pg);
+          return pg;
+        };
+        const copy = pl.map((r, k) => mk(r, false, k === 0));
+        // numérotation dans l'ordre d'affichage, identique sur le corrigé
+        let n = 0; const num = {};
+        copy.forEach(pg => pg.querySelectorAll('.card').forEach(c => { const b = c.querySelector('.badge'); if (b) { n++; b.textContent = 'Q' + String(n).padStart(2, '0'); num[c.dataset.k] = b.textContent; } }));
+        C1.forEach(c => { const b = c.el.querySelector('.badge'); if (b) b.textContent = num[c.el.dataset.k]; });
+        pl.forEach((r, k) => mk(r, true, k === 0));
+        return copy.length;
+      };
+      // Contrôle final : si une carte dépasse quand même (police chargée tardivement…), on recommence avec plus de marge
+      const overflow = () => Math.max(0, ...[...pagesEl.querySelectorAll('.pg')].map(pg => { const t = pg.getBoundingClientRect().top; return Math.max(0, ...[...pg.querySelectorAll('.prow')].map(r => r.getBoundingClientRect().bottom - t)) - LIMIT; }));
+      let half = render(0), extra = 0;
+      for (let k = 0; k < 3; k++) {
+        await frames();
+        const o = overflow();
+        if (o <= 0) break;
+        extra += Math.ceil(o) + 8;
+        half = render(extra);
       }
-      // Numérotation Q01, Q02… dans l'ordre d'affichage (identique sur le corrigé)
-      let n = 0;
-      const num = {};
-      pagesEl.querySelectorAll('.card').forEach(c => { const b = c.querySelector('.badge'); if (b) { n++; b.textContent = 'Q' + String(n).padStart(2, '0'); num[c.dataset.k] = b.textContent; } });
-      C1.forEach(c => { const b = c.el.querySelector('.badge'); if (b) b.textContent = num[c.el.dataset.k]; });
-      // Corrigé : mêmes pages, mêmes cartes, en rouge
-      const copyPages = [...pagesEl.querySelectorAll('.pg')];
-      copyPages.forEach((pg, i) => {
-        const cp = pg.cloneNode(true); cp.classList.add('corr');
-        if (i === 0) { const h = doc.createElement('div'); h.innerHTML = head(true); const c0 = cp.querySelector('.pgc'); [...c0.children].forEach(ch => { if (!ch.classList.contains('prow')) ch.remove(); }); [...h.children].reverse().forEach(x => c0.prepend(x)); }
-        cp.querySelectorAll('.card').forEach(card => { const twin = C1[+card.dataset.k].el.cloneNode(true); card.replaceWith(twin); });
-        pagesEl.appendChild(cp);
-      });
-      // Équations sur une ligne
-      doc.querySelectorAll('.equation').forEach(el => { let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize); while (el.scrollWidth > el.clientWidth + 1 && fs > 10) { fs -= 0.5; el.style.fontSize = fs + 'px'; } });
-      const all = [...pagesEl.querySelectorAll('.pg')], half = copyPages.length;
+      const copyPages = [...pagesEl.querySelectorAll('.pg')].slice(0, half);
+      const all = [...pagesEl.querySelectorAll('.pg')];
       all.forEach((pg, i) => {
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
