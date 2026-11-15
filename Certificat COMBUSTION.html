@@ -2622,6 +2622,11 @@ body.cert-open{overflow:hidden}
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
       });
+      // Impression recto verso : le sujet élève doit avoir un nombre pair de pages (sinon le corrigé commencerait au dos de sa dernière page)
+      if (half % 2 === 1) {
+        const blank = doc.createElement('div'); blank.className = 'pg';
+        all[half - 1].after(blank); all.splice(half, 0, blank);
+      }
       doc.getElementById('stage').remove();
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
