@@ -272,7 +272,8 @@ body.locked #calc{display:none!important}
 #calc.min .ck{display:none}
 @media (min-width:900px){body.calc-open{padding-right:372px}}
 @media (max-width:899px), (max-height:520px){
-  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  #calc{top:max(26px,calc(env(safe-area-inset-top,0px) + 10px));left:max(10px,calc(env(safe-area-inset-left,0px) + 6px));right:max(10px,calc(env(safe-area-inset-right,0px) + 6px));bottom:auto;width:auto;height:auto;max-height:calc(100vh - 36px - env(safe-area-inset-top,0px));max-height:calc(100dvh - 36px - env(safe-area-inset-top,0px));border-radius:16px}
+  #calc .ch .cx{min-width:48px;min-height:40px;margin-right:4px;font-size:1.2rem}
   body.calc-open{padding-bottom:0;padding-right:0}
   #calcMin,#calcFx,#calcKeys{display:none!important}
   #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
@@ -993,6 +994,9 @@ function openCalc(box, btn) {
   if (!el.hidden && CALC.q === box) { closeCalc(); return; }       // 2e clic sur la même icône = fermer
   if (CALC.btn) CALC.btn.classList.remove('on');
   if (typeof window.npadClose === 'function') window.npadClose();   // une seule chose à la fois : la calculatrice remplace le pad
+  // Nouvelle question : la calculatrice repart de zéro (la touche Ans garde le dernier résultat)
+  if (CALC.prevBox !== box) { CALC.expr = ''; CALC.lastExpr = ''; CALC.result = null; CALC.justEval = false; CALC.err = false; }
+  CALC.prevBox = box;
   CALC.q = box; CALC.btn = btn;
   btn.classList.add('on');
   CALC.note = box.querySelectorAll('input.num').length > 1 ? 'La valeur ira dans la case entourée en orange' : '';
@@ -1169,7 +1173,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
 
   let CHECKS = [];
 
-  // ---------- Pénalités : 1 point par envoi en trop (à partir du 2e envoi), pour chaque partie ----------
+  // ---------- Pénalités : 1 point par envoi comportant encore des erreurs, à partir du 2e, pour chaque partie ----------
   // Compteurs gardés si l'élève change de carburant ou clique sur « Tout effacer »
   const SENDS = {p1: 0, p2: 0};
   let done1 = false, done2 = false;               // partie déjà entièrement juste : un nouveau clic ne compte plus
@@ -1512,8 +1516,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   $('content').addEventListener('click', e => {
     if (!e.target.closest || !e.target.closest('#send1')) return;
     const cut = CHECKS.findIndex(q => q.key === 'limitant');
-    if (!done1) countSend('p1');
     const allOk = grade(CHECKS.slice(0, cut), '1', 'Première partie');
+    if (!allOk) countSend('p1');                   // un envoi entièrement juste ne coûte jamais de point
     if (allOk) {
       done1 = true;
       $('part2').hidden = false;
@@ -1523,8 +1527,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   });
   $('send').addEventListener('click', () => {
     if (!CHECKS.length) return;
-    if (!done2) countSend('p2');
     const allOk = grade(CHECKS, '', '');
+    if (!allOk) countSend('p2');                   // un envoi entièrement juste ne coûte jamais de point
     if (allOk) done2 = true;
     // Fiche entièrement juste (et nom + prénom saisis) : certificat de réussite
     if (allOk && $('nom').value.trim() && $('prenom').value.trim() && $('classe').value && typeof window.showCertificate === 'function') window.showCertificate(false);
@@ -1597,34 +1601,45 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   }
 
   function slotMachine() {
+    // Bande « virtuelle » : 4 cases seulement, dont le contenu change pendant la rotation.
+    // (Une très longue bande de ~150 cases devenait parfois blanche pendant le défilement sur téléphone.)
     const ITEM = 76, LOOPS = 6;
     const target = FUELS[Math.floor(Math.random() * FUELS.length)];
-    const order = shuffle(FUELS);
-    const strip = [];
-    for (let k = 0; k < LOOPS; k++) strip.push(...order);
-    const stopAt = strip.length + order.indexOf(target);                // le carburant tiré, après LOOPS tours
-    strip.push(...order, ...order.slice(0, 2));
+    const order = shuffle(FUELS), n = order.length;
+    const at = i => order[((i % n) + n) % n];
+    const stopAt = LOOPS * n + order.indexOf(target);                     // case où s'arrête le carburant tiré
+    const cell = F => `<span class="sn">${F.du.toUpperCase()}</span><span class="sf">${M(F.f)}</span>`;
     const ov = document.createElement('div');
     ov.id = 'slotOv';
     ov.innerHTML = `<div class="slot">
       <div class="slot-lights"></div>
       <div class="slot-title">Tirage au sort du carburant</div>
-      <div class="slot-win"><div class="slot-strip">${strip.map(F => `<div class="slot-item"><span class="sn">${F.du.toUpperCase()}</span><span class="sf">${M(F.f)}</span></div>`).join('')}</div>
+      <div class="slot-win"><div class="slot-strip">${'<div class="slot-item"></div>'.repeat(4)}</div>
         <div class="slot-line l"></div><div class="slot-line r"></div></div>
       <div class="slot-res" aria-live="polite">&nbsp;</div></div>`;
     document.body.appendChild(ov);
-    const st = ov.querySelector('.slot-strip'), res = ov.querySelector('.slot-res');
+    const st = ov.querySelector('.slot-strip'), cells = [...st.children], res = ov.querySelector('.slot-res');
+    let shown = null;
+    const draw = y => {                                                    // y = distance parcourue (px)
+      const r0 = Math.floor(y / ITEM);
+      if (r0 !== shown) {                                                  // nouvelle case en haut : on décale les contenus + « tic »
+        cells.forEach((c, k) => { c.innerHTML = cell(at(r0 + k)); });
+        if (shown !== null) tick();
+        shown = r0;
+      }
+      st.style.transform = `translate3d(0,${-(y - r0 * ITEM)}px,0)`;
+    };
     const end = (stopAt - 1) * ITEM;                                       // 3 lignes visibles : le carburant tiré au milieu
-    const DUR = 5200, t0 = performance.now();
-    const ease = x => { const c1 = 1.2, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };   // ralentit puis petit rebond
-    let last = -1;
+    const OVER = ITEM * 0.35, DUR = 5000, BACK = 380, t0 = performance.now();
+    const easeOut = x => 1 - Math.pow(1 - x, 4);
+    const easeInOut = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    draw(0);
     const frame = now => {
-      const x = Math.min(1, (now - t0) / DUR), y = end * ease(x);
-      st.style.transform = `translateY(${-y}px)`;
-      const idx = Math.floor((y + ITEM / 2) / ITEM);
-      if (idx !== last) { last = idx; tick(); }
-      if (x < 1) { requestAnimationFrame(frame); return; }
-      st.children[stopAt].classList.add('win');
+      const t = now - t0;
+      if (t < DUR) { draw((end + OVER) * easeOut(t / DUR)); requestAnimationFrame(frame); return; }
+      if (t < DUR + BACK) { draw(end + OVER - OVER * easeInOut((t - DUR) / BACK)); requestAnimationFrame(frame); return; }
+      draw(end);
+      cells[1].classList.add('win');
       ov.classList.add('done');
       res.innerHTML = 'Ton carburant : <b>' + target.nom.toUpperCase() + '</b>';
       jackpot();
@@ -2130,7 +2145,10 @@ body.cert-open{overflow:hidden}
 .cert .chero{position:relative;margin-top:22px;border-radius:30px;background:#14263a;color:#fff;padding:30px 34px;height:250px;overflow:hidden}
 .cert .chero .ctag{display:inline-block;border-radius:999px;background:#ff8a1f;color:#1b1206;font-size:12px;font-weight:700;letter-spacing:.14em;padding:6px 14px}
 .cert .chero h1{margin:16px 0 0;font-family:"Archivo Black",Lexend,sans-serif;font-weight:400;font-size:56px;line-height:1.02;letter-spacing:-.005em}
-.cert .chero h1 span{color:#ffb547}
+.cert .chero h1 span{color:var(--hc,#ffb547)}
+.cert .cstars{display:inline-flex;gap:4px;margin-right:12px;vertical-align:-3px}
+.cert .cstars i{font-style:normal;font-size:22px;line-height:1;color:rgba(255,255,255,.18)}
+.cert .cstars i.on{color:#ffc83d}
 .cert .chero p{margin:12px 0 0;font-size:16px;color:#c7d5e4}
 .cert .chero .cflame{position:absolute;right:26px;bottom:-6px;width:210px;height:250px}
 .cert .cto{position:relative;margin-top:26px;font-size:13px;font-weight:700;letter-spacing:.16em;color:#8a97a6}
@@ -2179,6 +2197,26 @@ body.cert-open{overflow:hidden}
     <path d="M130 146 C136 160 150 168 150 186 A20 20 0 0 1 110 186 C110 174 118 168 120 160 C124 168 128 170 130 172Z" fill="#fff3c4"/>
   </svg>`;
 
+  // Niveaux du certificat : félicitations réservées au sans-faute, ton plus mesuré quand la note baisse
+  function certTier(n) {
+    if (n >= 20) return {stars: 3, col: '#ffc83d', tag: "CERTIFICAT D'EXCELLENCE", h1: 'Sans<br><span>faute !</span>',
+      text: (x, fu) => `qui a complété en ligne <b>toute la fiche « La combustion »</b> sur la combustion ${fu}, <b>sans aucune pénalité</b>. Un travail exemplaire : <b>félicitations !</b>`,
+      msg: n => '🎉 Félicitations, c’est un sans-faute ! Note finale : ' + n + '/20'};
+    if (n >= 17) return {stars: 2, col: '#ffb547', tag: 'CERTIFICAT DE RÉUSSITE', h1: 'Très<br><span>bien joué !</span>',
+      text: (x, fu) => `qui a complété en ligne <b>toute la fiche « La combustion »</b> sur la combustion ${fu}, avec seulement quelques hésitations. <b>Très bon travail.</b>`,
+      msg: n => 'Très bien ! Note finale : ' + n + '/20'};
+    if (n >= 14) return {stars: 1, col: '#7cc6ff', tag: 'CERTIFICAT DE VALIDATION', h1: 'Fiche<br><span>validée</span>',
+      text: (x, fu) => `qui a validé en ligne <b>toute la fiche « La combustion »</b> sur la combustion ${fu}, après quelques corrections. C'est un bon résultat ; les notions qui ont posé problème sont à relire.`,
+      msg: n => 'Fiche validée. Note finale : ' + n + '/20'};
+    if (n >= 10) return {stars: 1, col: '#9fb3c8', tag: 'CERTIFICAT DE VALIDATION', h1: 'Fiche<br><span>validée</span>',
+      text: (x, fu) => `qui a validé en ligne <b>toute la fiche « La combustion »</b> sur la combustion ${fu}, après plusieurs essais. Le cours est à revoir avant le prochain test.`,
+      msg: n => 'Fiche validée. Note finale : ' + n + '/20. Pense à revoir le cours.'};
+    return {stars: 0, col: '#c7d5e4', tag: 'ATTESTATION DE FIN DE FICHE', h1: 'Fiche<br><span>terminée</span>',
+      text: (x, fu) => `qui a terminé en ligne <b>toute la fiche « La combustion »</b> sur la combustion ${fu}, après de nombreux essais. La fiche mémo est à refaire pour s'entraîner.`,
+      msg: n => 'Fiche terminée. Note finale : ' + n + '/20. Refais la fiche pour t’entraîner !'};
+  }
+  window.certTier = certTier;
+
   function certNode() {
     const D = window.FICHE_DATA;
     const nom = (document.getElementById('nom').value || '').trim().toLocaleUpperCase('fr-FR');
@@ -2192,6 +2230,9 @@ body.cert-open{overflow:hidden}
     const t0 = window.FICHE_START, t1 = window.FICHE_END || now, day = t0 || t1;
     const NT = typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE() : {note: 20, pen: 0};
     const note = NT.note + '/20';
+    const TR = certTier(NT.note);
+    const fuelTag = `<span class="cfuel">${esc(D.F.du)} · ${formula}</span>`;
+    const stars = [0, 1, 2].map(i => `<i class="${i < TR.stars ? 'on' : ''}">★</i>`).join('');
     const payload = ['FICHE COMBUSTION (' + D.F.nom.toUpperCase() + ')', nom || 'ELEVE', pre || 'Inconnu', cls || 'Sans-Classe', note,
       day.toLocaleDateString('fr-FR'), t0 ? t0.toLocaleTimeString('fr-FR') : '-', t1.toLocaleTimeString('fr-FR'), num].join('\n');
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
@@ -2204,18 +2245,18 @@ body.cert-open{overflow:hidden}
     el.innerHTML = `
       <div class="chead"><img src="${LOGO}" alt="La Joliverie"><span class="cpill">1<sup style="font-size:.7em">ère</sup>&nbsp;STI2D · PHYSIQUE-CHIMIE</span></div>
       <div class="chero">
-        <span class="ctag">CERTIFICAT DE FIN DE FICHE</span>
-        <h1>Fiche<br><span>terminée !</span></h1>
-        <p>Fiche mémo · La combustion</p>
+        <span class="ctag" style="background:${TR.col}">${TR.tag}</span>
+        <h1 style="--hc:${TR.col}">${TR.h1}</h1>
+        <p><span class="cstars">${stars}</span>Fiche mémo · La combustion</p>
         <img class="cflame" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(FLAME)}" alt="">
       </div>
       <div class="cto">DÉCERNÉ À</div>
       <div class="cname">${esc((pre + ' ' + nom).trim()) || '&nbsp;'}</div>
       ${cls ? `<div><span class="ccls">${esc(cls)}</span></div>` : ''}
-      <div class="ctext">qui a complété en ligne <b>toute la fiche « La combustion »</b> et l'a corrigée jusqu'à obtenir toutes les bonnes réponses, sur la combustion <span class="cfuel">${esc(D.F.du)} · ${formula}</span>. Chaque envoi en trop d'une partie retire 1 point à la note finale.</div>
+      <div class="ctext">${TR.text(NT, fuelTag)}</div>
       <div class="ctiles">
         <div class="ctile t1"><b>${note}</b><span>note finale</span></div>
-        <div class="ctile t2"${NT.pen ? ' style="background:#fdecea;color:#c0281f"' : ''}><b>${NT.pen ? '−' + NT.pen + ' pt' + (NT.pen > 1 ? 's' : '') : '0'}</b><span>${NT.pen ? 'de pénalité (envois en trop)' : 'pénalité : aucun envoi en trop'}</span></div>
+        <div class="ctile t2"${NT.pen ? ' style="background:#fdecea;color:#c0281f"' : ''}><b>${NT.pen ? '−' + NT.pen + ' pt' + (NT.pen > 1 ? 's' : '') : '0'}</b><span>${NT.pen ? 'de pénalité (envois avec erreurs)' : 'pénalité'}</span></div>
         <div class="ctile t3"><b>${mins ? mins + ' min' : (nq ? nq + ' questions' : '—')}</b><span>${mins ? 'pour tout compléter' : 'dans la fiche'}</span></div>
       </div>
       <div class="cbot">
@@ -2262,8 +2303,8 @@ body.cert-open{overflow:hidden}
     if (typeof closeCalc === 'function') closeCalc();
     if (ov) ov.remove();
     ov = document.createElement('div');
-    ov.id = 'certOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Certificat de réussite');
-    ov.innerHTML = (teacher ? '' : '<div class="cmsg">Toute la fiche est maintenant juste. Voici ton certificat (note finale : ' + (typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE().note : 20) + '/20).</div>') +
+    ov.id = 'certOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Certificat');
+    ov.innerHTML = (teacher ? '' : '<div class="cmsg">' + certTier(typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE().note : 20).msg(typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE().note : 20) + '</div>') +
       '<div class="cbox"></div><div class="cbtns"><button type="button" class="cdl">Télécharger le certificat (PDF)</button><button type="button" class="ccl">Fermer</button></div>';
     ov.querySelector('.cbox').appendChild(certNode().el);
     document.body.appendChild(ov); document.body.classList.add('cert-open');
