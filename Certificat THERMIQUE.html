@@ -1313,7 +1313,17 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   const penalty = () => Math.max(0, SENDS.p1 - 1) + Math.max(0, SENDS.p2 - 1);
   const noteFinale = () => Math.max(0, 20 - penalty());
   window.FICHE_NOTE = () => ({note: noteFinale(), pen: penalty(), p1: SENDS.p1, p2: SENDS.p2});
+  // Photo des réponses d'une partie : un envoi identique au précédent ne compte pas comme un nouvel essai
+  const LAST = {p1: null, p2: null};
+  function snapshot(part) {
+    const root = document.getElementById('content'), p2 = document.getElementById('part2');
+    return [...root.querySelectorAll('input, select, textarea')].filter(el => (part === 'p2') === !!(p2 && p2.contains(el)))
+      .map(el => (el.id || el.name) + '=' + (el.type === 'checkbox' || el.type === 'radio' ? (el.checked ? el.value || 1 : '') : el.value.trim())).join('|');
+  }
   function countSend(part) {
+    const snap = snapshot(part);
+    if (snap === LAST[part]) return;               // mêmes réponses qu'au dernier envoi : pas de pénalité
+    LAST[part] = snap;
     SENDS[part]++;
     if (SENDS[part] > 1 && typeof window.showPenalty === 'function') window.showPenalty(noteFinale(), penalty());
   }
@@ -2597,8 +2607,9 @@ body.cert-open{overflow:hidden}
     .q.tbl th:first-child,.q.tbl td.data{width:27%}
     .q.tbl td{white-space:normal!important}
     .q.tbl .pans{min-width:0;width:100%}
-    .pans{display:inline-block;box-sizing:border-box;min-width:6.6em;height:24px;line-height:21px;padding:0 6px;border:0;border-bottom:1.5px dotted #6b7385;text-align:center;vertical-align:middle;font-family:var(--f-mono);font-size:12px;white-space:nowrap}
-    .pans.int{min-width:3em}
+    .pans{display:inline-block;box-sizing:border-box;min-width:13em;height:24px;line-height:21px;padding:0 6px;border:0;border-bottom:1.5px dotted #6b7385;text-align:center;vertical-align:middle;font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+    .pans.int{min-width:10em}
+    .pans.coef{min-width:2.6em}
     .pans.word{min-width:11em;font-family:var(--f-body)}
     .pans.exp{min-width:1.8em;height:15px;line-height:13px;font-size:10px;vertical-align:baseline}
     .pans.ok{color:var(--th);font-weight:700;border-bottom-color:var(--th)}
@@ -2645,7 +2656,7 @@ body.cert-open{overflow:hidden}
       }
       const isNum = inp.classList.contains('num'), a = isNum ? K.num[inp.id] : K.word[inp.id];
       const show = corr && a !== undefined;
-      inp.replaceWith(span('pans' + (inp.classList.contains('int') ? ' int' : isNum ? '' : ' word') + (show ? ' ok' : ''), show ? ansHTML(a) : '&nbsp;'));
+      inp.replaceWith(span('pans' + (inp.classList.contains('coef') ? ' int coef' : inp.classList.contains('int') ? ' int' : isNum ? '' : ' word') + (show ? ' ok' : ''), show ? ansHTML(a) : '&nbsp;'));
     });
     root.querySelectorAll('select').forEach(s => {
       const good = (K.selv || {})[s.id];
