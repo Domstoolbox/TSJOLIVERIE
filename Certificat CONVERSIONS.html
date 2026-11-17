@@ -70,7 +70,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 /* En-tête */
 .head{padding:20px clamp(16px,4vw,32px) 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line);font-family:var(--f-head);--ink:var(--head-ink)}
 .head-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.memo{font-size:clamp(1rem,3.2vw,1.45rem);letter-spacing:.01em;color:var(--ink)}
+.memo{display:flex;flex-direction:column;line-height:1.08;font-size:clamp(.95rem,3.1vw,1.35rem);letter-spacing:.01em;color:var(--ink)}
 .memo .r{color:var(--red)}
 .lvl{display:flex;align-items:flex-end;line-height:1;color:var(--ink)}
 .lvl .one{font-size:clamp(2.2rem,6vw,2.9rem);color:var(--blue1);line-height:.8}
@@ -421,19 +421,19 @@ body.no-fuel #sheetBody{filter:blur(7px);pointer-events:none;user-select:none}
 @media (max-width:420px){.cmprow{grid-template-columns:minmax(0,1fr) 3.3em minmax(0,1fr);gap:5px;padding:6px 6px;font-size:.84rem}}
 
 /* ===== Saisies tactiles ===== */
-.w{display:flex;flex-direction:column;gap:8px}
+.tw{display:flex;flex-direction:column;gap:8px}
 .wv{display:flex;flex-direction:column;gap:8px}
 .wlab{font-size:.85rem;color:var(--muted);font-weight:600}
 .wpool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;align-items:center;padding:6px;border:1.5px dashed var(--line);border-radius:10px}
 .wpool .done{color:var(--good);font-weight:700;font-size:.9rem;padding:0 6px}
-.w button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;font-family:var(--f-body);color:var(--ink);cursor:pointer}
+.tw button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;font-family:var(--f-body);color:var(--ink);cursor:pointer}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:6px 12px;border:1.5px solid #9aabbe;border-radius:10px;background:var(--paper);font-size:1rem;font-weight:600;line-height:1.2}
 .chip sub,.pcard sub{font-size:.7em;line-height:0}
 .chip sup,.pcard sup{font-size:.7em;line-height:0}
 .chip.sel{border-color:var(--focus);box-shadow:0 0 0 3px var(--focus);background:var(--accent-soft)}
 .chip.on{border-color:var(--accent);background:var(--accent-soft)}
 .chip .nb,.pcard .nb{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:var(--accent);color:var(--paper);font-size:.8rem;font-weight:800}
-.f-bad.chip,.f-bad.pcard,.f-bad.blk,.f-bad.vd,.f-bad.digits,.f-bad.ev{border-color:var(--bad)!important;box-shadow:0 0 0 2px var(--bad)!important}
+.f-bad.chip,.f-bad.pcard,.f-bad.tblank,.f-bad.vd,.f-bad.digits,.f-bad.ev{border-color:var(--bad)!important;box-shadow:0 0 0 2px var(--bad)!important}
 .wtools{display:flex;flex-wrap:wrap;gap:8px}
 .wbtn{min-height:40px;padding:6px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--soft);font-size:.92rem;font-weight:600}
 .wbtn.big{min-width:48px;min-height:46px;font-size:1.3rem;font-weight:800;padding:0 10px}
@@ -477,9 +477,9 @@ body.no-fuel #sheetBody{filter:blur(7px);pointer-events:none;user-select:none}
 .ebtn{display:inline-flex;gap:8px;margin-left:auto}
 /* Texte à trous */
 .fs{line-height:2.6;font-size:1rem}
-.blk{display:inline-flex;align-items:center;justify-content:center;min-width:6.5em;min-height:38px;padding:2px 10px;margin:0 2px;border:2px dashed #9aabbe;border-radius:9px;background:var(--soft);font-size:.95rem;font-weight:700;vertical-align:middle;line-height:1.2}
-.blk.on{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
-.blk.sel{border-color:var(--focus);box-shadow:0 0 0 3px var(--focus)}
+.tblank{display:inline-flex;align-items:center;justify-content:center;min-width:6.5em;min-height:38px;padding:2px 10px;margin:0 2px;border:2px dashed #9aabbe;border-radius:9px;background:var(--soft);font-size:.95rem;font-weight:700;vertical-align:middle;line-height:1.2}
+.tblank.on{border-style:solid;border-color:var(--accent);background:var(--accent-soft)}
+.tblank.sel{border-color:var(--focus);box-shadow:0 0 0 3px var(--focus)}
 /* Vrai / faux */
 .vdots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;max-width:420px}
 .vd{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:48px;padding:2px 4px;border:2px solid var(--line);border-radius:10px;background:var(--paper);font-weight:800;font-size:1rem;line-height:1.1}
@@ -573,7 +573,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 <div class="sheet">
   <header class="head">
     <div class="head-top">
-      <div class="memo">FICHE <span class="r">MÉMO</span></div>
+      <div class="memo" aria-label="Certification des connaissances"><span class="l1">CERTIFICATION</span><span class="r">DES CONNAISSANCES</span></div>
       <div class="lvl" aria-label="Première STI2D"><span class="one">1</span><span class="rest"><span class="ere">ère</span><span class="sti">STI<span class="r">2D</span></span></span></div>
     </div>
     <h1><span>CONVERSIONS</span> <select id="fuel" aria-label="Récipient tiré au sort"></select></h1>
@@ -606,7 +606,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Avant de calculer, convertis dans les unités légales !</span><span>Domstoolbox · Version du 17/11/2026 - 19h29</span></footer>
+  <footer class="foot"><span>Avant de calculer, convertis dans les unités légales !</span><span>Domstoolbox · Version du 17/11/2026 - 21h51</span></footer>
 </div>
 
 <script>
@@ -1531,7 +1531,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     },
     fill(id, S) {
       const cur = UI[id];
-      const parts = S.sent.map(t => t.replace(/\{(\d)\}([.,;:!?]?)/g, (m, j, pn) => { const v = hv(id + '-' + j); return `<span class="nw"><button type="button" id="${id}-c-${j}" class="blk${v ? ' on' : ''}${+cur === +j ? ' sel' : ''}" data-act="f-b" data-j="${j}">${v || '…'}</button>${pn}</span>`; }));
+      const parts = S.sent.map(t => t.replace(/\{(\d)\}([.,;:!?]?)/g, (m, j, pn) => { const v = hv(id + '-' + j); return `<span class="nw"><button type="button" id="${id}-c-${j}" class="tblank${v ? ' on' : ''}${+cur === +j ? ' sel' : ''}" data-act="f-b" data-j="${j}">${v || '…'}</button>${pn}</span>`; }));
       return parts.map(p => `<div class="fs">${p}</div>`).join('') + `<div class="wlab">${cur !== undefined ? 'Touche le mot qui convient :' : 'Touche une case, puis le mot qui convient :'}</div><div class="wpool bank">` + S.bank.map(w => `<button type="button" class="chip" data-act="f-w" data-word="${w}">${w}</button>`).join('') + `</div>`;
     },
     vf(id, S) {
@@ -1639,7 +1639,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     const C = [], KEY = {num: {}, sel: {}, radio: {}, box: [], word: {}, hint: {}, selv: {}, paper: {}};
     const WS = {};
     const rq = (name, good) => () => { const r = radio(name); return {st: !r ? 'todo' : r === good ? 'ok' : 'bad'}; };
-    const W = (id, spec, inputs, extraCls) => { WS[id] = spec; return `<div class="w w-${spec.t}${extraCls ? ' ' + extraCls : ''}" data-w="${id}">${inputs.map(hid).join('')}<div class="wv"></div></div>`; };
+    const W = (id, spec, inputs, extraCls) => { WS[id] = spec; return `<div class="tw w-${spec.t}${extraCls ? ' ' + extraCls : ''}" data-w="${id}">${inputs.map(hid).join('')}<div class="wv"></div></div>`; };
     const P = (id, b, c) => { KEY.paper[id] = {b, c}; };
     const pb = (txt, cls) => `<span class="pans${cls ? ' ' + cls : ''}">${txt === undefined ? '&nbsp;' : txt}</span>`;     // case de la copie papier
     const pk = (txt, cls) => `<span class="pans ok${cls ? ' ' + cls : ''}">${txt}</span>`;                                // case du corrigé
@@ -1790,7 +1790,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       const tab = c => `<div class="ppairs"><div class="ppc">${PL.map((l, i) => `<div class="ppi"><b>${'ABCDE'[i]}</b> ${l.html}</div>`).join('')}</div><div class="ppc">${PR.map((r, i) => `<div class="ppi"><b>${i + 1}</b> ${r.html}</div>`).join('')}</div></div>` +
         `<div class="pplinks">${PL.map((l, i) => `<span class="ppl"><b>${'ABCDE'[i]}</b> ↔ ${c ? pk(String(PR.findIndex(r => r.k === 'r' + l.k.slice(1)) + 1), 'int') : pb(undefined, 'int')}</span>`).join('')}</div>`;
       P('pa', `<p class="pnote">Écris en face de chaque lettre le numéro de la carte égale.</p>` + tab(false), `<p class="pnote">Écris en face de chaque lettre le numéro de la carte égale.</p>` + tab(true));
-      const vfp = c => `<div class="pvf">` + VF.map(x => `<div class="pvrow"><span>${x.html}</span><span class="pvc"><span class="pck${c && x.a === 'V' ? ' on' : ''}"></span> Vrai <span class="pck${c && x.a === 'F' ? ' on' : ''}"></span> Faux</span></div>`).join('') + `</div>`;
+      // Petit tableau comme dans un manuel : n°, affirmation, puis les cases Vrai / Faux juste à côté
+      const vfp = c => `<table class="pvt"><thead><tr><th></th><th class="l">Affirmation</th><th>Vrai</th><th>Faux</th></tr></thead><tbody>` +
+        VF.map((x, j) => `<tr><td class="n">${j + 1}</td><td class="l">${x.html}</td><td><span class="pck${c && x.a === 'V' ? ' on' : ''}"></span></td><td><span class="pck${c && x.a === 'F' ? ' on' : ''}"></span></td></tr>`).join('') + `</tbody></table>`;
       P('vf', vfp(false), vfp(true));
     }
 
@@ -2394,7 +2396,7 @@ body.locked #npad{display:none!important}
 </script>
 <script>
 /* ===== Liens cachés : PDF de la fiche =====
-   « x » de Domstoolbox (en bas) : fiche CORRIGÉE ; « O » de MÉMO (en haut) : fiche VIERGE à imprimer.
+   « x » de Domstoolbox (en bas) : fiche CORRIGÉE ; « D » de DES CONNAISSANCES (en haut) : fiche VIERGE à imprimer.
    Actifs seulement quand un récipient est tiré. Même récipient et mêmes valeurs tirées que la fiche à l'écran.
    Mise en page A4 dédiée : chaque question est un bloc entier (jamais coupé d'une page à l'autre). */
 (function(){
@@ -2483,7 +2485,14 @@ body.locked #npad{display:none!important}
     .pvrow{display:flex;justify-content:space-between;gap:12px;align-items:center}
     .pvc{white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
     .pfs{line-height:2.2}
-    .pfs .pans{min-width:8em;width:auto}
+    .pfs .pans{min-width:9.5em!important;width:auto!important}
+    .pcell .pans{min-width:9em!important;width:85%!important}
+    .pvt{border-collapse:collapse;width:auto;margin:2px 0}
+    .pvt th{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5f6b7a;padding:2px 12px 4px;text-align:center;border-bottom:1.5px solid #9aa6b4}
+    .pvt th.l,.pvt td.l{text-align:left}
+    .pvt td{padding:4px 12px;border-bottom:1px solid #d5dbe3;text-align:center;vertical-align:middle}
+    .pvt td.n{font-weight:800;color:#1f4e79;padding-left:4px;padding-right:4px}
+    .pvt td .pck{display:inline-block;vertical-align:middle}
     .pcv{display:inline-block;margin:3px 0;font-family:var(--f-mono);font-weight:700;line-height:2}
     .pcv .pans{width:auto}
     .pex{display:inline-block;font-family:var(--f-mono);font-weight:700;line-height:2.2}
@@ -2547,7 +2556,7 @@ body.locked #npad{display:none!important}
   function blocks(doc, sheet, D, corr) {
     const mk = (html, cls) => { const d = doc.createElement('div'); d.className = 'blk' + (cls ? ' ' + cls : ''); if (html) d.innerHTML = html; return d; };
     const out = [];
-    const head = mk(`<div class="ph1"><div class="ph1-top"><span class="pill memo">FICHE MÉMO</span><span class="pill lvl">1<span class="ere">ère</span>&nbsp;STI2D</span></div>
+    const head = mk(`<div class="ph1"><div class="ph1-top"><span class="pill memo">CERTIFICATION DES CONNAISSANCES</span><span class="pill lvl">1<span class="ere">ère</span>&nbsp;STI2D</span></div>
       <div class="ph1-title">Conversions <span>${D.F.nom}</span></div>
       <div class="ph1-sub">Chiffres significatifs, écriture des nombres, unités, conversions et pavé droit</div></div>`);
     out.push(head);
@@ -2633,7 +2642,7 @@ body.locked #npad{display:none!important}
   const foot = document.querySelector('.foot span:last-child');
   if (foot) foot.innerHTML = foot.innerHTML.replace('Domstoolbox', 'Domstoolbo<span id="hidCorr">x</span>');
   const memo = document.querySelector('.memo .r');
-  if (memo) memo.innerHTML = memo.innerHTML.replace(/O$/, '<span id="hidBlank">O</span>');
+  if (memo) memo.innerHTML = memo.innerHTML.replace(/^D/, '<span id="hidBlank">D</span>');
   const hc = document.getElementById('hidCorr'), hb = document.getElementById('hidBlank');
   if (hc) hc.addEventListener('click', () => make(true));
   if (hb) hb.addEventListener('click', () => make(false));
@@ -2884,7 +2893,7 @@ body.cert-open{overflow:hidden}
 })();
 </script>
 <style>
-/* ===== Copie papier : fenêtre de choix (lien caché « H » de FICHE) ===== */
+/* ===== Copie papier : fenêtre de choix (lien caché « R » de CERTIFICATION) ===== */
 #paperOv{position:fixed;inset:0;z-index:130;background:rgba(10,20,30,.5);display:flex;align-items:center;justify-content:center;padding:16px}
 #paperOv .box{background:var(--paper);color:var(--ink);border-radius:14px;padding:18px;width:100%;max-width:400px;box-shadow:0 14px 40px rgba(0,0,0,.35);font-family:var(--f-body);display:flex;flex-direction:column;gap:12px}
 #paperOv h3{margin:0;font-size:1.05rem}
@@ -2896,7 +2905,7 @@ body.cert-open{overflow:hidden}
 #paperOv .no{background:transparent;border:1px solid var(--line);color:var(--muted)}
 </style>
 <script>
-/* ===== Lien caché « H » de FICHE : copie papier à imprimer + corrigé spécifique (même version), présentation du TEST 009 =====
+/* ===== Lien caché « R » de CERTIFICATION : copie papier à imprimer + corrigé spécifique (même version), présentation du TEST 009 =====
    Le professeur choisit le convertisseur / carburant ; les valeurs sont tirées au hasard pour cette copie.
    Un seul PDF : la copie (bleu, cadre NOM / PRÉNOM / CLASSE / DATE / NOTE) puis son corrigé (rouge, même numéro de VERSION). */
 (function(){
@@ -3000,7 +3009,13 @@ body.cert-open{overflow:hidden}
     .pvrow{display:flex;justify-content:space-between;gap:12px;align-items:center}
     .pvc{white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
     .pfs{line-height:2}
-    .pfs .pans{min-width:7em}
+    .pfs .pans{min-width:9em}
+    .pvt{border-collapse:collapse;width:auto;margin:2px 0}
+    .pvt th{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5f6b7a;padding:2px 12px 4px;text-align:center;border-bottom:1.5px solid #9aa6b4}
+    .pvt th.l,.pvt td.l{text-align:left}
+    .pvt td{padding:4px 12px;border-bottom:1px solid #d5dbe3;text-align:center;vertical-align:middle}
+    .pvt td.n{font-weight:800;color:#1f4e79;padding-left:4px;padding-right:4px}
+    .pvt td .pck{display:inline-block;vertical-align:middle}
     .pcv{display:inline-block;margin:2px 0;font-weight:700;line-height:1.9}
     .pex{display:inline-block;font-weight:700;line-height:2.1}
     .pord{display:flex;flex-wrap:wrap;gap:4px 18px}
@@ -3011,8 +3026,8 @@ body.cert-open{overflow:hidden}
     .cmprow{display:flex!important;align-items:center;justify-content:center;gap:6px;font-weight:700;border:0!important;padding:0!important}
     .cubegrid{display:grid;grid-template-columns:repeat(4,auto);gap:4px 14px;justify-content:start}
     .cubegrid .pans{min-width:6em}
-    .pgrid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
-    .pcell .pans{min-width:4.5em}
+    .pgrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+    .pcell .pans{min-width:10em}
     .pcv{white-space:nowrap}
     .cvgrid .pans.wide{min-width:5.5em}
     .equation{font-size:1.6rem!important}`;
@@ -3275,13 +3290,13 @@ body.cert-open{overflow:hidden}
     });
   }
 
-  // Lien caché : le « H » de FICHE (en haut à gauche)
-  const memo = document.querySelector('.memo');
-  if (memo && memo.firstChild && memo.firstChild.nodeType === 3 && /FIC(H)E/.test(memo.firstChild.textContent)) {
-    const t = memo.firstChild, i = t.textContent.indexOf('H');
+  // Lien caché : le « R » de CERTIFICATION (en haut à gauche)
+  const l1 = document.querySelector('.memo .l1');
+  if (l1 && l1.textContent.indexOf('R') > 0) {
+    const t = l1.firstChild, i = t.textContent.indexOf('R');
     const rest = t.splitText(i); rest.textContent = rest.textContent.slice(1);
-    const h = document.createElement('span'); h.id = 'hidPaper'; h.textContent = 'H';
-    memo.insertBefore(h, rest);
+    const h = document.createElement('span'); h.id = 'hidPaper'; h.textContent = 'R';
+    l1.insertBefore(h, rest);
     h.addEventListener('click', openDialog);
   }
   window.paperMake = make;      // (tests)
