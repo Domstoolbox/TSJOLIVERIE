@@ -403,7 +403,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 11/11/2026 - 08h16</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 17/11/2026 - 09h08</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -702,6 +702,7 @@ document.getElementById('accessCodeBtn').onclick = () => {
 
   if (n) {
     codeValidated = true;
+    wakeWanted = true; keepAwake();   // écran maintenu allumé pendant le test
     adminMode = admin;
     netExempt = exempt;
     usedCode = entered || 'SANS CODE';
@@ -1155,6 +1156,22 @@ window.addEventListener('online', checkNetworkState);
 window.addEventListener('offline', checkNetworkState);
 window.addEventListener('DOMContentLoaded', checkNetworkState);
 
+// ===== Écran maintenu allumé pendant le test (évite la mise en veille, qui déclencherait l'alarme) =====
+// Screen Wake Lock : Chrome/Android, Safari iOS 16.4+, page en https. Sans effet (et sans erreur) ailleurs.
+// Le verrou est rendu par le navigateur dès que la page est cachée : on le redemande au retour et à chaque toucher.
+let wakeLock = null, wakeWanted = false;
+async function keepAwake() {
+  if (!wakeWanted || testSubmitted || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+  if (wakeLock && !wakeLock.released) return;
+  try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { wakeLock = null; }
+}
+function releaseAwake() {
+  wakeWanted = false;
+  try { if (wakeLock && !wakeLock.released) wakeLock.release(); } catch (e) {}
+  wakeLock = null;
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) keepAwake(); });
+['pointerdown', 'touchstart', 'keydown'].forEach(t => document.addEventListener(t, keepAwake, { capture: true, passive: true }));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && detectorsArmed() && !testSubmitted && !fraudTriggered) {
     triggerFraud("Changement d'onglet ou réduction de la fenêtre");
@@ -2090,6 +2107,7 @@ document.getElementById('val').onclick = () => {
   }
   document.getElementById('idmsg').hidden = true;
   testSubmitted = true;
+  releaseAwake();   // la veille normale du téléphone revient
   validatedAt = new Date();
   logIncident("Test soumis et validé par l'élève");
   let sc = 0;
