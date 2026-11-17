@@ -518,6 +518,9 @@ select.f-todo + .pw{border-color:var(--todo);box-shadow:0 0 0 1px var(--todo)}
 .trow.cp .tl{min-width:4.2em}
 .trow.cp{gap:4px 8px}
 
+/* Schémas dessinés pour le téléphone : ils ne s'étalent pas sur grand écran */
+.chrono.sch{max-width:480px;margin:0 auto}
+
 /* ===== Machine à sous ===== */
 #slotOv{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,12,20,.82);backdrop-filter:blur(3px);transition:opacity .6s}
 #slotOv.out{opacity:0}
@@ -1411,14 +1414,16 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
 
     // Schéma compression / dépression
     const CD = ['C', 'D', 'C', 'D', 'C', 'D', 'C', 'D'];
-    const svgCD = `<svg class="chrono" viewBox="0 0 640 128" role="img" aria-label="Schéma de la propagation d'une onde sonore, avec des zones C et des zones D">
-      <text x="60" y="13" font-size="12.5" font-weight="700" fill="#1d4ed8">Propagation d'une onde sonore</text>
-      <path d="M262 9H322" stroke="#1d4ed8" stroke-width="2.5"/><path d="M330 9L319 3.5V14.5Z" fill="#1d4ed8"/>
-      <path d="M8 38h22l18-14v58l-18-14H8z" fill="#5b6b82"/>
-      ${CD.map((c, i) => { const x = 60 + [0, 34, 104, 138, 208, 242, 312, 346][i], w = c === 'C' ? 34 : 70; return `<rect x="${x}" y="30" width="${w}" height="40" fill="${c === 'C' ? '#4a78c2' : '#cfe0f5'}"/><text x="${x + w / 2}" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="${c === 'C' ? '#fff' : '#1c2333'}">${c}</text>`; }).join('')}
-      <path d="M164 70V100M268 70V100" stroke="#7a3fbf" stroke-width="1.5" stroke-dasharray="3 2"/>
-      <path d="M175 92H257" stroke="#7a3fbf" stroke-width="2.5"/><path d="M164 92L176 86V98Z M268 92L256 86V98Z" fill="#7a3fbf"/>
-      <text x="216" y="118" text-anchor="middle" font-size="13" font-weight="800" fill="#7a3fbf">?</text>
+    // Schéma lisible sur téléphone (viewBox étroit, textes ≥ 15 unités)
+    const XC = [0, 24, 72, 96, 144, 168, 216, 240], x0cd = 58;
+    const svgCD = `<svg class="chrono sch" viewBox="0 0 370 150" role="img" aria-label="Schéma de la propagation d'une onde sonore, avec des zones C et des zones D">
+      <text x="10" y="20" font-size="15" font-weight="700" fill="#1d4ed8">Propagation d'une onde sonore</text>
+      <path d="M244 15H300" stroke="#1d4ed8" stroke-width="3"/><path d="M310 15L298 9V21Z" fill="#1d4ed8"/>
+      <path d="M6 50h20l20-16v64l-20-16H6z" fill="#5b6b82"/>
+      ${CD.map((c, i) => { const x = x0cd + XC[i], w = c === 'C' ? 24 : 48; return `<rect x="${x}" y="40" width="${w}" height="52" fill="${c === 'C' ? '#4a78c2' : '#cfe0f5'}"/><text x="${x + w / 2}" y="72" text-anchor="middle" font-size="17" font-weight="800" fill="${c === 'C' ? '#fff' : '#1c2333'}">${c}</text>`; }).join('')}
+      <path d="M${x0cd + 72} 92V126M${x0cd + 144} 92V126" stroke="#7a3fbf" stroke-width="1.6" stroke-dasharray="3 3"/>
+      <path d="M${x0cd + 84} 116H${x0cd + 132}" stroke="#7a3fbf" stroke-width="2.6"/><path d="M${x0cd + 72} 116L${x0cd + 85} 109V123Z M${x0cd + 144} 116L${x0cd + 131} 109V123Z" fill="#7a3fbf"/>
+      <text x="${x0cd + 108}" y="144" text-anchor="middle" font-size="18" font-weight="800" fill="#7a3fbf">?</text>
     </svg>`;
     h += `<section><h2>Le schéma de l'onde sonore</h2>
       <div class="chronobox">${svgCD}</div>
@@ -1449,13 +1454,16 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     const T1 = R1 / c, T2 = R2 / c, LAM = c / fq, PER = 1 / fq;
     const rr = x => x < 10 ? dec(x, 2) : dec(x, 1);                              // distances avec 3 chiffres significatifs
     // Schéma : source au centre, deux auditeurs sur deux cercles
-    const svg = `<svg class="chrono" viewBox="0 0 640 220" role="img" aria-label="Source sonore au centre ; ${N1} à la distance R1 et ${N2} à la distance R2">
-      <circle cx="320" cy="110" r="52" fill="none" stroke="#7d8798" stroke-dasharray="5 5"/><circle cx="320" cy="110" r="100" fill="none" stroke="#7d8798" stroke-dasharray="5 5"/>
-      <circle cx="320" cy="110" r="9" fill="#1c2333"/><text x="320" y="137" text-anchor="middle" font-size="11">source</text>
-      <path d="M320 110L357 73" stroke="#1c2333" stroke-width="2"/><text x="330" y="84" font-size="12" font-weight="700">R₁</text>
-      <path d="M320 110L229 70" stroke="#1c2333" stroke-width="2"/><text x="266" y="83" font-size="12" font-weight="700">R₂</text>
-      <g transform="translate(357,73)"><circle r="6" fill="#e76f00"/><text x="10" y="-6" font-size="12" font-weight="700">${N1}</text></g>
-      <g transform="translate(229,70)"><circle r="6" fill="#2f6fd6"/><text x="-10" y="-6" font-size="12" font-weight="700" text-anchor="end">${N2}</text></g>
+    // Source au centre, deux auditeurs sur deux cercles (lisible sur téléphone)
+    const cxs = 185, cys = 150, r1s = 45, r2s = 125;
+    const p1 = [cxs, cys - r1s], p2 = [cxs - r2s * Math.SQRT1_2, cys - r2s * Math.SQRT1_2];
+    const svg = `<svg class="chrono sch" viewBox="0 0 370 296" role="img" aria-label="Source sonore au centre ; ${N1} à la distance R1 et ${N2} à la distance R2">
+      <circle cx="${cxs}" cy="${cys}" r="${r1s}" fill="none" stroke="#7d8798" stroke-width="1.5" stroke-dasharray="6 5"/><circle cx="${cxs}" cy="${cys}" r="${r2s}" fill="none" stroke="#7d8798" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <circle cx="${cxs}" cy="${cys}" r="8" fill="#1c2333"/><text x="${cxs}" y="${cys + 30}" text-anchor="middle" font-size="15">source</text>
+      <path d="M${cxs} ${cys}V${p1[1]}" stroke="#e76f00" stroke-width="2.5"/><text x="${cxs + 9}" y="${cys - 14}" font-size="16" font-weight="800" fill="#e76f00">R₁</text>
+      <path d="M${cxs} ${cys}L${p2[0].toFixed(1)} ${p2[1].toFixed(1)}" stroke="#2f6fd6" stroke-width="2.5"/><text x="${((cxs + p2[0]) / 2 - 14).toFixed(1)}" y="${((cys + p2[1]) / 2 + 20).toFixed(1)}" font-size="16" font-weight="800" fill="#2f6fd6" text-anchor="middle">R₂</text>
+      <circle cx="${p1[0]}" cy="${p1[1]}" r="7" fill="#e76f00"/><text x="${p1[0]}" y="${p1[1] - 13}" font-size="16" font-weight="700" text-anchor="middle">${N1}</text>
+      <circle cx="${p2[0].toFixed(1)}" cy="${p2[1].toFixed(1)}" r="7" fill="#2f6fd6"/><text x="${(p2[0] - 10).toFixed(1)}" y="${(p2[1] - 12).toFixed(1)}" font-size="16" font-weight="700" text-anchor="end">${N2}</text>
     </svg>`;
     h += `<div id="part2" hidden>`;
     h += `<section><h2>Le son ${F.du}</h2>
@@ -2740,6 +2748,10 @@ body.cert-open{overflow:hidden}
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
       });
+      // Schémas : taille fixée en pixels (sinon le rendu en image les dessine à une autre échelle et les coupe)
+      // (centrage par flex : html2canvas décale les SVG centrés par « margin: auto »)
+      pagesEl.querySelectorAll('svg').forEach(sv => { if (getComputedStyle(sv).marginLeft !== '0px' && sv.parentElement) { sv.style.margin = '0'; sv.parentElement.style.display = 'flex'; sv.parentElement.style.justifyContent = 'center'; } });
+      pagesEl.querySelectorAll('svg').forEach(sv => { const r = sv.getBoundingClientRect(); if (r.width && r.height) { sv.setAttribute('width', r.width.toFixed(1)); sv.setAttribute('height', r.height.toFixed(1)); sv.style.width = r.width + 'px'; sv.style.height = r.height + 'px'; } });
       // Titre et pied de page toujours sur une seule ligne : la taille des caractères se réduit si besoin
       pagesEl.querySelectorAll('.pban>span:first-child, .pgf>span:first-child').forEach(el => {
         let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);

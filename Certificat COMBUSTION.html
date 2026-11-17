@@ -2662,6 +2662,10 @@ body.cert-open{overflow:hidden}
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
       });
+      // Schémas : taille fixée en pixels (sinon le rendu en image les dessine à une autre échelle et les coupe)
+      // (centrage par flex : html2canvas décale les SVG centrés par « margin: auto »)
+      pagesEl.querySelectorAll('svg').forEach(sv => { if (getComputedStyle(sv).marginLeft !== '0px' && sv.parentElement) { sv.style.margin = '0'; sv.parentElement.style.display = 'flex'; sv.parentElement.style.justifyContent = 'center'; } });
+      pagesEl.querySelectorAll('svg').forEach(sv => { const r = sv.getBoundingClientRect(); if (r.width && r.height) { sv.setAttribute('width', r.width.toFixed(1)); sv.setAttribute('height', r.height.toFixed(1)); sv.style.width = r.width + 'px'; sv.style.height = r.height + 'px'; } });
       // Titre et pied de page toujours sur une seule ligne : la taille des caractères se réduit si besoin
       pagesEl.querySelectorAll('.pban>span:first-child, .pgf>span:first-child').forEach(el => {
         let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);

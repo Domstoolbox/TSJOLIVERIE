@@ -525,6 +525,9 @@ input.num.coef{width:2.6em!important;min-width:0!important;text-align:center;pad
 @media (max-width:640px){ .eqline .eqn{font-size:.92rem} .eqline input.num.coef{width:2.2em!important} }
 .choices label:has(.eqn){align-items:center}
 
+/* Schémas dessinés pour le téléphone : ils ne s'étalent pas sur grand écran */
+.chrono.sch{max-width:480px;margin:0 auto}
+
 /* ===== Machine à sous ===== */
 #slotOv{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,12,20,.82);backdrop-filter:blur(3px);transition:opacity .6s}
 #slotOv.out{opacity:0}
@@ -1466,27 +1469,33 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     const lab = side => { const k = E[side].k; if (pac) return k === 'H2' ? 'H₂(g) arrive' : 'O₂(g) de l’air arrive'; return 'électrode ' + (/^[aeiouyéè]/i.test(nm(k)) ? 'd’' : 'de ') + nm(k); };
     const sol = side => { const k = E[side].k; if (pac) return ''; return 'solution d’' + HALF[k].ox[0][2]; };
     const col = side => { const k = E[side].k; return {Zn: '#8d8f94', Cu: '#d7782b', Ag: '#c9ced6', Mg: '#b9bcc4', Al: '#aeb4bd', Fe: '#6e6259', Ni: '#a7a294', Pb: '#5f6670', H2: '#2f6fd6', O2: '#7a3fbf'}[k] || '#888'; };
-    const svg = pac ? `<svg class="chrono" viewBox="0 0 640 230" role="img" aria-label="Schéma de principe de la pile à combustible : électrode A à gauche, électrode B à droite, résistance R">
-        <path d="M150 70V30H490V70" fill="none" stroke="#1c2333" stroke-width="3"/><rect x="290" y="18" width="60" height="24" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="320" y="35" text-anchor="middle" font-size="14" font-weight="700">R</text>
-        <rect x="140" y="70" width="360" height="130" fill="#fbe3cc" stroke="#1c2333" stroke-width="2"/>
-        <rect x="140" y="70" width="22" height="130" fill="${col('A')}"/><rect x="478" y="70" width="22" height="130" fill="${col('B')}"/>
-        <text x="320" y="128" text-anchor="middle" font-size="12">Électrolyte qui ne laisse</text><text x="320" y="144" text-anchor="middle" font-size="12">passer que des ions H⁺</text>
-        <text x="70" y="120" text-anchor="middle" font-size="12">${lab('A')}</text><path d="M60 140H130" stroke="#1c2333" stroke-width="2" marker-end="url(#ar)"/>
-        <text x="572" y="120" text-anchor="middle" font-size="12">${lab('B')}</text><path d="M580 140H510" stroke="#1c2333" stroke-width="2" marker-end="url(#ar)"/>
-        ${E.A.k === 'O2' ? '<path d="M130 172H60" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arw)"/><text x="70" y="192" text-anchor="middle" font-size="12" fill="#1d4ed8">H₂O(ℓ) rejetée</text>'
-          : '<path d="M510 172H580" stroke="#1d4ed8" stroke-width="2" marker-end="url(#arw)"/><text x="572" y="192" text-anchor="middle" font-size="12" fill="#1d4ed8">H₂O(ℓ) rejetée</text>'}
-        <text x="151" y="222" text-anchor="middle" font-size="14" font-weight="800">Électrode A</text><text x="489" y="222" text-anchor="middle" font-size="14" font-weight="800">Électrode B</text>
-        <defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d4ed8"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1c2333"/></marker></defs></svg>`
-      : `<svg class="chrono" viewBox="0 0 640 250" role="img" aria-label="Schéma de principe de la pile : électrode A à gauche, électrode B à droite, pont salin et résistance R">
-        <path d="M175 60V24H465V60" fill="none" stroke="#1c2333" stroke-width="3"/><rect x="290" y="12" width="60" height="24" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="320" y="29" text-anchor="middle" font-size="14" font-weight="700">R</text>
-        <rect x="97" y="130" width="156" height="83" fill="#e6e9ef"/><rect x="387" y="130" width="156" height="83" fill="#d6ecf5"/>
-        <path d="M95 110V215H255V110M385 110V215H545V110" fill="none" stroke="#1c2333" stroke-width="2.5"/>
-        <path d="M228 180V88H412V180" fill="none" stroke="#1c2333" stroke-width="16" stroke-linejoin="round"/><path d="M228 181V88H412V181" fill="none" stroke="#f3ead2" stroke-width="11" stroke-linejoin="round"/>
-        <text x="320" y="78" text-anchor="middle" font-size="11">pont salin</text>
-        <rect x="160" y="60" width="30" height="130" fill="${col('A')}" stroke="#1c2333"/><rect x="450" y="60" width="30" height="130" fill="${col('B')}" stroke="#1c2333"/>
-        <text x="152" y="98" text-anchor="end" font-size="11.5">${lab('A')}</text><text x="488" y="98" text-anchor="start" font-size="11.5">${lab('B')}</text>
-        <text x="175" y="232" text-anchor="middle" font-size="11">${sol('A')}</text><text x="465" y="232" text-anchor="middle" font-size="11">${sol('B')}</text>
-        <text x="175" y="248" text-anchor="middle" font-size="13" font-weight="800">Électrode A</text><text x="465" y="248" text-anchor="middle" font-size="13" font-weight="800">Électrode B</text></svg>`;
+    // Schémas lisibles sur téléphone (viewBox étroit, textes ≥ 15 unités)
+    const arr = (x1, x2, y, c) => `<path d="M${x1} ${y}H${x2 - Math.sign(x2 - x1) * 10}" stroke="${c}" stroke-width="2.5"/><path d="M${x2} ${y}L${x2 - Math.sign(x2 - x1) * 12} ${y - 6}V${y + 6}Z" fill="${c}"/>`;
+    const gasLab = (side, x) => { const k = E[side].k;
+      return k === 'H2' ? `<text x="${x}" y="108" font-size="15" text-anchor="middle">H₂(g)</text><text x="${x}" y="126" font-size="15" text-anchor="middle">arrive</text>`
+        : `<text x="${x}" y="90" font-size="15" text-anchor="middle">O₂(g)</text><text x="${x}" y="108" font-size="15" text-anchor="middle">de l’air</text><text x="${x}" y="126" font-size="15" text-anchor="middle">arrive</text>`; };
+    const o2Left = E.A.k === 'O2';
+    const svg = pac ? `<svg class="chrono sch" viewBox="0 0 370 252" role="img" aria-label="Schéma de principe de la pile à combustible : électrode A à gauche, électrode B à droite, résistance R">
+        <path d="M104 70V30H160M210 30H266V70" fill="none" stroke="#1c2333" stroke-width="2.5"/><rect x="160" y="18" width="50" height="24" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="185" y="36" text-anchor="middle" font-size="16" font-weight="800">R</text>
+        <rect x="95" y="70" width="180" height="130" fill="#fbe3cc" stroke="#1c2333" stroke-width="2"/>
+        <rect x="95" y="70" width="18" height="130" fill="${col('A')}"/><rect x="257" y="70" width="18" height="130" fill="${col('B')}"/>
+        <text x="185" y="118" text-anchor="middle" font-size="15">Électrolyte qui</text><text x="185" y="136" text-anchor="middle" font-size="15">ne laisse passer</text><text x="185" y="154" text-anchor="middle" font-size="15">que des ions H⁺</text>
+        ${gasLab('A', 46)}${arr(10, 88, 140, '#1c2333')}
+        ${gasLab('B', 324)}${arr(360, 282, 140, '#1c2333')}
+        ${o2Left ? arr(88, 10, 172, '#1d4ed8') + '<text x="46" y="192" font-size="15" text-anchor="middle" fill="#1d4ed8">H₂O(ℓ)</text><text x="46" y="210" font-size="15" text-anchor="middle" fill="#1d4ed8">rejetée</text>'
+          : arr(282, 360, 172, '#1d4ed8') + '<text x="324" y="192" font-size="15" text-anchor="middle" fill="#1d4ed8">H₂O(ℓ)</text><text x="324" y="210" font-size="15" text-anchor="middle" fill="#1d4ed8">rejetée</text>'}
+        <text x="104" y="232" text-anchor="middle" font-size="16" font-weight="800">Électrode A</text><text x="266" y="232" text-anchor="middle" font-size="16" font-weight="800">Électrode B</text></svg>`
+      : `<svg class="chrono sch" viewBox="0 0 370 296" role="img" aria-label="Schéma de principe de la pile : électrode A à gauche, électrode B à droite, pont salin et résistance R">
+        <path d="M110 58V23H160M210 23H260V58" fill="none" stroke="#1c2333" stroke-width="2.5"/><rect x="160" y="11" width="50" height="24" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="185" y="29" text-anchor="middle" font-size="16" font-weight="800">R</text>
+        <rect x="22" y="130" width="146" height="88" fill="#e6e9ef"/><rect x="202" y="130" width="146" height="88" fill="#d6ecf5"/>
+        <path d="M20 110V220H170V110M200 110V220H350V110" fill="none" stroke="#1c2333" stroke-width="2.5"/>
+        <path d="M148 176V88H222V176" fill="none" stroke="#1c2333" stroke-width="16" stroke-linejoin="round"/><path d="M148 177V88H222V177" fill="none" stroke="#f3ead2" stroke-width="11" stroke-linejoin="round"/>
+        <text x="185" y="72" text-anchor="middle" font-size="15">pont salin</text>
+        <rect x="98" y="58" width="24" height="132" fill="${col('A')}" stroke="#1c2333" stroke-width="1.5"/><rect x="248" y="58" width="24" height="132" fill="${col('B')}" stroke="#1c2333" stroke-width="1.5"/>
+        <text x="92" y="88" text-anchor="end" font-size="15" font-weight="700">${nm(E.A.k)}</text><text x="278" y="88" font-size="15" font-weight="700">${nm(E.B.k)}</text>
+        <text x="95" y="242" text-anchor="middle" font-size="15">solution</text><text x="95" y="260" text-anchor="middle" font-size="15">${sol('A').replace(/^solution /, '')}</text>
+        <text x="275" y="242" text-anchor="middle" font-size="15">solution</text><text x="275" y="260" text-anchor="middle" font-size="15">${sol('B').replace(/^solution /, '')}</text>
+        <text x="95" y="286" text-anchor="middle" font-size="16" font-weight="800">Électrode A</text><text x="275" y="286" text-anchor="middle" font-size="16" font-weight="800">Électrode B</text></svg>`;
     const data = pac ? 'M<sub>H</sub> = 1,0 g/mol ; M<sub>O</sub> = 16,0 g/mol' :
       `M<sub>${F.an}</sub> = ${dec(HA.M, 1)} g/mol ; M<sub>${F.ca}</sub> = ${dec(HC.M, 1)} g/mol`;
     h += `<div id="part2" hidden>`;
@@ -2822,6 +2831,10 @@ body.cert-open{overflow:hidden}
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
       });
+      // Schémas : taille fixée en pixels (sinon le rendu en image les dessine à une autre échelle et les coupe)
+      // (centrage par flex : html2canvas décale les SVG centrés par « margin: auto »)
+      pagesEl.querySelectorAll('svg').forEach(sv => { if (getComputedStyle(sv).marginLeft !== '0px' && sv.parentElement) { sv.style.margin = '0'; sv.parentElement.style.display = 'flex'; sv.parentElement.style.justifyContent = 'center'; } });
+      pagesEl.querySelectorAll('svg').forEach(sv => { const r = sv.getBoundingClientRect(); if (r.width && r.height) { sv.setAttribute('width', r.width.toFixed(1)); sv.setAttribute('height', r.height.toFixed(1)); sv.style.width = r.width + 'px'; sv.style.height = r.height + 'px'; } });
       // Titre et pied de page toujours sur une seule ligne : la taille des caractères se réduit si besoin
       pagesEl.querySelectorAll('.pban>span:first-child, .pgf>span:first-child').forEach(el => {
         let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);

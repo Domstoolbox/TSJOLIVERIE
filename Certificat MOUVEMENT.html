@@ -514,6 +514,9 @@ select.f-todo + .pw{border-color:var(--todo);box-shadow:0 0 0 1px var(--todo)}
 .dtab.mv td{white-space:nowrap}
 @media (max-width:640px){ .dtab.mv tbody tr{grid-template-columns:repeat(4,minmax(0,1fr))!important} }
 
+/* Schémas dessinés pour le téléphone : ils ne s'étalent pas sur grand écran */
+.chrono.sch{max-width:480px;margin:0 auto}
+
 /* ===== Machine à sous ===== */
 #slotOv{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,12,20,.82);backdrop-filter:blur(3px);transition:opacity .6s}
 #slotOv.out{opacity:0}
@@ -1284,7 +1287,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       case 'basket': return `<rect x="${x - 3}" y="${t + hp * .1}" width="6" height="${hp * .9}" fill="${ink}"/><rect x="${x - 2}" y="${t}" width="${w * .6}" height="${hp * .28}" fill="#fff" stroke="${ink}" stroke-width="2"/><ellipse cx="${x + w * .45}" cy="${t + hp * .3}" rx="9" ry="3" fill="none" stroke="#e76f00" stroke-width="3"/>`;
       case 'pylone': return `<path d="M${x} ${t}L${L} ${base}M${x} ${t}L${R} ${base}M${x - w * .17} ${t + hp * .33}H${x + w * .17}M${x - w * .33} ${t + hp * .66}H${x + w * .33}M${x - w * .17} ${t + hp * .33}L${x + w * .33} ${t + hp * .66}M${x + w * .17} ${t + hp * .33}L${x - w * .33} ${t + hp * .66}" stroke="${ink}" stroke-width="2.5" fill="none"/>`;
       case 'rugby': return `<path d="M${L} ${t}V${base}M${R} ${t}V${base}M${L} ${base - hp * .3}H${R}" stroke="${ink}" stroke-width="5" fill="none"/>`;
-      case 'stop': { const r = w * .42, cy = t + r; return `<rect x="${x - 3}" y="${cy}" width="6" height="${base - cy}" fill="${ink}"/><polygon points="${[0, 1, 2, 3, 4, 5, 6, 7].map(i => { const an = Math.PI / 8 + i * Math.PI / 4; return (x + r * Math.cos(an)).toFixed(1) + ',' + (cy + r * Math.sin(an)).toFixed(1); }).join(' ')}" fill="#d62828"/><text x="${x}" y="${cy + 4}" font-size="${(r * .55).toFixed(1)}" font-weight="800" fill="#fff" text-anchor="middle">STOP</text>`; }
+      case 'stop': { const r = w * .42, cy = t + r; return `<rect x="${x - 3}" y="${cy}" width="6" height="${base - cy}" fill="${ink}"/><polygon points="${[0, 1, 2, 3, 4, 5, 6, 7].map(i => { const an = Math.PI / 8 + i * Math.PI / 4; return (x + r * Math.cos(an)).toFixed(1) + ',' + (cy + r * Math.sin(an)).toFixed(1); }).join(' ')}" fill="#d62828"/><path d="M${x - r * .5} ${cy}H${x + r * .5}" stroke="#fff" stroke-width="${(r * .22).toFixed(1)}"/>`; }
       case 'borne': return `<rect x="${x - w * .3}" y="${t + 6}" width="${w * .6}" height="${hp - 6}" fill="#fff" stroke="${ink}" stroke-width="2"/><rect x="${x - w * .3}" y="${t}" width="${w * .6}" height="14" rx="6" fill="#d62828"/>`;
       default: return `<rect x="${L}" y="${t}" width="${w}" height="${hp}" fill="#cfd8e3" stroke="${ink}" stroke-width="2"/>` +
         [0, 1, 2, 3, 4, 5].map(i => [0, 1].map(j => `<rect x="${L + 5 + j * (w / 2)}" y="${t + 6 + i * hp / 6.4}" width="${w / 2 - 10}" height="${hp / 10}" fill="#7ea6d8"/>`).join('')).join('');
@@ -1414,13 +1417,18 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     let h = '';
     // Dessin du relevé des positions (comme sur la fiche 020) : points à l'échelle des distances, sur une droite
     const CUM = D.reduce((a, d) => (a.push(a[a.length - 1] + d), a), [0]);
-    const W1 = 680, sc1 = (W1 - 110) / CUM[7], y1 = 74;
-    const pos = CUM.map(c => 40 + c * sc1);
-    const svg1 = `<svg class="chrono" viewBox="0 0 ${W1} 128" role="img" aria-label="Relevé des positions M0 à M7 ${F.du}, de gauche à droite">
-      <text x="40" y="18" font-size="12" font-weight="700" fill="#1d4ed8">sens du déplacement</text>${arrowH(40, 230, 28, '#1d4ed8', false, 3)}
-      <path d="M40 ${y1}H${W1 - 30}" stroke="#9aa3b2" stroke-width="2"/>
-      ${pos.map((x, k) => `<circle cx="${x.toFixed(1)}" cy="${y1}" r="5" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${y1 + (k % 2 ? -12 : 24)}" font-size="13" font-weight="700" text-anchor="middle" fill="#1c2333">M${k}</text>`).join('')}
-      <text x="40" y="${y1 + 44}" font-size="11" fill="#b42318" font-weight="700">origine : M0 (t = 0 ms)</text>
+    // Dessin lisible sur téléphone : viewBox étroit, textes ≥ 15 unités ; étiquettes alternées dessus / dessous
+    const W1 = 370, X0 = 22, sc1 = (W1 - 2 * X0) / CUM[7], y1 = 88;
+    const pos = CUM.map(c => X0 + c * sc1);
+    // étiquette « Mk » si elle a la place, sinon le seul numéro k (la légende indique « point Mk »)
+    const minGap = Math.min(...pos.slice(2).map((x, k) => x - pos[k]));
+    const lblM = k => minGap >= 30 ? `M<tspan baseline-shift="sub" font-size="12">${k}</tspan>` : String(k);
+    const svg1 = `<svg class="chrono sch" viewBox="0 0 ${W1} ${minGap >= 30 ? 160 : 186}" role="img" aria-label="Relevé des positions M0 à M7 ${F.du}, de gauche à droite">
+      <text x="${X0}" y="20" font-size="15" font-weight="700" fill="#1d4ed8">sens du déplacement</text>${arrowH(X0 + 172, X0 + 238, 15, '#1d4ed8', false, 3)}
+      <path d="M${X0 - 8} ${y1}H${W1 - 8}" stroke="#9aa3b2" stroke-width="2"/>
+      ${pos.map((x, k) => `<circle cx="${x.toFixed(1)}" cy="${y1}" r="4" fill="#1c2333"/><text x="${x.toFixed(1)}" y="${y1 + (k % 2 ? -20 : 28)}" font-size="16" font-weight="700" text-anchor="middle" fill="#1c2333">${lblM(k)}</text>`).join('')}
+      <text x="${X0}" y="${y1 + 56}" font-size="15" fill="#b42318" font-weight="700">origine : M<tspan baseline-shift="sub" font-size="11">0</tspan> (t = 0 ms)</text>
+      ${minGap >= 30 ? '' : `<text x="${X0}" y="${y1 + 82}" font-size="15" fill="#4b5468">le numéro k repère le point M<tspan baseline-shift="sub" font-size="11">k</tspan></text>`}
     </svg>`;
     // =================== PARTIE 1 : fiche 020 ===================
     h += `<section><h2>Le relevé des positions ${F.du}</h2>
@@ -1453,18 +1461,24 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       <div class="result" id="result1" hidden><div class="score" id="score1"></div><div class="who" id="who1"></div><ul id="result-list1"></ul></div>`;
 
     // =================== PARTIE 2 : fiche 022 ===================
-    const W = 700, x0 = 40, xr = W - 80, sx = (xr - 70 - x0) / XI[5], yb = 128, hp = 96;
+    // Chronographe lisible sur téléphone : objet de référence à droite, lettres au-dessus (ou dessous si trop serrées), cotes AB…AF en escalier
+    const W = 380, x0 = 76, xr = 330, hp = 84, yb = 128, xEnd = 268, sx = (xEnd - x0) / XI[5];
     const px = XI.map(x => x0 + x * sx);
-    const svg = `<svg class="chrono" viewBox="0 0 ${W} 238" role="img" aria-label="Chronographe ${F.du} : positions A à F de gauche à droite, origine en A, et ${ref[0]}">
-      <text x="${x0}" y="18" font-size="12" font-weight="700" fill="#1d4ed8">sens du déplacement</text>${arrowH(x0, x0 + 190, 28, '#1d4ed8', false, 3)}
-      ${arrowH(x0, xr - 50, yb, '#9aa3b2', false, 2)}
-      ${px.map((x, k) => `<circle cx="${x.toFixed(1)}" cy="${yb}" r="5.5" fill="#fff" stroke="#1c2333" stroke-width="2.5"/><text x="${x.toFixed(1)}" y="${yb - 12}" font-size="14" font-weight="700" text-anchor="middle" fill="#1c2333">${LBL[k]}</text>`).join('')}
-      <text x="${x0}" y="${yb + 20}" font-size="11" fill="#b42318" font-weight="700" text-anchor="middle">origine</text>
-      ${px.slice(1).map((x, k) => arrowH(x0, x, yb + 32 + k * 15, '#6b7385', true, 1.2) + `<text x="${(x + 6).toFixed(1)}" y="${yb + 36 + k * 15}" font-size="10.5" font-weight="700" fill="#4b5468">A${LBL[k + 1]}</text>`).join('')}
+    const below = px.map((x, k) => k > 0 && x - px[k - 1] < 18 && !(k > 1 && x - px[k - 1] < 18 && px[k - 1] - px[k - 2] < 18 && false));
+    for (let k = 1; k < 6; k++) if (below[k] && below[k - 1]) below[k] = false;
+    const cy0 = yb + 46, cdy = 22;
+    const ow = hp * 0.62;
+    const svg = `<svg class="chrono sch" viewBox="0 0 ${W} ${cy0 + 4 * cdy + 66}" role="img" aria-label="Chronographe ${F.du} : positions A à F de gauche à droite, origine en A, et ${ref[0]}">
+      <text x="10" y="20" font-size="15" font-weight="700" fill="#1d4ed8">sens du déplacement</text>${arrowH(182, 250, 15, '#1d4ed8', false, 3)}
+      ${arrowH(x0, xEnd + 18, yb, '#9aa3b2', false, 2)}
+      <text x="${x0 - 12}" y="${yb + 5}" font-size="15" fill="#b42318" font-weight="700" text-anchor="end">origine</text>
+      ${px.map((x, k) => `<circle cx="${x.toFixed(1)}" cy="${yb}" r="4.5" fill="#1c2333"/><text x="${x.toFixed(1)}" y="${below[k] ? yb + 26 : yb - 13}" font-size="17" font-weight="800" text-anchor="middle" fill="#1c2333">${LBL[k]}</text>`).join('')}
+      ${px.slice(1).map((x, k) => arrowH(x0, x, cy0 + k * cdy, '#6b7385', true, 1.5) + `<text x="${(x + 7).toFixed(1)}" y="${cy0 + k * cdy + 5}" font-size="15" font-weight="700" fill="#4b5468">A${LBL[k + 1]}</text>`).join('')}
+      <path d="M${x0} ${yb + 8}V${cy0 + 4 * cdy + 6}" stroke="#6b7385" stroke-width="1.2" stroke-dasharray="3 3"/>
       ${refDraw(ref[3], xr, yb, hp)}
-      <path d="M${xr + 44} ${yb - hp}V${yb}" stroke="#b42318" stroke-width="1.6"/><path d="M${xr + 40} ${yb - hp + 7}L${xr + 44} ${yb - hp}L${xr + 48} ${yb - hp + 7}M${xr + 40} ${yb - 7}L${xr + 44} ${yb}L${xr + 48} ${yb - 7}" fill="none" stroke="#b42318" stroke-width="1.6"/>
-      <text x="${xr}" y="${yb + 20}" font-size="11" font-weight="700" fill="#1c2333" text-anchor="middle">${ref[1].replace('’', "'")}</text>
-      <text x="${xr}" y="${yb + 34}" font-size="10.5" fill="#b42318" text-anchor="middle">hauteur : ${t1h(HILL)} cm ⇔ ${t1h(H)} m</text>
+      <path d="M${xr - ow / 2 - 12} ${yb - hp}V${yb}" stroke="#b42318" stroke-width="1.8"/><path d="M${xr - ow / 2 - 16} ${yb - hp + 8}L${xr - ow / 2 - 12} ${yb - hp}L${xr - ow / 2 - 8} ${yb - hp + 8}M${xr - ow / 2 - 16} ${yb - 8}L${xr - ow / 2 - 12} ${yb}L${xr - ow / 2 - 8} ${yb - 8}" fill="none" stroke="#b42318" stroke-width="1.8"/>
+      <text x="10" y="${cy0 + 4 * cdy + 36}" font-size="15" font-weight="700" fill="#1c2333">${ref[1].replace('’', "'")} (à droite) :</text>
+      <text x="10" y="${cy0 + 4 * cdy + 57}" font-size="15" fill="#b42318">hauteur ${t1h(HILL)} cm sur l'illustration ⇔ ${t1h(H)} m</text>
     </svg>`;
     h += `<div id="part2" hidden>`;
     h += `<section><h2>Le chronographe ${F.du}</h2>
@@ -2772,6 +2786,10 @@ body.cert-open{overflow:hidden}
         const corr = i >= half, k = corr ? i - half + 1 : i + 1;
         pg.querySelector('.pgf').innerHTML = `<span>${esc(P.title)} — ${esc(data.label)} — VERSION ${VER}${corr ? ' — <b style="color:#b42318">CORRIGÉ</b>' : ''}</span><span>Page ${k} / ${half}</span>`;
       });
+      // Schémas : taille fixée en pixels (sinon le rendu en image les dessine à une autre échelle et les coupe)
+      // (centrage par flex : html2canvas décale les SVG centrés par « margin: auto »)
+      pagesEl.querySelectorAll('svg').forEach(sv => { if (getComputedStyle(sv).marginLeft !== '0px' && sv.parentElement) { sv.style.margin = '0'; sv.parentElement.style.display = 'flex'; sv.parentElement.style.justifyContent = 'center'; } });
+      pagesEl.querySelectorAll('svg').forEach(sv => { const r = sv.getBoundingClientRect(); if (r.width && r.height) { sv.setAttribute('width', r.width.toFixed(1)); sv.setAttribute('height', r.height.toFixed(1)); sv.style.width = r.width + 'px'; sv.style.height = r.height + 'px'; } });
       // Titre et pied de page toujours sur une seule ligne : la taille des caractères se réduit si besoin
       pagesEl.querySelectorAll('.pban>span:first-child, .pgf>span:first-child').forEach(el => {
         let fs = parseFloat(fr.contentWindow.getComputedStyle(el).fontSize);
