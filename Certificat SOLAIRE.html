@@ -600,7 +600,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>La lumière peut se propager dans le vide spatial !</span><span>Domstoolbox · Novembre 2026</span></footer>
+  <footer class="foot"><span>La lumière peut se propager dans le vide spatial !</span><span>Domstoolbox · Version du 17/11/2026 - 09h21</span></footer>
 </div>
 
 <script>
@@ -703,6 +703,24 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }, true);
 
   // ----- Changement d'onglet / de fenêtre / d'application -----
+  // ===== Écran maintenu allumé pendant la fiche (évite la mise en veille, qui déclencherait l'alarme) =====
+  // Screen Wake Lock : Chrome/Android, Safari iOS 16.4+, page en https. Sans effet (et sans erreur) ailleurs.
+  // Le verrou est rendu par le navigateur dès que la page est cachée : on le redemande au retour et à chaque toucher.
+  let wakeLock = null, wakeWanted = false;
+  async function keepAwake() {
+    if (!wakeWanted || window.FICHE_DONE || !('wakeLock' in navigator) || document.visibilityState !== 'visible') return;
+    if (wakeLock && !wakeLock.released) return;
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { wakeLock = null; }
+  }
+  function releaseAwake() {
+    wakeWanted = false;
+    try { if (wakeLock && !wakeLock.released) wakeLock.release(); } catch (e) {}
+    wakeLock = null;
+  }
+  window.startAwake = () => { wakeWanted = true; keepAwake(); };   // appelé quand l'identité est validée
+  window.releaseAwake = releaseAwake;                              // appelé quand le certificat est obtenu
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) keepAwake(); });
+  ['pointerdown', 'touchstart', 'keydown'].forEach(t => document.addEventListener(t, keepAwake, { capture: true, passive: true }));
   document.addEventListener('visibilitychange', () => { if (document.hidden) triggerFraud("Changement d'onglet ou réduction de la fenêtre"); });
   // Page intégrée dans une autre page : un clic en dehors du cadre n'est pas de la triche -> on suit la position du pointeur
   const IN_FRAME = (() => { try { return window.self !== window.top; } catch(e) { return true; } })();
@@ -1775,6 +1793,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     $('ident').classList.add('locked');
     go.classList.add('ok');
     go.innerHTML = '<p>✔ Identité validée</p>';
+    if (typeof window.startAwake === 'function') window.startAwake();   // écran maintenu allumé pendant la fiche
     document.body.classList.remove('no-id');
     $('sheetBody').inert = document.body.classList.contains('no-fuel');
   });
@@ -2392,6 +2411,7 @@ body.cert-open{overflow:hidden}
   window.showCertificate = function (teacher) {
     if (!window.FICHE_DATA) return;
     if (!teacher) { window.FICHE_DONE = true; window.FICHE_END = window.FICHE_END || new Date(); }   // fiche réussie : le téléchargement ne déclenche pas l'alarme
+    if (!teacher && typeof window.releaseAwake === 'function') window.releaseAwake();   // la veille normale du téléphone revient
     if (typeof closeCalc === 'function') closeCalc();
     if (ov) ov.remove();
     ov = document.createElement('div');
