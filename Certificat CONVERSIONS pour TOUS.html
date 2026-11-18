@@ -451,7 +451,7 @@ body.no-fuel #sheetBody{filter:blur(7px);pointer-events:none;user-select:none}
 .bin .bt{font-weight:800;font-size:.9rem;text-transform:uppercase;letter-spacing:.03em;color:var(--accent)}
 .bin .bc{display:flex;flex-wrap:wrap;gap:6px}
 /* Paires */
-.pairs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 18px}
+.pairs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 14px;align-items:stretch}
 .pcol{display:flex;flex-direction:column;gap:8px}
 .pcard{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:6px 10px;border:2px solid #9aabbe;border-radius:12px;background:var(--paper);font-size:1.05rem;font-weight:700;font-family:var(--f-mono)!important}
 .pcard.on{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 12%,var(--paper))}
@@ -521,6 +521,11 @@ svg.gauge{max-width:360px}
 #slotOv .slot-item .sn{overflow-wrap:anywhere;min-width:0}
 #slotOv .slot-item .sf{flex:none;font-size:1.25em!important;color:inherit}
 @media (max-width:480px){#slotOv .slot-item{padding:0 26px!important;font-size:.95rem!important}}
+.pcard .pn{display:block}
+.pcard .ps{display:block;font-size:.78em;font-weight:600;color:var(--muted);margin-top:1px}
+.pcard span{text-align:center}
+.pcard.pl{font-family:var(--f-body)!important;font-size:.98rem;padding:6px 6px}
+.pcard.pl .ps{font-family:var(--f-mono)}
 
 /* ===== Machine à sous ===== */
 #slotOv{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,12,20,.82);backdrop-filter:blur(3px);transition:opacity .6s}
@@ -608,7 +613,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Avant de calculer, convertis dans les unités légales !</span><span>Domstoolbox · Version du 17/11/2026 - 21h51</span></footer>
+  <footer class="foot"><span>Avant de calculer, convertis dans les unités légales !</span><span>Domstoolbox · Version du 18/11/2026 - 06h01</span></footer>
 </div>
 
 <script>
@@ -1388,11 +1393,13 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     ['1 hm = 100 m', '1 hm = 1 000 m']
   ].map(p => p.map(t => t.replace(/(\d) (\d)/g, '$1' + NN + '$2').replace(/(\d) (?=[a-zµ])/g, '$1' + NB)));
   // Égalités à relier
-  const PAIRS = [['1 L', '1 dm³'], ['1 cL', '10 mL'], ['1 hL', '100 L'], ['1 q', '100 kg'], ['1 h', '3' + NN + '600 s']].map(p => p.map(t => t.replace(/(\d) (?=[a-zA-Z])/g, '$1' + NB)));
+  // À gauche : le nom de l'unité en entier, puis son symbole ; à droite : des symboles. (Jamais de quintal « q » : inconnu des élèves.)
+  const PAIRS = [['1 litre', 'L', '1 dm³'], ['1 centilitre', 'cL', '10 mL'], ['1 hectolitre', 'hL', '100 L'], ['1 tonne', 't', '1' + NN + '000 kg'], ['1 heure', 'h', '3' + NN + '600 s']]
+    .map(([n, u, r]) => [`<span class="pn">${n.replace(' ', NB)}</span> <span class="ps">(${u})</span>`, r.replace(/(\d) (?=[a-zA-Z])/g, '$1' + NB)]);
   // Tri des unités
   // Le litre est une unité de volume : les deux familles (m³… et L…) vont dans le même bac
   const BINS_U = [['lon', 'Longueur', ['km', 'hm', 'dam', 'dm', 'mm']], ['sur', 'Surface', ['m²', 'km²', 'cm²', 'dm²', 'mm²']],
-    ['vol', 'Volume', ['m³', 'dm³', 'cm³', 'mm³'], ['L', 'mL', 'cL', 'dL', 'hL']], ['mas', 'Masse', ['kg', 'g', 'mg', 'q', 'hg']]];
+    ['vol', 'Volume', ['m³', 'dm³', 'cm³', 'mm³'], ['L', 'mL', 'cL', 'dL', 'hL']], ['mas', 'Masse', ['kg', 'g', 'mg', 't', 'hg']]];
   // Expression littérale ou valeur numérique
   const LIT = ['E = P × Δt', 'v = d / Δt', 'P = U × I', 'U = R × I', 'η = P<sub>2</sub> / P<sub>1</sub>', 'F = m × g'];
   const NUMV = ['Δt = 45 min', 'd = 3,2 km', 'U = 230 V', 'P = 1' + NN + '500 W', 'I = 0,25 A', 'm = 2,50 kg'];
@@ -1510,9 +1517,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     pairs(id, S) {
       const cur = UI[id] || null, linkOf = l => hv(id + '-' + l), owner = r => S.L.find(l => linkOf(l.k) === r);
       const col = l => PAL[S.L.findIndex(x => x.k === l) % PAL.length];
-      const left = S.L.map(l => { const r = linkOf(l.k); return `<button type="button" id="${id}-c-${l.k}" class="pcard${r ? ' on' : ''}${cur && cur.s === 'L' && cur.k === l.k ? ' sel' : ''}" data-act="p-l" data-k="${l.k}"${r ? ` style="--pc:${col(l.k)}"` : ''}>${r ? `<b class="nb">${S.L.findIndex(x => x.k === l.k) + 1}</b>` : ''}<span>${l.html}</span></button>`; }).join('');
-      const right = S.R.map(r => { const o = owner(r.k); return `<button type="button" class="pcard${o ? ' on' : ''}${cur && cur.s === 'R' && cur.k === r.k ? ' sel' : ''}" data-act="p-r" data-k="${r.k}"${o ? ` style="--pc:${col(o.k)}"` : ''}>${o ? `<b class="nb">${S.L.findIndex(x => x.k === o.k) + 1}</b>` : ''}<span>${r.html}</span></button>`; }).join('');
-      return `<div class="wlab">${cur ? 'Touche maintenant sa partenaire dans l’autre colonne.' : 'Touche une carte, puis sa partenaire. Touche une paire formée pour la défaire.'}</div><div class="pairs"><div class="pcol">${left}</div><div class="pcol">${right}</div></div>`;
+      const left = S.L.map(l => { const r = linkOf(l.k); return `<button type="button" id="${id}-c-${l.k}" class="pcard pl${r ? ' on' : ''}${cur && cur.s === 'L' && cur.k === l.k ? ' sel' : ''}" data-act="p-l" data-k="${l.k}"${r ? ` style="--pc:${col(l.k)}"` : ''}>${r ? `<b class="nb">${S.L.findIndex(x => x.k === l.k) + 1}</b>` : ''}<span>${l.html}</span></button>`; });
+      const right = S.R.map(r => { const o = owner(r.k); return `<button type="button" class="pcard${o ? ' on' : ''}${cur && cur.s === 'R' && cur.k === r.k ? ' sel' : ''}" data-act="p-r" data-k="${r.k}"${o ? ` style="--pc:${col(o.k)}"` : ''}>${o ? `<b class="nb">${S.L.findIndex(x => x.k === o.k) + 1}</b>` : ''}<span>${r.html}</span></button>`; });
+      return `<div class="wlab">${cur ? 'Touche maintenant sa partenaire dans l’autre colonne.' : 'Touche une carte, puis sa partenaire. Touche une paire formée pour la défaire.'}</div><div class="pairs">${S.L.map((_, i) => left[i] + right[i]).join('')}</div>`;   // une ligne = une carte de gauche + une de droite (toujours alignées)
     },
     comma(id, S) {
       const v = hv(id), k = v === '' ? 0 : +v, e = S.p + k, s = S.D;
