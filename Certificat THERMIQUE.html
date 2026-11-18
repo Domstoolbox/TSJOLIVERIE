@@ -595,7 +595,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 18/11/2026 - 11h01</span></footer>
+  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 18/11/2026 - 18h55</span></footer>
 </div>
 
 <script>
@@ -1569,7 +1569,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       if (!v) return {st:'todo'};
       return goods.includes(v) ? {st:'ok'} : {st:'bad', bad:[id]};
     };
-    const n3 = (id, val) => () => numsQ([[id, val, 3, 0.006]]);
+    const n3 = (id, val, alt) => () => numsQ([[id, val, 3, 0, alt]]);       // arrondi strict à 3 CS (alt : calcul à partir des résultats précédents de l'élève)
+    const e3A = () => prev('el', EL) + prev('ep', EP);
     // Partie 1
     C.push({key:'brule', name:'Ce qui brûle', check: rq('brule', 'cbt')});
     C.push({key:'o2f', name:'La formule du dioxygène', check: rq('o2f', 'O2')});
@@ -1588,7 +1589,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'e1expr', name:'L’expression littérale de E₁', check: rq('e1expr', 'ok')});
     C.push({key:'e1val', name:'L’application numérique de E₁', check: n3('e1', E1)});
     C.push({key:'phr1', name:'La petite phrase', check: rq('phr1', 'ok')});
-    C.push({key:'p1val', name:'La question bonus (puissance de chauffe)', check: n3('p1', P1)});
+    C.push({key:'p1val', name:'La question bonus (puissance de chauffe)', check: n3('p1', P1, () => prev('e1', E1) * 1e6 / (T1 * 60))});
     // Partie 2
     C.push({key:'interne', name:'Le mot à compléter', check: wq('interne', ['interne'])});
     C.push({key:'formt', name:'L’énergie pour changer la température', check: rq('formt', 'ok')});
@@ -1597,11 +1598,11 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     C.push({key:'elval', name:'L’application numérique de E₁', check: n3('el', EL)});
     C.push({key:'epexpr', name:'L’expression littérale de E₂', check: rq('epexpr', 'ok')});
     C.push({key:'epval', name:'L’application numérique de E₂', check: n3('ep', EP)});
-    C.push({key:'e3val', name:'L’énergie totale E₃', check: n3('e3', E3)});
+    C.push({key:'e3val', name:'L’énergie totale E₃', check: n3('e3', E3, e3A)});
     C.push({key:'bA', name:'Bonus A : expression de E₃', check: rq('bA', 'ok')});
     C.push({key:'bB', name:'Bonus B : expression du pouvoir calorifique', check: rq('bB', 'ok')});
-    C.push({key:'bC', name:'Bonus C : valeur du pouvoir calorifique', check: n3('pcx', PCX)});
-    C.push({key:'bD', name:'Bonus D : puissance de chauffe', check: n3('pb', PB)});
+    C.push({key:'bC', name:'Bonus C : valeur du pouvoir calorifique', check: n3('pcx', PCX, () => prev('e3', E3, e3A) / MC)});
+    C.push({key:'bD', name:'Bonus D : puissance de chauffe', check: n3('pb', PB, () => prev('e3', E3, e3A) / TS)});
     C.push({key:'etats', name:'Les trois états', check(){
       const G = {et1: 'SOLIDE', et2: 'LIQUIDE', et3: 'GAZ'}, bad = [], empty = [];
       Object.entries(G).forEach(([id, g]) => { const v = $(id).value; if (!v) empty.push(id); else if (v !== g) bad.push(id); });
@@ -1624,7 +1625,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     }});
     C.push({key:'esexpr', name:'L’expression littérale de l’énergie de changement d’état', check: rq('esexpr', 'ok')});
     C.push({key:'esval', name:'L’application numérique', check: n3('es', ES)});
-    C.push({key:'psval', name:'La question bonus (puissance de chauffe)', check: n3('ps', PS)});
+    C.push({key:'psval', name:'La question bonus (puissance de chauffe)', check: n3('ps', PS, () => prev('es', ES) / (DTS * 60))});
     QCM.forEach((q, i) => C.push({key:'qcm' + i, name:'Mini-QCM, question ' + (i + 1), check: rq('qcm' + i, '1')}));
     if (!paper) CHECKS = C;
 
@@ -1688,16 +1689,38 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     const n = window.ficheRead ? window.ficheRead(v) : Number(v.replace(',', '.'));
     return n === null || !isFinite(n) ? NaN : n;
   }
-  function numOk(v, e, sig, rel) {
-    if (v === null || isNaN(v)) return false;
+  // Juste seulement si la valeur, arrondie à sig chiffres significatifs, est l'arrondi attendu (aucune marge en %)
+  function numOk(v, e, sig) {
+    if (v === null || isNaN(v) || e === null || !isFinite(e)) return false;
     if (Math.abs(v - e) <= 1e-9 * Math.max(1, Math.abs(e))) return true;
-    if (sig && typeof toNormalized === 'function' && toNormalized(v, sig) === toNormalized(e, sig)) return true;
-    return rel > 0 && Math.abs(v - e) <= rel * Math.abs(e);
+    return !!sig && typeof toNormalized === 'function' && toNormalized(v, sig) === toNormalized(e, sig);
   }
+  // « Presque juste » : à moins d'une unité du 3e chiffre significatif de la valeur attendue (mauvais arrondi)
+  function nearOk(v, e, sig) {
+    if (sig !== 3 || v === null || isNaN(v) || e === null || !isFinite(e) || e === 0 || v * e <= 0) return false;
+    const u = Math.pow(10, Math.floor(Math.log10(Math.abs(e))) - 2);
+    return Math.abs(v - e) < u * (1 + 1e-9);
+  }
+  // Valeurs acceptées : la valeur attendue et, le cas échéant, celle calculée avec les résultats précédents (acceptés) de l'élève
+  // Une valeur obtenue à partir d'un résultat précédent mal arrondi est elle aussi « presque juste » (erreur d'arrondi propagée)
+  let LOOSE = false;
+  function numChk(v, val, sig, alt) {
+    const pick = loose => { if (!alt) return []; const o = LOOSE; LOOSE = loose; try { return [].concat(alt()).filter(a => a !== null && isFinite(a)); } finally { LOOSE = o; } };
+    const R = [val].concat(pick(false));
+    if (R.some(e => numOk(v, e, sig))) return 'ok';
+    if (sig !== 3) return 'bad';
+    return R.concat(pick(true)).some(e => numOk(v, e, sig) || nearOk(v, e, sig)) ? 'near' : 'bad';
+  }
+  // Résultat précédent de l'élève s'il a été accepté (sinon la valeur exacte) ; en mode LOOSE, aussi s'il est seulement mal arrondi
+  function prev(id, val, alt) { const loose = LOOSE, n = num_(id); if (n === null || isNaN(n)) return val; const k = numChk(n, val, 3, alt); return k === 'ok' || (loose && k === 'near') ? n : val; }
+  const ARR_MSG = k => k > 1 ? 'Tes valeurs sont presque justes : vérifie tes arrondis à 3 chiffres significatifs.' : 'Ta valeur est presque juste : vérifie ton arrondi à 3 chiffres significatifs.';
+  const arrQ = bad => ({st:'bad', bad, empty: [], arrOnly: true, msg: ARR_MSG(bad.length)});
+  let ARR_ONLY = false;                            // envoi dont les seules erreurs sont des arrondis : pas de pénalité
   const radio = name => { const r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ''; };
   function numsQ(list) {
-    const bad = [], empty = [];
-    list.forEach(([id, val, sig, rel]) => { const n = num_(id); if (n === null) empty.push(id); else if (!numOk(n, val, sig, rel || 0)) bad.push(id); });
+    const bad = [], empty = [], near = [];
+    list.forEach(([id, val, sig, rel, alt]) => { const n = num_(id); if (n === null) { empty.push(id); return; } const k = numChk(n, val, sig, alt); if (k !== 'ok') { bad.push(id); if (k === 'near') near.push(id); } });
+    if (bad.length && near.length === bad.length && !empty.length) return arrQ(bad);
     if (empty.length === list.length) return {st:'todo', empty: list.length > 1 ? [] : empty};
     const msgs = [];
     if (bad.length) msgs.push(bad.length === 1 ? '1 valeur est fausse.' : bad.length + ' valeurs sont fausses.');
@@ -1725,9 +1748,10 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       box.setAttribute('data-state', r.st === 'ok' ? 'good' : r.st);
       (r.bad || []).forEach(id => $(id).classList.add('f-bad'));
       (r.empty || []).forEach(id => $(id).classList.add('f-todo'));
-      box.querySelector('.fb').textContent = r.st === 'ok' ? MSG.ok : (r.st === 'bad' ? 'Incorrect. ' : '') + (r.msg || (r.st === 'bad' ? 'À revoir.' : MSG.todo));
-      if (r.st === 'ok') ok++; else out.push([r.st, q.name]);
+      box.querySelector('.fb').textContent = r.st === 'ok' ? MSG.ok : (r.st === 'bad' && !r.arrOnly ? 'Incorrect. ' : '') + (r.msg || (r.st === 'bad' ? 'À revoir.' : MSG.todo));
+      if (r.st === 'ok') ok++; else out.push([r.st, q.name, !!r.arrOnly]);
     });
+    ARR_ONLY = out.length > 0 && out.every(o => o[0] === 'bad' && o[2]);
     $('score' + sfx).textContent = '' + ok + ' / ' + list.length + ' réponses justes';
     $('score' + sfx).classList.toggle('all', ok === list.length);
     $('who' + sfx).textContent = (idOk ? $('nom').value.trim() + ' ' + $('prenom').value.trim() + ' · ' + $('classe').value + ' · ' : '') + 'Appareil : ' + FUELS.find(x => x.id === sel.value).nom;
@@ -1735,7 +1759,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     const add = (cls, txt) => { const li = document.createElement('li'); if (cls) li.className = cls; li.textContent = txt; ul.appendChild(li); };
     if (ok === list.length) add('', label ? 'Bravo, tout est juste ! La suite du certificat vient d’apparaître ci-dessous.' : 'Bravo, toutes tes réponses sont justes !');
     else {
-      out.filter(o => o[0] === 'bad').forEach(o => add('bad', 'À revoir : ' + o[1]));
+      out.filter(o => o[0] === 'bad').forEach(o => add('bad', (o[2] ? 'Arrondi à revoir : ' : 'À revoir : ') + o[1]));
+      if (ARR_ONLY) add('', 'Ce ne sont que des erreurs d’arrondi : cet envoi ne te retire aucun point.');
       out.filter(o => o[0] === 'todo').forEach(o => add('todo', 'Non complété : ' + o[1]));
       add('', 'Corrige les questions surlignées, puis renvoie tes réponses.');
     }
@@ -1748,7 +1773,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     if (!e.target.closest || !e.target.closest('#send1')) return;
     const cut = CHECKS.findIndex(q => q.key === 'interne');
     const allOk = grade(CHECKS.slice(0, cut), '1', 'Première partie');
-    if (!allOk) countSend('p1');                   // un envoi entièrement juste ne coûte jamais de point
+    if (!allOk && !ARR_ONLY) countSend('p1');                   // un envoi entièrement juste ne coûte jamais de point
     if (allOk) {
       done1 = true;
       $('part2').hidden = false;
@@ -1759,7 +1784,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   $('send').addEventListener('click', () => {
     if (!CHECKS.length) return;
     const allOk = grade(CHECKS, '', '');
-    if (!allOk) countSend('p2');
+    if (!allOk && !ARR_ONLY) countSend('p2');
     if (allOk) done2 = true;
     if (allOk && $('nom').value.trim() && $('prenom').value.trim() && $('classe').value && typeof window.showCertificate === 'function') window.showCertificate(false);
   });
