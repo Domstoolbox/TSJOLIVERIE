@@ -524,7 +524,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 <div id="fswarning" hidden>
   <button type="button" id="fsTts" title="Écouter" aria-label="Écouter ce texte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>
   <h2><span class="fsic" aria-hidden="true">🖥️</span>Plein écran obligatoire</h2>
-  <p>Pour afficher la fiche, passe en plein écran. Si tu quittes le plein écran ou si tu modifies la taille de la fenêtre pendant que tu complètes la fiche, une alarme sera déclenchée.</p>
+  <p>Pour afficher la fiche, passe en plein écran. Si tu quittes le plein écran ou si tu modifies la taille de la fenêtre pendant que tu complètes le certificat, une alarme sera déclenchée.</p>
   <button type="button" id="fsBtn">Passer en plein écran</button>
 </div>
 <div class="sheet">
@@ -563,7 +563,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Rien ne se perd, rien ne se crée, tout se transforme !</span><span>Domstoolbox · Version du 18/11/2026 - 10h38</span></footer>
+  <footer class="foot"><span>Rien ne se perd, rien ne se crée, tout se transforme !</span><span>Domstoolbox · Version du 18/11/2026 - 11h01</span></footer>
 </div>
 
 <script>
@@ -2483,15 +2483,15 @@ body.cert-open{overflow:hidden}
     if (n >= 17) return {stars: 2, col: '#ffb547', tag: 'CERTIFICAT DE RÉUSSITE', h1: 'Très<br><span>bien joué !</span>',
       text: (x, fu) => `qui a complété en ligne <b>tout le certificat « Énergie et rendement »</b> (convertisseur étudié : ${fu}), avec seulement quelques hésitations. <b>Très bon travail.</b>`,
       msg: n => 'Très bien ! Note finale : ' + n + '/20'};
-    if (n >= 14) return {stars: 1, col: '#7cc6ff', tag: 'CERTIFICAT DE VALIDATION', h1: 'Fiche<br><span>validée</span>',
+    if (n >= 14) return {stars: 1, col: '#7cc6ff', tag: 'CERTIFICAT DE VALIDATION', h1: 'Certificat<br><span>validé</span>',
       text: (x, fu) => `qui a validé en ligne <b>tout le certificat « Énergie et rendement »</b> (convertisseur étudié : ${fu}), après quelques corrections. C'est un bon résultat ; les notions qui ont posé problème sont à relire.`,
-      msg: n => 'Fiche validée. Note finale : ' + n + '/20'};
-    if (n >= 10) return {stars: 1, col: '#9fb3c8', tag: 'CERTIFICAT DE VALIDATION', h1: 'Fiche<br><span>validée</span>',
+      msg: n => 'Certificat validé. Note finale : ' + n + '/20'};
+    if (n >= 10) return {stars: 1, col: '#9fb3c8', tag: 'CERTIFICAT DE VALIDATION', h1: 'Certificat<br><span>validé</span>',
       text: (x, fu) => `qui a validé en ligne <b>tout le certificat « Énergie et rendement »</b> (convertisseur étudié : ${fu}), après plusieurs essais. Le cours est à revoir avant le prochain test.`,
-      msg: n => 'Fiche validée. Note finale : ' + n + '/20. Pense à revoir le cours.'};
-    return {stars: 0, col: '#c7d5e4', tag: 'ATTESTATION DE FIN DE FICHE', h1: 'Fiche<br><span>terminée</span>',
+      msg: n => 'Certificat validé. Note finale : ' + n + '/20. Pense à revoir le cours.'};
+    return {stars: 0, col: '#c7d5e4', tag: 'ATTESTATION DE FIN DE CERTIFICAT', h1: 'Certificat<br><span>terminé</span>',
       text: (x, fu) => `qui a terminé en ligne <b>tout le certificat « Énergie et rendement »</b> (convertisseur étudié : ${fu}), après de nombreux essais. Les fiches mémo 000 à 004 sont à revoir pour s'entraîner.`,
-      msg: n => 'Fiche terminée. Note finale : ' + n + '/20. Revois les fiches mémo pour t’entraîner !'};
+      msg: n => 'Certificat terminé. Note finale : ' + n + '/20. Revois les fiches mémo pour t’entraîner !'};
   }
   window.certTier = certTier;
 
@@ -2535,7 +2535,7 @@ body.cert-open{overflow:hidden}
       <div class="ctiles">
         <div class="ctile t1"><b>${note}</b><span>note finale</span></div>
         <div class="ctile t2"${NT.pen ? ' style="background:#fdecea;color:#c0281f"' : ''}><b>${NT.pen ? '−' + NT.pen + ' pt' + (NT.pen > 1 ? 's' : '') : '0'}</b><span>${NT.pen ? 'de pénalité (envois avec erreurs)' : 'pénalité'}</span></div>
-        <div class="ctile t3"><b>${mins ? mins + ' min' : (nq ? nq + ' questions' : '—')}</b><span>${mins ? 'pour tout compléter' : 'dans la fiche'}</span></div>
+        <div class="ctile t3"><b>${mins ? mins + ' min' : (nq ? nq + ' questions' : '—')}</b><span>${mins ? 'pour tout compléter' : 'dans le certificat'}</span></div>
       </div>
       <div class="cbot">
         <div class="cqrw"><div class="cqr">${qrSvg}</div><div class="cqrl">QR CODE DE SÉCURITÉ<br>à scanner par le professeur</div></div>
