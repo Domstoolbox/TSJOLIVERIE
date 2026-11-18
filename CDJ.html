@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Codes du jour</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #ffffff; }
+  body {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 5vh; padding: 4vh 4vw; box-sizing: border-box;
+    font-family: "SFMono-Regular", Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+  }
+  .b {
+    width: 100%; max-width: 1400px; box-sizing: border-box;
+    border-radius: 3vmin; color: #ffffff; text-align: center; font-weight: 800;
+    font-size: min(15vw, 26vh); line-height: 1; letter-spacing: .04em;
+    padding: 5vh 2vw; white-space: nowrap; user-select: all;
+  }
+  #b1 { background: #0f766e; }
+  #b2 { background: #c2410c; }
+</style>
+</head>
+<body>
+<div class="b" id="b1"></div>
+<div class="b" id="b2"></div>
+<script>
+// Base 1 : jour × 10, mois × 10, initiale du jour (français), initiale du mois
+function base1(d) {
+  const jours = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+  const mois = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  return (d.getDate() * 10).toString() + ((d.getMonth() + 1) * 10).toString() + jours[d.getDay()] + mois[d.getMonth()];
+}
+// Base 2 : jour × 2, mois × 2, initiale du jour (anglais), initiale du mois SUIVANT
+function base2(d) {
+  const daysEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const mois = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  return (d.getDate() * 2).toString() + ((d.getMonth() + 1) * 2).toString() + daysEn[d.getDay()] + mois[(d.getMonth() + 1) % 12];
+}
+let jourAffiche = '';
+function maj() {
+  const d = new Date(), k = d.toDateString();
+  if (k === jourAffiche) return;
+  jourAffiche = k;
+  document.getElementById('b1').textContent = base1(d);
+  document.getElementById('b2').textContent = base2(d);
+}
+maj();
+setInterval(maj, 30000);                                   // nouveaux codes à minuit si la page reste ouverte
+document.addEventListener('visibilitychange', () => { if (!document.hidden) maj(); });
+</script>
+</body>
+</html>
