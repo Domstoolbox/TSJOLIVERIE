@@ -88,7 +88,7 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 <div class="tabs"><button data-v="prof" class="on">👩‍🏫 Par professeur</button><button data-v="salle">🚪 Par salle</button></div>
 <div id="now"></div>
 <div id="main"></div>
-<footer>Semaine A = semaine paire (numéro de semaine ISO), semaine B = semaine impaire. Les vacances et jours fériés ne sont pas pris en compte. Source : EDT_Joliverie_2026-2027.xlsx.</footer>
+<footer>Semaine A = semaine paire (numéro de semaine ISO), semaine B = semaine impaire. Vacances et jours fériés : zone B (Nantes), calendrier officiel 2026-2027. Source : EDT_Joliverie_2026-2027.xlsx.</footer>
 </div>
 <div class="ov" id="confirmOv"><div class="box"><h3>⚠️ Attention !</h3><p>Êtes-vous sûr de vouloir émettre un message d'évacuation ?</p><button class="yes" id="alarmYes">Oui, lancer l'alerte</button><button class="no" id="alarmNo">Annuler</button></div></div>
 <div class="ov" id="alertOv"><div class="ico">🚨</div><div class="big">Merci d'évacuer le bâtiment dans le calme</div><button class="alertStop" id="alarmStop">Arrêter l'alerte</button></div>
@@ -108,6 +108,19 @@ let cur=new Date();cur.setHours(12,0,0,0);
 let view="prof";
 try{view=localStorage.getItem("edtView")||"prof"}catch(e){}
 function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+// Calendrier 2026-2027, zone B (académie de Nantes) : [premier jour sans cours, jour de reprise, libellé]
+const OFF=[
+ ["2026-07-04","2026-09-01","Vacances d'été"],
+ ["2026-10-17","2026-11-02","Vacances de la Toussaint"],
+ ["2026-12-19","2027-01-04","Vacances de Noël"],
+ ["2027-02-20","2027-03-08","Vacances d'hiver"],
+ ["2027-04-17","2027-05-03","Vacances de printemps"],
+ ["2027-05-06","2027-05-10","Pont de l'Ascension"],
+ ["2027-07-03","2027-09-02","Vacances d'été"]];
+const FERIES={"2026-11-11":"Armistice 1918","2027-03-29":"Lundi de Pâques","2027-05-17":"Lundi de Pentecôte"};
+function offDay(d){const k=ymd(d);if(FERIES[k])return{label:"Jour férié · "+FERIES[k]};
+  for(const[a,b,l]of OFF)if(k>=a&&k<b){const[y,m,j]=b.split("-");const r=new Date(+y,m-1,+j,12);
+    return{label:l,back:r}}return null}
 function render(){
   const dow=cur.getDay(),wn=isoWeek(cur),wk=wn%2===0?"A":"B";
   document.getElementById("day").textContent=JOURS[dow];
@@ -118,6 +131,8 @@ function render(){
   const main=document.getElementById("main"),nowEl=document.getElementById("now");
   nowEl.innerHTML="";
   if(dow===0||dow===6){main.innerHTML=`<div class="empty">🌴 C'est le week-end, pas de cours.<br><br><button onclick="goMonday()" style="font:inherit;font-weight:900;border:none;background:#1d1b2e;color:#fff;border-radius:12px;padding:10px 18px;cursor:pointer">Voir lundi ▶</button></div>`;return}
+  const off=offDay(cur);
+  if(off){main.innerHTML=`<div class="empty">🏖️ ${off.label}<br><span style="font-size:17px">Pas de cours${off.back?" · reprise le "+off.back.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}):""}</span></div>`;return}
   const list=DATA.filter(x=>x.d===dow&&(x.w===""||x.w===wk)).sort((a,b)=>mins(a.s)-mins(b.s));
   const real=new Date(),isToday=ymd(real)===ymd(cur),nm=real.getHours()*60+real.getMinutes();
   const live=x=>isToday&&nm>=mins(x.s)&&nm<mins(x.e);
@@ -181,7 +196,7 @@ function note(f,t0,dur){const o=actx.createOscillator(),o2=actx.createOscillator
   o.start(t0);o2.start(t0);o.stop(t0+dur);o2.stop(t0+dur)}
 function melody(){if(!actx)return;const t=actx.currentTime+.05,N=[659.25,523.25,587.33,392,392,587.33,659.25,523.25];
   N.forEach((f,i)=>note(f,t+i*.6+(i>=4?.4:0),i===3||i===7?2.2:1.4))}
-function checkBell(){if(!bellOn)return;const d=new Date(),dow=d.getDay();if(dow===0||dow===6)return;
+function checkBell(){if(!bellOn)return;const d=new Date(),dow=d.getDay();if(dow===0||dow===6||offDay(d))return;
   const sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),key=ymd(d);
   for(const b of BELLS){const k=key+b;if(sec>=b&&sec<b+15&&!fired[k]){fired[k]=1;melody()}}}
 document.getElementById("bell").onclick=async()=>{
