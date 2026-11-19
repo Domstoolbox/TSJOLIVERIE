@@ -42,6 +42,7 @@ th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-sp
 th{color:var(--mut);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 tr.flash td{background:var(--okbg)}
+tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
 #empty{color:var(--mut);text-align:center;padding:18px 0}
 #finishBtn{background:#157347;font-size:1.05rem;padding:14px 22px}
 .fmt{display:flex;gap:16px;align-items:center;font-weight:600}
@@ -154,15 +155,29 @@ function parsePayload(txt) {
   };
 }
 
+// Copie « hors séance » : date du QR code différente d'aujourd'hui, ou heure de fin à plus de 2 h de l'heure actuelle
+// (contrôle fait seulement au scan caméra / photo, pas à l'import de fichiers)
+function horsSeance(r) {
+  const d = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(r.date || '').trim());
+  if (!d) return true;
+  const now = new Date();
+  if (+d[1] !== now.getDate() || +d[2] !== now.getMonth() + 1 || +d[3] !== now.getFullYear()) return true;
+  const f = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(r.fin || '').trim());
+  if (!f) return false;
+  const fin = new Date(+d[3], +d[2] - 1, +d[1], +f[1], +f[2], +(f[3] || 0));
+  return Math.abs(now - fin) > 2 * 3600 * 1000;
+}
+
 let lastKey = '';
 let lastIsStudent = true;
 function addPayload(txt, quiet) {
   const r = parsePayload(txt);
+  if (r) r.hors = !quiet && horsSeance(r);
   if (!r) { if (!quiet) say('Ce QR code ne vient pas d’une copie de test.', 'ko'); return 'bad'; }
   const key = keyOf(r);
   const i = rows.findIndex(x => keyOf(x) === key);
   let res;
-  if (i >= 0 && rows[i].raw === r.raw) res = 'dup';
+  if (i >= 0 && rows[i].raw === r.raw) { res = 'dup'; if (r.hors && !rows[i].hors) rows[i].hors = true; }
   else if (i >= 0) { rows[i] = r; res = 'upd'; }
   else { rows.push(r); res = 'new'; }
   lastKey = key;
@@ -171,7 +186,9 @@ function addPayload(txt, quiet) {
   lastIsStudent = isStudentCode(r);
   if (!quiet) {
     if (res === 'dup') say('Déjà scannée : ' + who, 'warn');
-    else { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); if (lastIsStudent) beep(); else fraudSound(); }   // code non élève : alarme au lieu du bip
+    else if (!lastIsStudent) { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); fraudSound(); }   // code non élève : alarme de fraude au lieu du bip
+    else if (r.hors) { say(`⚠ Copie du ${r.date}, fin à ${String(r.fin || '?').slice(0, 5)} : hors séance — ` + who, 'ko'); beep(); setTimeout(() => fraudSound(ANNONCE_HORS), 350); }   // bip puis alarme
+    else { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); beep(); }
   }
   return res;
 }
@@ -187,7 +204,7 @@ function render() {
   tb.innerHTML = '';
   sorted().forEach((r, i) => {
     const tr = document.createElement('tr');
-    if (keyOf(r) === lastKey) tr.className = 'flash';
+    tr.className = r.hors ? 'late' : keyOf(r) === lastKey ? 'flash' : '';
     [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, r.note, r.notePap || '-', fr(r.sur20, 1), r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code]
       .forEach((v, k) => { const td = document.createElement('td'); td.textContent = v; if ([0, 5, 6, 7].includes(k)) td.className = 'num'; tr.appendChild(td); });
     const td = document.createElement('td');
@@ -257,12 +274,13 @@ function isStudentCode(r) {
 }
 
 // Son d'alarme « fraude détectée » (le même que dans les tests) : sirène, montée, annonce vocale grave, grondement
+const ANNONCE_HORS = ['Attention !', 'Copie hors séance !'];
 let fraudPlaying = false;
-function fraudSound() {
+function fraudSound(annonce) {
   if (fraudPlaying) return;
   fraudPlaying = true;
   setTimeout(() => { fraudPlaying = false; }, 9000);
-  const ANNONCE = [
+  const ANNONCE = annonce || [
     "Alerte !",
     "Tentative de fraude détectée !",
     "Votre évaluation est verrouillée !"
@@ -599,18 +617,18 @@ function makeXlsx() {
   if (!window.XLSX) { alert('Génération du fichier Excel impossible : vérifie la connexion internet puis recharge la page.'); return false; }
   const list = sorted();
   const n = v => { const x = num(v); return isNaN(x) ? '' : x; };
-  const head = ['N°', 'Test', 'NOM', 'Prénom', 'Classe', 'Note', 'Barème', 'Note ramenée (PAP)', 'Barème complet (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi'];
+  const head = ['N°', 'Test', 'NOM', 'Prénom', 'Classe', 'Note', 'Barème', 'Note ramenée (PAP)', 'Barème complet (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi', 'Hors séance'];
   const data = list.map((r, i) => {
     const [p, b] = r.note.split('/').map(n);
     const [pp, bp] = r.notePap ? r.notePap.split('/').map(n) : ['', ''];
-    return [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, p, b, pp, bp, Math.round(r.sur20 * 100) / 100, r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code];
+    return [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, p, b, pp, bp, Math.round(r.sur20 * 100) / 100, r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code, r.hors ? 'OUI' : ''];
   });
   const ws = XLSX.utils.aoa_to_sheet([head].concat(data));
   const last = data.length + 1, foot = last + 1;
   XLSX.utils.sheet_add_aoa(ws, [['', '', 'Moyenne', '', '', '', '', '', '', { t: 'n', f: `ROUND(AVERAGE(J2:J${last}),2)` }]], { origin: `A${foot}` });
   for (let r = 2; r <= foot; r++) { const c = ws['J' + r]; if (c) c.z = '0.0'; }
-  ws['!cols'] = [5, 16, 18, 14, 10, 7, 8, 10, 10, 8, 11, 9, 9, 11, 12].map(w => ({ wch: w }));
-  ws['!autofilter'] = { ref: `A1:O${last}` };
+  ws['!cols'] = [5, 16, 18, 14, 10, 7, 8, 10, 10, 8, 11, 9, 9, 11, 12, 11].map(w => ({ wch: w }));
+  ws['!autofilter'] = { ref: `A1:P${last}` };
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Résultats');
   const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -646,10 +664,11 @@ function makePdf() {
     footStyles: { fillColor: [227, 244, 234], textColor: [14, 95, 55], fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [246, 248, 252] },
     columnStyles: { 0: { halign: 'right', cellWidth: 10 }, [1 + T.length]: { fontStyle: 'bold' }, [4 + T.length]: { halign: 'right' }, [5 + T.length]: { halign: 'right' }, [6 + T.length]: { halign: 'right', fontStyle: 'bold' } },
+    didParseCell: h => { if (h.section === 'body' && list[h.row.index] && list[h.row.index].hors) { h.cell.styles.fillColor = [253, 232, 230]; h.cell.styles.textColor = [180, 35, 24]; } },
     margin: { left: 14, right: 14, bottom: 14 },
     didDrawPage: () => {
       doc.setFontSize(8); doc.setTextColor(120, 128, 145);
-      doc.text(pc('By Domstoolbox pour La Joliverie'), 14, 203);
+      doc.text(pc('By Domstoolbox pour La Joliverie') + (list.some(r => r.hors) ? pc('   ·   En rouge : copie hors séance (date différente ou fin à plus de 2 h du scan)') : ''), 14, 203);
       doc.text(`Page ${doc.getNumberOfPages()}`, 283, 203, { align: 'right' });
     }
   });
