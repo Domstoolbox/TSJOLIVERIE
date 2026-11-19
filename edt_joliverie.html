@@ -14,6 +14,24 @@ body{margin:0;font-family:Nunito,system-ui,sans-serif;background:var(--bg);color
 header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
 .day{font-size:clamp(34px,6vw,58px);font-weight:900;line-height:1;text-transform:capitalize;letter-spacing:-.02em}
 .date{font-size:20px;color:var(--muted);font-weight:700;margin-top:6px}
+.clock{font-size:clamp(34px,5vw,52px);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1}
+.clock span{font-size:.5em;color:var(--muted)}
+.bell{font-size:26px;width:54px;height:54px;border-radius:50%;border:2px solid var(--ink);background:#fff;cursor:pointer;line-height:1}
+.bell.on{background:var(--ink)}
+.bell.alarm{border-color:#dc2626;background:#fee2e2}
+.ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.ov.show{display:flex}
+#confirmOv{background:rgba(20,10,10,.75)}
+.box{background:#fff;border:6px solid #dc2626;border-radius:28px;padding:40px 36px;max-width:760px;text-align:center}
+.box h3{margin:0 0 12px;font-size:clamp(36px,6vw,64px);font-weight:900;color:#dc2626}
+.box p{margin:0 0 30px;font-size:clamp(22px,3vw,32px);font-weight:800}
+.box button,.alertStop{font:inherit;font-weight:900;font-size:24px;border-radius:16px;padding:16px 30px;cursor:pointer;margin:6px}
+.yes{background:#dc2626;color:#fff;border:none}.no{background:#fff;color:#1d1b2e;border:3px solid #1d1b2e}
+#alertOv{background:#dc2626;color:#fff;flex-direction:column;text-align:center;animation:flash 1s steps(1) infinite}
+@keyframes flash{50%{background:#7f1d1d}}
+#alertOv .big{font-size:clamp(44px,8vw,110px);font-weight:900;line-height:1.05;max-width:1100px}
+#alertOv .ico{font-size:clamp(70px,10vw,140px)}
+.alertStop{margin-top:40px;background:#fff;color:#dc2626;border:none}
 .week{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:26px;padding:10px 20px;border-radius:999px;color:#fff}
 .week small{font-size:14px;font-weight:700;opacity:.9}
 .wA{background:#2563eb}.wB{background:#ea580c}
@@ -41,13 +59,16 @@ header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:s
 .absent{margin-top:22px;color:var(--muted);font-weight:700}
 .absent .chip{background:#fff;border:2px dashed #cfc8b8;color:var(--muted);margin:4px 4px 0 0}
 .empty{background:#fff;border-radius:20px;padding:40px;text-align:center;font-size:22px;font-weight:800;color:var(--muted)}
-table{table-layout:fixed;border-collapse:separate;border-spacing:4px;width:100%;min-width:760px}
-.tw{overflow-x:auto;background:#fff;border-radius:20px;padding:10px;border:1px solid var(--line)}
+table{table-layout:fixed;border-collapse:separate;border-spacing:4px;width:100%;min-width:560px}
+.tw{position:relative;overflow-x:auto;background:#fff;border-radius:20px;padding:10px;border:1px solid var(--line)}
 th{font-size:15px;font-weight:900;padding:8px;background:var(--ink);color:#fff;border-radius:10px}
+th .cap{display:block;font-size:12px;font-weight:700;opacity:.7;margin-top:2px}
 td{vertical-align:top;padding:0;height:52px}
 th:first-child,td.t{width:80px}td.t{font-weight:900;font-size:13px;white-space:nowrap;padding:6px 8px;color:var(--muted);background:#f4f1ea;border-radius:10px}
 .cell{border-radius:10px;padding:6px 8px;font-size:13px;font-weight:800;height:100%;line-height:1.2}
 .cell div{font-weight:700;font-size:12px;opacity:.9}
+#nowLine{position:absolute;left:10px;height:0;border-top:3px solid #e11d48;pointer-events:none;display:none;z-index:5}
+#nowLine:after{content:"";position:absolute;left:-7px;top:-8.5px;width:14px;height:14px;border-radius:50%;background:#e11d48}
 .lunch td{height:14px}
 footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 </style>
@@ -56,7 +77,7 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 <div class="wrap">
 <header>
   <div><div class="day" id="day"></div><div class="date" id="date"></div></div>
-  <div id="weekBadge"></div>
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div class="clock" id="clock"></div><button id="bell" class="bell off" title="Sonnerie">🔕</button><button id="alarmBtn" class="bell alarm" title="Alerte intrusion">🚨</button><div id="weekBadge"></div></div>
 </header>
 <div class="nav" style="margin-bottom:14px">
   <button id="prev">◀ Jour précédent</button>
@@ -69,11 +90,14 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 <div id="main"></div>
 <footer>Semaine A = semaine paire (numéro de semaine ISO), semaine B = semaine impaire. Les vacances et jours fériés ne sont pas pris en compte. Source : EDT_Joliverie_2026-2027.xlsx.</footer>
 </div>
+<div class="ov" id="confirmOv"><div class="box"><h3>⚠️ Attention !</h3><p>Êtes-vous sûr de vouloir émettre un message d'évacuation ?</p><button class="yes" id="alarmYes">Oui, lancer l'alerte</button><button class="no" id="alarmNo">Annuler</button></div></div>
+<div class="ov" id="alertOv"><div class="ico">🚨</div><div class="big">Merci d'évacuer le bâtiment dans le calme</div><button class="alertStop" id="alarmStop">Arrêter l'alerte</button></div>
 <script>
 const DATA=[{"d": 1, "p": "Renaud Agathe", "s": "08:00", "e": "08:55", "r": "A 103", "c": "TSTI 2", "w": ""}, {"d": 1, "p": "Longuet Cécile", "s": "08:00", "e": "08:55", "r": "A 105", "c": "2 GT 1", "w": ""}, {"d": 1, "p": "Nicouleaud Georges", "s": "08:00", "e": "09:50", "r": "A 107", "c": "1 TS MTE", "w": ""}, {"d": 1, "p": "Rouillé Dominique", "s": "08:55", "e": "09:50", "r": "A 101", "c": "1 STI 1", "w": ""}, {"d": 1, "p": "Longuet Cécile", "s": "08:55", "e": "11:00", "r": "A 105", "c": "T G spé PC", "w": ""}, {"d": 1, "p": "Burlin Meriem", "s": "10:05", "e": "11:00", "r": "A 101", "c": "1 STI 3 gr B", "w": ""}, {"d": 1, "p": "Renaud Agathe", "s": "10:05", "e": "11:00", "r": "A 103", "c": "2 GT2 gr B", "w": ""}, {"d": 1, "p": "Marboeuf Annie", "s": "10:05", "e": "11:00", "r": "A 108", "c": "2 GT 1 gr A", "w": "B"}, {"d": 1, "p": "Burlin Meriem", "s": "11:00", "e": "11:55", "r": "A 101", "c": "1 STI 3 gr A", "w": ""}, {"d": 1, "p": "Renaud Agathe", "s": "11:00", "e": "11:55", "r": "A 103", "c": "2 GT2 gr A", "w": ""}, {"d": 1, "p": "Marboeuf Annie", "s": "11:00", "e": "11:55", "r": "A 108", "c": "2 GT 1 gr B", "w": "B"}, {"d": 1, "p": "Longuet Cécile", "s": "13:10", "e": "14:05", "r": "A 101", "c": "T G spé SI", "w": ""}, {"d": 1, "p": "Burlin Meriem", "s": "13:10", "e": "14:05", "r": "A 103", "c": "2 GT 7 gr B", "w": ""}, {"d": 1, "p": "Blain Frédérick", "s": "13:10", "e": "15:00", "r": "A 105", "c": "2 TS BAT", "w": ""}, {"d": 1, "p": "Renaud Agathe", "s": "13:10", "e": "15:00", "r": "A 107", "c": "T STI3 gr A", "w": "A"}, {"d": 1, "p": "Burlin Meriem", "s": "14:05", "e": "15:00", "r": "A 103", "c": "2 GT 7 gr A", "w": ""}, {"d": 1, "p": "Marboeuf Annie", "s": "15:15", "e": "16:10", "r": "A 101", "c": "T G 1 ES", "w": ""}, {"d": 1, "p": "Nicouleaud Georges", "s": "15:15", "e": "17:05", "r": "A 105", "c": "1 G spé PC gr 1", "w": ""}, {"d": 1, "p": "Renaud Agathe", "s": "15:15", "e": "17:05", "r": "A 107", "c": "T STI3 gr B", "w": "A"}, {"d": 2, "p": "Rouillé Dominique", "s": "08:00", "e": "08:55", "r": "A 101", "c": "1 STI 2 gr A", "w": ""}, {"d": 2, "p": "Lescher Anaïs", "s": "08:00", "e": "08:55", "r": "A 103", "c": "2 GT 5 gr A", "w": ""}, {"d": 2, "p": "Blain Frédérick", "s": "08:00", "e": "08:55", "r": "A 107", "c": "2 TS MV", "w": ""}, {"d": 2, "p": "Rouillé Dominique", "s": "08:55", "e": "09:50", "r": "A 101", "c": "1 STI 2 gr B", "w": ""}, {"d": 2, "p": "Lescher Anaïs", "s": "08:55", "e": "09:50", "r": "A 103", "c": "2 GT 5 gr B", "w": ""}, {"d": 2, "p": "Renaud Agathe", "s": "08:55", "e": "09:50", "r": "A 105", "c": "TSTI 2", "w": ""}, {"d": 2, "p": "Burlin Meriem", "s": "10:05", "e": "11:00", "r": "A 101", "c": "1 STI 4 gr B", "w": ""}, {"d": 2, "p": "Lescher Anaïs", "s": "10:05", "e": "11:00", "r": "A 103", "c": "2 GT 4 gr A", "w": ""}, {"d": 2, "p": "Burlin Meriem", "s": "11:00", "e": "11:55", "r": "A 101", "c": "1 STI 4 gr A", "w": ""}, {"d": 2, "p": "Lescher Anaïs", "s": "11:00", "e": "11:55", "r": "A 103", "c": "2 GT 4 gr B", "w": ""}, {"d": 2, "p": "Blain Frédérick", "s": "11:00", "e": "12:50", "r": "A 107", "c": "1 TS BAT", "w": ""}, {"d": 2, "p": "Rouillé Dominique", "s": "11:55", "e": "12:50", "r": "A 101", "c": "1 STI 1", "w": ""}, {"d": 2, "p": "Nicouleaud Georges", "s": "14:05", "e": "15:00", "r": "A 105", "c": "2 TS MTE", "w": ""}, {"d": 2, "p": "Blain Frédérick", "s": "14:05", "e": "15:00", "r": "A 107", "c": "1 TS MV", "w": ""}, {"d": 2, "p": "Crassat Josette", "s": "14:05", "e": "15:00", "r": "A 108", "c": "2 GT 5 gr A", "w": "A"}, {"d": 2, "p": "Marboeuf Annie", "s": "14:05", "e": "15:00", "r": "A 108", "c": "2 GT 2 gr A", "w": "B"}, {"d": 2, "p": "Longuet Cécile", "s": "15:15", "e": "16:10", "r": "A 103", "c": "2 GT 1 gr A", "w": ""}, {"d": 2, "p": "Nicouleaud Georges", "s": "15:15", "e": "17:05", "r": "A 105", "c": "1 G spé PC gr 2", "w": ""}, {"d": 2, "p": "Blain Frédérick", "s": "15:15", "e": "16:10", "r": "A 107", "c": "1 TS MV gr A", "w": ""}, {"d": 2, "p": "Crassat Josette", "s": "15:15", "e": "16:10", "r": "A 108", "c": "2 GT 5 gr B", "w": "A"}, {"d": 2, "p": "Marboeuf Annie", "s": "15:15", "e": "16:10", "r": "A 108", "c": "2 GT 2 gr B", "w": "B"}, {"d": 2, "p": "Longuet Cécile", "s": "16:10", "e": "17:05", "r": "A 103", "c": "2 GT 1 gr B", "w": ""}, {"d": 2, "p": "Blain Frédérick", "s": "16:10", "e": "17:05", "r": "A 107", "c": "1 TS MV gr B", "w": ""}, {"d": 3, "p": "Rouillé Dominique", "s": "08:00", "e": "09:50", "r": "A 101", "c": "1 STI 2", "w": ""}, {"d": 3, "p": "Burlin Meriem", "s": "08:00", "e": "09:50", "r": "A 103", "c": "T STI 1 gr B", "w": "A"}, {"d": 3, "p": "Blain Frédérick", "s": "08:00", "e": "09:50", "r": "A 107", "c": "2 TS MV gr B", "w": ""}, {"d": 3, "p": "Marboeuf Annie", "s": "08:00", "e": "08:55", "r": "A 108", "c": "2 GT 3 gr A", "w": "B"}, {"d": 3, "p": "Marboeuf Annie", "s": "08:55", "e": "09:50", "r": "A 108", "c": "2 GT 3 gr B", "w": "B"}, {"d": 3, "p": "Blain Frédérick", "s": "10:05", "e": "11:55", "r": "A 107", "c": "2 TS MV gr A", "w": ""}, {"d": 3, "p": "Marboeuf Annie", "s": "10:05", "e": "11:00", "r": "A 108", "c": "2 GT 6 gr A", "w": "B"}, {"d": 3, "p": "Volpi Alexandra", "s": "11:00", "e": "11:55", "r": "A 101", "c": "T G ES", "w": ""}, {"d": 3, "p": "Crassat Josette", "s": "11:00", "e": "11:55", "r": "A 103", "c": "1 G 2 ES", "w": ""}, {"d": 3, "p": "Marboeuf Annie", "s": "11:00", "e": "11:55", "r": "A 108", "c": "2 GT 6 gr B", "w": "B"}, {"d": 3, "p": "Crassat Josette", "s": "14:05", "e": "15:00", "r": "A 103", "c": "1 G 1 ES", "w": ""}, {"d": 4, "p": "Rouillé Dominique", "s": "08:00", "e": "08:55", "r": "A 101", "c": "1 STI 1 gr A", "w": ""}, {"d": 4, "p": "Burlin Meriem", "s": "08:00", "e": "09:50", "r": "A 103", "c": "T STI 1 gr A", "w": "A"}, {"d": 4, "p": "Lescher Anaïs", "s": "08:00", "e": "09:50", "r": "A 105", "c": "1 G spé PC gr 4", "w": ""}, {"d": 4, "p": "Nicouleaud Georges", "s": "08:00", "e": "09:50", "r": "A 107", "c": "2 TS MTE gr A", "w": ""}, {"d": 4, "p": "Rouillé Dominique", "s": "10:05", "e": "11:00", "r": "A 101", "c": "1 STI 1 gr B", "w": ""}, {"d": 4, "p": "Lescher Anaïs", "s": "10:05", "e": "11:00", "r": "A 103", "c": "2 GT 3 gr B", "w": ""}, {"d": 4, "p": "Longuet Cécile", "s": "10:05", "e": "11:55", "r": "A 105", "c": "T G spé PC", "w": ""}, {"d": 4, "p": "Nicouleaud Georges", "s": "10:05", "e": "11:55", "r": "A 107", "c": "2 TS MTE gr B", "w": ""}, {"d": 4, "p": "Lescher Anaïs", "s": "11:00", "e": "11:55", "r": "A 103", "c": "2 GT 3 gr A", "w": ""}, {"d": 4, "p": "Longuet Cécile", "s": "14:05", "e": "15:00", "r": "A 105", "c": "T G spé SI", "w": ""}, {"d": 4, "p": "Renaud Agathe", "s": "14:05", "e": "16:10", "r": "A 107", "c": "T STI2 gr A", "w": "A"}, {"d": 4, "p": "Nicouleaud Georges", "s": "14:05", "e": "16:10", "r": "A 107", "c": "1 TS MTE gr A", "w": "B"}, {"d": 4, "p": "Longuet Cécile", "s": "15:15", "e": "16:10", "r": "A 105", "c": "2 GT 1", "w": ""}, {"d": 4, "p": "Renaud Agathe", "s": "16:10", "e": "18:00", "r": "A 107", "c": "T STI2 gr B", "w": "A"}, {"d": 4, "p": "Nicouleaud Georges", "s": "16:10", "e": "18:00", "r": "A 107", "c": "1 TS MTE gr A", "w": "B"}, {"d": 5, "p": "Rouillé Dominique", "s": "08:00", "e": "08:55", "r": "A 101", "c": "1 STI 2", "w": ""}, {"d": 5, "p": "Lescher Anaïs", "s": "08:00", "e": "09:50", "r": "A 105", "c": "1 G spé PC gr 2", "w": ""}, {"d": 5, "p": "Marboeuf Annie", "s": "08:00", "e": "08:55", "r": "A 108", "c": "2 GT 7 gr A", "w": "B"}, {"d": 5, "p": "Rouillé Dominique", "s": "08:55", "e": "09:50", "r": "A 101", "c": "1 STI 1", "w": ""}, {"d": 5, "p": "Marboeuf Annie", "s": "08:55", "e": "09:50", "r": "A 108", "c": "2 GT 7 gr B", "w": "B"}, {"d": 5, "p": "Longuet Cécile", "s": "10:05", "e": "11:55", "r": "A 105", "c": "T G 2 spé PC", "w": ""}, {"d": 5, "p": "Volpi Alexandra", "s": "10:05", "e": "11:00", "r": "A 107", "c": "T G ES", "w": ""}, {"d": 5, "p": "Marivain Lucie", "s": "10:05", "e": "11:00", "r": "A 108", "c": "2 GT 4", "w": "A"}, {"d": 5, "p": "Marivain Lucie", "s": "11:00", "e": "11:55", "r": "A 108", "c": "2 GT 4", "w": "A"}, {"d": 5, "p": "Blain Frédérick", "s": "13:10", "e": "14:05", "r": "A 103", "c": "2 GT 6 gr A", "w": ""}, {"d": 5, "p": "Blain Frédérick", "s": "14:05", "e": "15:00", "r": "A 103", "c": "2 GT 6 gr B", "w": ""}, {"d": 5, "p": "Marboeuf Annie", "s": "15:15", "e": "16:10", "r": "A 101", "c": "T G 2 ES", "w": ""}, {"d": 5, "p": "Longuet Cécile", "s": "15:15", "e": "17:05", "r": "A 105", "c": "T G 1 spé PC", "w": ""}];
 const COLORS={"Renaud Agathe":"#FF3399","Longuet Cécile":"#E53935","Nicouleaud Georges":"#FFC000","Rouillé Dominique":"#9C8F52","Burlin Meriem":"#D99694","Crassat Josette":"#92CDDC","Marivain Lucie":"#008FFA","Lescher Anaïs":"#00C060","Marboeuf Annie":"#9F5FCF","Blain Frédérick":"#FFEB3B","Volpi Alexandra":"#455A64"};
 const TEACHERS=Object.keys(COLORS);
-const ROOMS=["A 101","A 103","A 105","A 107","A 108","A 109","A 111","A 115","A 116"];
+const ROOMS=["A 101","A 103","A 105","A 107","A 108"];
+const CAP={"A 101":36,"A 103":36,"A 105":33,"A 107":33,"A 108":18};
 const SLOTS=[["08:00","08:55"],["08:55","09:50"],null,["10:05","11:00"],["11:00","11:55"],["11:55","12:50"],null,["13:10","14:05"],["14:05","15:00"],null,["15:15","16:10"],["16:10","17:05"],["17:05","18:00"]];
 const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
 function txt(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000>150?"#1d1b2e":"#fff"}
@@ -111,11 +135,11 @@ function render(){
     h+=`</div><div class="absent">Pas de cours ce jour-là :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
     main.innerHTML=h;
   }else{
-    let h=`<div class="tw"><table><tr><th>Heure</th>${ROOMS.map(r=>`<th>${r}</th>`).join("")}</tr>`;
+    let h=`<div class="tw"><table><tr><th>Heure</th>${ROOMS.map(r=>`<th>${r}${CAP[r]?`<span class="cap">${CAP[r]} max</span>`:""}</th>`).join("")}</tr>`;
     const covered={};
     SLOTS.forEach((s,i)=>{
       if(!s){h+=`<tr class="lunch"><td colspan="${ROOMS.length+1}"></td></tr>`;return}
-      h+=`<tr><td class="t">${hm(s[0])}<br>${hm(s[1])}</td>`;
+      h+=`<tr data-s="${s[0]}" data-e="${s[1]}"><td class="t">${hm(s[0])}<br>${hm(s[1])}</td>`;
       for(const r of ROOMS){
         if(covered[r+i])continue;
         const x=list.find(x=>x.r===r&&x.s===s[0]);
@@ -124,9 +148,70 @@ function render(){
           h+=`<td rowspan="${span}"><div class="cell" style="background:${c};color:${txt(c)}${live(x)?";outline:4px solid #1d1b2e":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div></div></td>`}
         else h+=`<td></td>`}
       h+=`</tr>`});
-    main.innerHTML=h+`</table></div>`;
+    main.innerHTML=h+`</table><div id="nowLine"></div></div>`;
+    nowLine();
   }
 }
+function nowLine(){
+  const L=document.getElementById("nowLine");if(!L)return;
+  const d=new Date();
+  if(ymd(d)!==ymd(cur)){L.style.display="none";return}
+  const nm=d.getHours()*60+d.getMinutes()+d.getSeconds()/60;
+  const tw=L.parentElement,base=tw.getBoundingClientRect().top-tw.scrollTop;
+  const rows=[...tw.querySelectorAll("tr[data-s]")].map(r=>{const b=r.getBoundingClientRect();return{s:mins(r.dataset.s),e:mins(r.dataset.e),top:b.top-base,bot:b.bottom-base}});
+  let y=null;
+  for(let i=0;i<rows.length;i++){const r=rows[i];
+    if(nm>=r.s&&nm<=r.e){y=r.top+(nm-r.s)/(r.e-r.s)*(r.bot-r.top);break}
+    const n=rows[i+1];
+    if(n&&nm>r.e&&nm<n.s){y=r.bot+(nm-r.e)/(n.s-r.e)*(n.top-r.bot);break}}
+  if(y===null){L.style.display="none";return}
+  const tb=tw.querySelector("table");
+  const th=tb.querySelectorAll("th")[1],tr=tb.getBoundingClientRect(),hb=th.getBoundingClientRect();
+  const x0=hb.left-tr.left+tb.offsetLeft+6;
+  L.style.display="block";L.style.top=y+"px";L.style.left=x0+"px";L.style.width=(tb.offsetLeft+tb.offsetWidth-x0)+"px";
+}
+window.addEventListener("resize",nowLine);
+// Sonnerie : 15 s avant chaque début et fin de cours, du lundi au vendredi
+const BELLS=[...new Set(SLOTS.filter(Boolean).flat())].map(t=>mins(t)*60-15);
+let actx=null,bellOn=false,fired={};
+function note(f,t0,dur){const o=actx.createOscillator(),o2=actx.createOscillator(),g=actx.createGain();
+  o.type="sine";o2.type="sine";o.frequency.value=f;o2.frequency.value=f*2.01;
+  const g2=actx.createGain();g2.gain.value=.25;o2.connect(g2).connect(g);o.connect(g).connect(actx.destination);
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.35,t0+.02);g.gain.exponentialRampToValueAtTime(.001,t0+dur);
+  o.start(t0);o2.start(t0);o.stop(t0+dur);o2.stop(t0+dur)}
+function melody(){if(!actx)return;const t=actx.currentTime+.05,N=[659.25,523.25,587.33,392,392,587.33,659.25,523.25];
+  N.forEach((f,i)=>note(f,t+i*.6+(i>=4?.4:0),i===3||i===7?2.2:1.4))}
+function checkBell(){if(!bellOn)return;const d=new Date(),dow=d.getDay();if(dow===0||dow===6)return;
+  const sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),key=ymd(d);
+  for(const b of BELLS){const k=key+b;if(sec>=b&&sec<b+15&&!fired[k]){fired[k]=1;melody()}}}
+document.getElementById("bell").onclick=async()=>{
+  const btn=document.getElementById("bell");
+  try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();await actx.resume()}catch(e){return}
+  bellOn=!bellOn;btn.textContent=bellOn?"🔔":"🔕";btn.classList.toggle("on",bellOn);btn.classList.toggle("off",!bellOn);
+  if(bellOn)melody()};
+// Alerte intrusion
+const MSG="Merci d'évacuer le bâtiment dans le calme.";
+let alarmRun=0;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function siren(sec){const t0=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();o.type="sawtooth";
+  for(let i=0;i<sec*2;i++){o.frequency.setValueAtTime(650,t0+i*.5);o.frequency.linearRampToValueAtTime(1150,t0+i*.5+.45)}
+  g.gain.setValueAtTime(.18,t0);g.gain.setValueAtTime(.18,t0+sec-.05);g.gain.linearRampToValueAtTime(0,t0+sec);
+  o.connect(g).connect(actx.destination);o.start(t0);o.stop(t0+sec);return o}
+function speak(){return new Promise(res=>{try{const u=new SpeechSynthesisUtterance(MSG);u.lang="fr-FR";u.rate=.9;u.volume=1;
+  const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith("fr"));if(v)u.voice=v;
+  u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,8000)}catch(e){res()}})}
+let curSiren=null;
+async function runAlarm(){const id=++alarmRun;
+  for(let i=0;i<6&&id===alarmRun;i++){curSiren=siren(4);await wait(4300);if(id!==alarmRun)break;await speak();await wait(600)}
+  if(id===alarmRun)stopAlarm()}
+function stopAlarm(){alarmRun++;try{curSiren&&curSiren.stop()}catch(e){}try{speechSynthesis.cancel()}catch(e){}document.getElementById("alertOv").classList.remove("show")}
+document.getElementById("alarmBtn").onclick=()=>document.getElementById("confirmOv").classList.add("show");
+document.getElementById("alarmNo").onclick=()=>document.getElementById("confirmOv").classList.remove("show");
+document.getElementById("alarmYes").onclick=async()=>{
+  document.getElementById("confirmOv").classList.remove("show");
+  try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();await actx.resume()}catch(e){}
+  document.getElementById("alertOv").classList.add("show");if(actx)runAlarm()};
+document.getElementById("alarmStop").onclick=stopAlarm;
 function shift(n){cur.setDate(cur.getDate()+n);render()}
 function goMonday(){while(cur.getDay()!==1)cur.setDate(cur.getDate()+1);render()}
 document.getElementById("prev").onclick=()=>shift(-1);
@@ -134,6 +219,8 @@ document.getElementById("next").onclick=()=>shift(1);
 document.getElementById("today").onclick=()=>{cur=new Date();cur.setHours(12,0,0,0);render()};
 document.getElementById("pick").onchange=e=>{if(!e.target.value)return;const[y,m,d]=e.target.value.split("-");cur=new Date(+y,m-1,+d,12);render()};
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{view=b.dataset.v;try{localStorage.setItem("edtView",view)}catch(e){}render()});
+function tick(){const d=new Date(),p=n=>String(n).padStart(2,"0");document.getElementById("clock").innerHTML=`${p(d.getHours())}:${p(d.getMinutes())}<span>:${p(d.getSeconds())}</span>`}
+tick();setInterval(()=>{tick();nowLine();checkBell()},1000);
 render();
 setInterval(()=>{if(ymd(new Date())===ymd(cur))render()},60000);
 </script>
