@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Qui est là aujourd'hui ? – EDT Joliverie</title>
+<title>EDT LABORATOIRES – LA JOLIVERIE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -48,6 +48,7 @@ header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:s
 .slot.abs{opacity:.55}.slot.abs .cls,.slot.abs .room{text-decoration:line-through}
 td.cell.abs{background:repeating-linear-gradient(135deg,#eceae4 0 8px,#f7f5f0 8px 16px)!important;color:#6b6880!important;outline:2px dashed #b9b3a5;outline-offset:-2px}
 td.cell.abs .lbl{display:inline-block;margin-top:4px;background:#1d1b2e;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900}
+.title{margin:0 0 14px;font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:.12em;color:var(--ink);border-bottom:3px solid var(--ink);padding-bottom:8px}
 .week{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:26px;padding:10px 20px;border-radius:999px;color:#fff}
 .week small{font-size:14px;font-weight:700;opacity:.9}
 .wA{background:#2563eb}.wB{background:#ea580c}
@@ -91,6 +92,7 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 </head>
 <body>
 <div class="wrap">
+<h1 class="title">EDT LABORATOIRES – LA JOLIVERIE</h1>
 <header>
   <div><div class="day" id="day"></div><div class="date" id="date"></div></div>
   <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div class="clock" id="clock"></div><button id="bell" class="bell on" title="Sonnerie">🔔</button><button id="alarmBtn" class="bell alarm" title="Alerte intrusion">🚨</button><div id="weekBadge"></div></div>
@@ -100,9 +102,9 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
   <button id="today" class="today">Aujourd'hui</button>
   <button id="next">Jour suivant ▶</button>
   <input type="date" id="pick" aria-label="Choisir une date">
-  <a class="report" href="https://docs.google.com/forms/d/e/1FAIpQLSdxpszRi7CeRRoDi7N8omylNsrHXXc4a6nYtDvSCIMTYVbvXQ/viewform?usp=dialog" target="_blank" rel="noopener">✏️ Signaler un changement</a>
+  <a class="report" href="https://docs.google.com/forms/d/e/1FAIpQLSdxpszRi7CeRRoDi7N8omylNsrHXXc4a6nYtDvSCIMTYVbvXQ/viewform?usp=dialog" target="_blank" rel="noopener">Signaler un changement</a>
 </div>
-<div class="tabs" style="align-items:center"><button data-v="prof" class="on">👩‍🏫 Par professeur</button><button data-v="salle">🚪 Par salle</button><span id="sync" class="sync"></span></div>
+<div class="tabs" style="align-items:center"><button data-v="prof" class="on">Par professeur</button><button data-v="salle">Par salle</button><span id="sync" class="sync"></span></div>
 <div id="msgs"></div>
 <div id="now"></div>
 <div id="main"></div>
