@@ -167,12 +167,13 @@ function addDays(k,n){const[y,m,d]=k.split("-");const t=new Date(+y,m-1,+d+n,12)
 function onSheet(res){
   const rows=(res&&res.table&&res.table.rows)||[],chg=[],msgs=[],wipe={},wipeAll={};
   const cols=(res&&res.table&&res.table.cols)||[];
-  let UNTIL=cols.findIndex(c=>norm(c.label).includes("jusqu"));if(UNTIL<0)UNTIL=10;
+  const col=(f,d)=>{const i=cols.findIndex(c=>f(norm(c.label)));return i<0?d:i};
+  const UNTIL=col(l=>l.includes("jusqu"),10),CS=col(l=>l.includes("debut du cours"),12),CE=col(l=>l.includes("fin du cours"),13),CD=CS>0?CS-1:11;
   const stamp=o=>o&&o.y?new Date(o.y,o.mo-1,o.d,o.h||0,o.mi||0).getTime():0;
   for(const r of rows){const c=r.c||[];
     const ty=norm(c[2]&&c[2].v),who=norm(c[1]&&c[1].v),t=stamp(cellDate(c[0]));
     if(ty.startsWith("effacer")&&t>(wipe[who]||0))wipe[who]=t;
-    if(ty.startsWith("supprimer")&&t>(wipeAll[who]||0))wipeAll[who]=t}
+    if(ty.startsWith("supprimer toutes")&&t>(wipeAll[who]||0))wipeAll[who]=t}
   for(const r of rows){const c=r.c||[];const g=i=>c[i]||null;
     const p=teacherOf(g(1)&&g(1).v),type=norm(g(2)&&g(2).v),ts=dkey(cellDate(g(0))),tsn=stamp(cellDate(g(0))),msg=g(9)&&g(9).v?String(g(9).v).trim():"";
     const who=norm(g(1)&&g(1).v);
@@ -182,7 +183,9 @@ function onSheet(res){
     if(type.startsWith("absent une partie")){from=to=dkey(cellDate(g(3)));a=tmin(cellDate(g(4)));b=tmin(cellDate(g(5)))}
     else if(type.startsWith("absent une journee")){from=to=dkey(cellDate(g(6)))}
     else if(type.startsWith("absent plusieurs")){from=dkey(cellDate(g(7)));to=dkey(cellDate(g(8)))||from}
-    if(p&&from)chg.push({p,from,to,a,b});
+    let k="abs";
+    if(type.startsWith("supprimer un cours")){k="cancel";from=to=dkey(cellDate(g(CD)));a=tmin(cellDate(g(CS)));b=tmin(cellDate(g(CE)))}
+    if(p&&from)chg.push({p,from,to,a,b,k});
     if(msg&&!wiped){const start=ts||from||ymd(new Date());const end=until?(until>=start?until:start):to?(to>start?to:start):addDays(start,MSG_DAYS);
       msgs.push({text:msg,p:g(1)&&g(1).v?String(g(1).v):"",from:start,to:end,abs:from?{from,to,a,b}:null})}}
   CHG=chg;MSGS=msgs;
@@ -193,8 +196,8 @@ function loadSheet(){const old=document.getElementById("sheetJs");if(old)old.rem
   sc.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?headers=1&tqx=responseHandler:onSheet&_=${Date.now()}`;
   sc.onerror=()=>{const sy=document.getElementById("sync");sy.className="sync err";sy.textContent="⚠ Changements LABO non lus"};
   document.head.appendChild(sc)}
-function absentFor(x,day){return CHG.some(c=>c.p===x.p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null||(mins(x.s)<c.b&&mins(x.e)>c.a)))}
-function fullDayAbs(p,day){return CHG.some(c=>c.p===p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null))}
+function absentFor(x,day){const c=CHG.find(c=>c.p===x.p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null||(mins(x.s)<c.b&&mins(x.e)>c.a)));return c?(c.k==="cancel"?"ANNULÉ":"ABSENT"):""}
+function fullDayAbs(p,day){return CHG.some(c=>c.p===p&&c.k!=="cancel"&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null))}
 function fmtD(k){const[y,m,d]=k.split("-");return d+"/"+m}
 function renderMsgs(){const day=ymd(cur),el=document.getElementById("msgs");
   const L=MSGS.filter(m=>day>=m.from&&day<=m.to);
@@ -226,7 +229,7 @@ function render(){
     for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t);
       const fa=fullDayAbs(t,day);
       h+=`<div class="card"${fa?' style="opacity:.75"':""}><h2 style="background:${c};color:${txt(c)}"><div class="nm"><b>${t.split(" ")[0].toUpperCase()}</b><i>${t.split(" ").slice(1).join(" ")}</i></div><span>${fa?'<span class="absBadge">ABSENT</span>':items[0].s.replace(":","h")+" →<br>"+items[items.length-1].e.replace(":","h")}</span></h2>`;
-      for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room">${x.r}</span><span class="cls">${x.c}</span>${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?' <span class="absBadge">ABSENT</span>':""}</div></div>`}
+      for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room">${x.r}</span><span class="cls">${x.c}</span>${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?` <span class="absBadge">${ab}</span>`:""}</div></div>`}
       h+=`</div>`}
     h+=`</div><div class="absent">Pas de cours ce jour-là :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
     main.innerHTML=h;
@@ -241,7 +244,7 @@ function render(){
         const x=list.find(x=>x.r===r&&x.s===s[0]);
         if(x){let span=0,j=i;while(j<SLOTS.length){if(SLOTS[j]){span++;covered[r+j]=1;if(SLOTS[j][1]===x.e)break}else{span++;covered[r+j]=1}j++}
           const c=COLORS[x.p],ab=absentFor(x,day);
-          h+=`<td rowspan="${span}" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${ab?'<span class="lbl">ABSENT</span>':""}</td>`}
+          h+=`<td rowspan="${span}" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${ab?`<span class="lbl">${ab}</span>`:""}</td>`}
         else h+=`<td></td>`}
       h+=`</tr>`});
     main.innerHTML=h+`</table><div id="nowLine"></div></div>`;
