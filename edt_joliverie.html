@@ -38,6 +38,16 @@ header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:s
 #alertOv .big{font-size:clamp(44px,8vw,110px);font-weight:900;line-height:1.05;max-width:1100px}
 #alertOv .ico{font-size:clamp(70px,10vw,140px)}
 .alertStop{margin-top:40px;background:#fff;color:#dc2626;border:none}
+.report{margin-left:auto;font-weight:900;font-size:16px;text-decoration:none;background:#16a34a;color:#fff;border-radius:12px;padding:10px 18px;border:2px solid #16a34a}
+.report:hover{background:#fff;color:#16a34a}
+.sync{margin-left:auto;font-size:13px;font-weight:700;color:var(--muted)}
+.sync.err{color:#dc2626}
+.msg{display:flex;gap:12px;align-items:center;background:#fff3c4;border:2px solid #f59e0b;border-radius:16px;padding:12px 16px;margin-bottom:10px;font-weight:800;font-size:18px}
+.msg small{font-weight:700;color:var(--muted);font-size:14px}
+.absBadge{background:#1d1b2e;color:#fff;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:900;letter-spacing:.04em}
+.slot.abs{opacity:.55}.slot.abs .cls,.slot.abs .room{text-decoration:line-through}
+td.cell.abs{background:repeating-linear-gradient(135deg,#eceae4 0 8px,#f7f5f0 8px 16px)!important;color:#6b6880!important;outline:2px dashed #b9b3a5;outline-offset:-2px}
+td.cell.abs .lbl{display:inline-block;margin-top:4px;background:#1d1b2e;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900}
 .week{display:inline-flex;align-items:center;gap:10px;font-weight:900;font-size:26px;padding:10px 20px;border-radius:999px;color:#fff}
 .week small{font-size:14px;font-weight:700;opacity:.9}
 .wA{background:#2563eb}.wB{background:#ea580c}
@@ -90,8 +100,10 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
   <button id="today" class="today">Aujourd'hui</button>
   <button id="next">Jour suivant ▶</button>
   <input type="date" id="pick" aria-label="Choisir une date">
+  <a class="report" href="https://docs.google.com/forms/d/e/1FAIpQLSdxpszRi7CeRRoDi7N8omylNsrHXXc4a6nYtDvSCIMTYVbvXQ/viewform?usp=dialog" target="_blank" rel="noopener">✏️ Signaler un changement</a>
 </div>
-<div class="tabs"><button data-v="prof" class="on">👩‍🏫 Par professeur</button><button data-v="salle">🚪 Par salle</button></div>
+<div class="tabs" style="align-items:center"><button data-v="prof" class="on">👩‍🏫 Par professeur</button><button data-v="salle">🚪 Par salle</button><span id="sync" class="sync"></span></div>
+<div id="msgs"></div>
 <div id="now"></div>
 <div id="main"></div>
 <footer>Semaine A = semaine paire (numéro de semaine ISO), semaine B = semaine impaire. Vacances et jours fériés : zone B (Nantes), calendrier officiel 2026-2027. Source : EDT_Joliverie_2026-2027.xlsx.</footer>
@@ -129,6 +141,59 @@ const FERIES={"2026-11-11":"Armistice 1918","2027-03-29":"Lundi de Pâques","202
 function offDay(d){const k=ymd(d);if(FERIES[k])return{label:"Jour férié · "+FERIES[k]};
   for(const[a,b,l]of OFF)if(k>=a&&k<b){const[y,m,j]=b.split("-");const r=new Date(+y,m-1,+j,12);
     return{label:l,back:r}}return null}
+// ===== Changements saisis via Google Forms (feuille « Mise à jours de l'EDT du LABO ») =====
+const SHEET_ID="1uqQdngXMOBVN8P0TWH9ni-LDN32GtFcmhcWLTekPkUw";
+const MSG_DAYS=7; // durée d'affichage d'un message seul (jours après l'envoi)
+let CHG=[],MSGS=[];
+const norm=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+function teacherOf(name){const n=norm(name);return TEACHERS.find(t=>{const sur=norm(t.split(" ")[0]);return n.split(/\s+/).includes(sur)})||null}
+function cellDate(c){if(!c||c.v==null||c.v==="")return null;const v=c.v;
+  if(typeof v==="string"){let m=v.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+)(?:,(\d+))?)?\)$/);
+    if(m)return{y:+m[1],mo:+m[2]+1,d:+m[3],h:m[4]!=null?+m[4]:null,mi:m[5]!=null?+m[5]:null};
+    m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);if(m)return{y:+m[3],mo:+m[2],d:+m[1],h:m[4]!=null?+m[4]:null,mi:m[5]!=null?+m[5]:null};
+    m=v.match(/^(\d{1,2})[:h](\d{2})/);if(m)return{h:+m[1],mi:+m[2]}}
+  if(Array.isArray(v))return{h:v[0],mi:v[1]};
+  if(c.f){const m=String(c.f).match(/^(\d{1,2})[:h](\d{2})/);if(m)return{h:+m[1],mi:+m[2]}}
+  return null}
+const dkey=o=>o&&o.y?o.y+"-"+String(o.mo).padStart(2,"0")+"-"+String(o.d).padStart(2,"0"):null;
+const tmin=o=>o&&o.h!=null?o.h*60+o.mi:null;
+function addDays(k,n){const[y,m,d]=k.split("-");const t=new Date(+y,m-1,+d+n,12);return ymd(t)}
+function onSheet(res){
+  const rows=(res&&res.table&&res.table.rows)||[],chg=[],msgs=[],wipe={},wipeAll={};
+  const cols=(res&&res.table&&res.table.cols)||[];
+  let UNTIL=cols.findIndex(c=>norm(c.label).includes("jusqu"));if(UNTIL<0)UNTIL=10;
+  const stamp=o=>o&&o.y?new Date(o.y,o.mo-1,o.d,o.h||0,o.mi||0).getTime():0;
+  for(const r of rows){const c=r.c||[];
+    const ty=norm(c[2]&&c[2].v),who=norm(c[1]&&c[1].v),t=stamp(cellDate(c[0]));
+    if(ty.startsWith("effacer")&&t>(wipe[who]||0))wipe[who]=t;
+    if(ty.startsWith("supprimer")&&t>(wipeAll[who]||0))wipeAll[who]=t}
+  for(const r of rows){const c=r.c||[];const g=i=>c[i]||null;
+    const p=teacherOf(g(1)&&g(1).v),type=norm(g(2)&&g(2).v),ts=dkey(cellDate(g(0))),tsn=stamp(cellDate(g(0))),msg=g(9)&&g(9).v?String(g(9).v).trim():"";
+    const who=norm(g(1)&&g(1).v);
+    if(tsn&&tsn<=(wipeAll[who]||0))continue; // « Supprimer toutes mes modifications » : tout ce qui a été envoyé avant est ignoré
+    const until=dkey(cellDate(g(UNTIL))),wiped=tsn&&tsn<=(wipe[who]||0);
+    let from=null,to=null,a=null,b=null;
+    if(type.startsWith("absent une partie")){from=to=dkey(cellDate(g(3)));a=tmin(cellDate(g(4)));b=tmin(cellDate(g(5)))}
+    else if(type.startsWith("absent une journee")){from=to=dkey(cellDate(g(6)))}
+    else if(type.startsWith("absent plusieurs")){from=dkey(cellDate(g(7)));to=dkey(cellDate(g(8)))||from}
+    if(p&&from)chg.push({p,from,to,a,b});
+    if(msg&&!wiped){const start=ts||from||ymd(new Date());const end=until?(until>=start?until:start):to?(to>start?to:start):addDays(start,MSG_DAYS);
+      msgs.push({text:msg,p:g(1)&&g(1).v?String(g(1).v):"",from:start,to:end,abs:from?{from,to,a,b}:null})}}
+  CHG=chg;MSGS=msgs;
+  const n=new Date(),sy=document.getElementById("sync");sy.className="sync";sy.textContent="Changements LABO : à jour ("+String(n.getHours()).padStart(2,"0")+"h"+String(n.getMinutes()).padStart(2,"0")+")";
+  render()}
+function loadSheet(){const old=document.getElementById("sheetJs");if(old)old.remove();
+  const sc=document.createElement("script");sc.id="sheetJs";
+  sc.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?headers=1&tqx=responseHandler:onSheet&_=${Date.now()}`;
+  sc.onerror=()=>{const sy=document.getElementById("sync");sy.className="sync err";sy.textContent="⚠ Changements LABO non lus"};
+  document.head.appendChild(sc)}
+function absentFor(x,day){return CHG.some(c=>c.p===x.p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null||(mins(x.s)<c.b&&mins(x.e)>c.a)))}
+function fullDayAbs(p,day){return CHG.some(c=>c.p===p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null))}
+function fmtD(k){const[y,m,d]=k.split("-");return d+"/"+m}
+function renderMsgs(){const day=ymd(cur),el=document.getElementById("msgs");
+  const L=MSGS.filter(m=>day>=m.from&&day<=m.to);
+  el.innerHTML=L.map(m=>`<div class="msg">📢 <div>${esc(m.text)}<br><small>${esc(m.p)}${m.abs?` · absent ${m.abs.from===m.abs.to?"le "+fmtD(m.abs.from):"du "+fmtD(m.abs.from)+" au "+fmtD(m.abs.to)}${m.abs.a!=null&&m.abs.b!=null?" de "+hm(String(Math.floor(m.abs.a/60)).padStart(2,"0")+":"+String(m.abs.a%60).padStart(2,"0"))+" à "+hm(String(Math.floor(m.abs.b/60)).padStart(2,"0")+":"+String(m.abs.b%60).padStart(2,"0")):""}`:""}</small></div></div>`).join("")}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function render(){
   const dow=cur.getDay(),wn=isoWeek(cur),wk=wn%2===0?"A":"B";
   document.getElementById("day").textContent=JOURS[dow];
@@ -137,6 +202,7 @@ function render(){
   document.getElementById("pick").value=ymd(cur);
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v===view));
   const main=document.getElementById("main"),nowEl=document.getElementById("now");
+  renderMsgs();const day=ymd(cur);
   nowEl.innerHTML="";
   if(dow===0||dow===6){main.innerHTML=`<div class="empty">🌴 C'est le week-end, pas de cours.<br><br><button onclick="goMonday()" style="font:inherit;font-weight:900;border:none;background:#1d1b2e;color:#fff;border-radius:12px;padding:10px 18px;cursor:pointer">Voir lundi ▶</button></div>`;return}
   const off=offDay(cur);
@@ -144,7 +210,7 @@ function render(){
   const list=DATA.filter(x=>x.d===dow&&(x.w===""||x.w===wk)).sort((a,b)=>mins(a.s)-mins(b.s));
   const real=new Date(),isToday=ymd(real)===ymd(cur),nm=real.getHours()*60+real.getMinutes();
   const live=x=>isToday&&nm>=mins(x.s)&&nm<mins(x.e);
-  if(isToday){const L=list.filter(live);
+  if(isToday){const L=list.filter(x=>live(x)&&!absentFor(x,day));
     nowEl.innerHTML=`<div class="now"><b>⏱ En ce moment (${String(real.getHours()).padStart(2,"0")}h${String(real.getMinutes()).padStart(2,"0")}) :</b>`+(L.length?L.map(x=>`<span class="chip" style="background:${COLORS[x.p]};color:${txt(COLORS[x.p])}">${x.p.split(" ")[0]} · ${x.r} · ${x.c}</span>`).join(""):`<span style="opacity:.8;font-weight:700">aucun cours en cours pour ces professeurs</span>`)+`</div>`}
   if(view==="prof"){
     const present=TEACHERS.filter(t=>list.some(x=>x.p===t));
@@ -152,8 +218,9 @@ function render(){
     if(!present.length){main.innerHTML=`<div class="empty">Aucun de ces professeurs n'a cours ce jour-là.</div>`;return}
     let h=`<div class="grid">`;
     for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t);
-      h+=`<div class="card"><h2 style="background:${c};color:${txt(c)}">${t}<span>${items[0].s.replace(":","h")} → ${items[items.length-1].e.replace(":","h")}</span></h2>`;
-      for(const x of items)h+=`<div class="slot${live(x)?" live":""}"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room">${x.r}</span><span class="cls">${x.c}</span>${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}</div></div>`;
+      const fa=fullDayAbs(t,day);
+      h+=`<div class="card"${fa?' style="opacity:.75"':""}><h2 style="background:${c};color:${txt(c)}">${t}<span>${fa?'<span class="absBadge">ABSENT</span>':items[0].s.replace(":","h")+" → "+items[items.length-1].e.replace(":","h")}</span></h2>`;
+      for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room">${x.r}</span><span class="cls">${x.c}</span>${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?' <span class="absBadge">ABSENT</span>':""}</div></div>`}
       h+=`</div>`}
     h+=`</div><div class="absent">Pas de cours ce jour-là :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
     main.innerHTML=h;
@@ -167,8 +234,8 @@ function render(){
         if(covered[r+i])continue;
         const x=list.find(x=>x.r===r&&x.s===s[0]);
         if(x){let span=0,j=i;while(j<SLOTS.length){if(SLOTS[j]){span++;covered[r+j]=1;if(SLOTS[j][1]===x.e)break}else{span++;covered[r+j]=1}j++}
-          const c=COLORS[x.p];
-          h+=`<td rowspan="${span}" class="cell" style="background:${c};color:${txt(c)}${live(x)?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div></td>`}
+          const c=COLORS[x.p],ab=absentFor(x,day);
+          h+=`<td rowspan="${span}" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${ab?'<span class="lbl">ABSENT</span>':""}</td>`}
         else h+=`<td></td>`}
       h+=`</tr>`});
     main.innerHTML=h+`</table><div id="nowLine"></div></div>`;
@@ -270,6 +337,7 @@ document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{view=b.datas
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,"0");document.getElementById("clock").innerHTML=`${p(d.getHours())}:${p(d.getMinutes())}<span>:${p(d.getSeconds())}</span>`}
 tick();setInterval(()=>{tick();nowLine();checkBell()},1000);
 countdown();setInterval(countdown,200);
+loadSheet();setInterval(loadSheet,5*60*1000);
 render();
 setInterval(()=>{if(ymd(new Date())===ymd(cur))render()},60000);
 </script>
