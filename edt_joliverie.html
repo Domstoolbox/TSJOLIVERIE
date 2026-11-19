@@ -23,6 +23,10 @@ header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:s
 .bell.alarm{border-color:#dc2626;background:#fee2e2}
 .ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .ov.show{display:flex}
+#cdOv{z-index:90;background:rgba(29,27,46,.94);color:#fff;flex-direction:column;cursor:pointer}
+.cdNum{font-size:min(62vw,78vh);font-weight:900;line-height:.9;font-variant-numeric:tabular-nums;transition:color .3s}
+.cdNum.hot{color:#f43f5e}
+.cdLbl{font-size:clamp(24px,4vw,48px);font-weight:800;opacity:.75}
 #confirmOv{background:rgba(20,10,10,.75)}
 .box{background:#fff;border:6px solid #dc2626;border-radius:28px;padding:40px 36px;max-width:760px;text-align:center}
 .box h3{margin:0 0 12px;font-size:clamp(36px,6vw,64px);font-weight:900;color:#dc2626}
@@ -92,6 +96,7 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 <div id="main"></div>
 <footer>Semaine A = semaine paire (numéro de semaine ISO), semaine B = semaine impaire. Vacances et jours fériés : zone B (Nantes), calendrier officiel 2026-2027. Source : EDT_Joliverie_2026-2027.xlsx.</footer>
 </div>
+<div class="ov" id="cdOv"><div class="cdLbl">Fin du cours</div><div class="cdNum" id="cdNum"></div></div>
 <div class="ov" id="confirmOv"><div class="box"><h3>⚠️ Attention !</h3><p>Êtes-vous sûr de vouloir émettre un message d'évacuation ?</p><button class="yes" id="alarmYes">Oui, lancer l'alerte</button><button class="no" id="alarmNo">Annuler</button></div></div>
 <div class="ov" id="alertOv"><div class="ico">🚨</div><div class="big">Merci d'évacuer le bâtiment dans le calme</div><button class="alertStop" id="alarmStop">Arrêter l'alerte</button></div>
 <script>
@@ -191,16 +196,21 @@ window.addEventListener("resize",nowLine);
 // Sonnerie : 15 s avant chaque début et fin de cours, du lundi au vendredi
 const BELLS=[...new Set(SLOTS.filter(Boolean).flat())].map(t=>mins(t)*60-15);
 let actx=null,bellOn=true,fired={};
-function note(f,t0,dur){const o=actx.createOscillator(),o2=actx.createOscillator(),g=actx.createGain();
+function note(f,t0,dur,out){const o=actx.createOscillator(),o2=actx.createOscillator(),g=actx.createGain();
   o.type="sine";o2.type="sine";o.frequency.value=f;o2.frequency.value=f*2.01;
-  const g2=actx.createGain();g2.gain.value=.25;o2.connect(g2).connect(g);o.connect(g).connect(actx.destination);
+  const g2=actx.createGain();g2.gain.value=.25;o2.connect(g2).connect(g);o.connect(g).connect(out||actx.destination);
   g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.35,t0+.02);g.gain.exponentialRampToValueAtTime(.001,t0+dur);
   o.start(t0);o2.start(t0);o.stop(t0+dur);o2.stop(t0+dur)}
-function melody(){if(!actx)return;const t=actx.currentTime+.05,N=[659.25,523.25,587.33,392,392,587.33,659.25,523.25];
-  N.forEach((f,i)=>note(f,t+i*.6+(i>=4?.4:0),i===3||i===7?2.2:1.4))}
+// Mélodie programmée sur l'horloge audio : jouée à l'heure exacte même si l'onglet est en arrière-plan
+let bellOut=null;
+function bellBus(){if(!bellOut){bellOut=actx.createGain();bellOut.connect(actx.destination)}return bellOut}
+function cancelBells(){if(bellOut){try{bellOut.disconnect()}catch(e){}bellOut=null}}
+function melody(delay=0){if(!actx)return;const out=bellBus(),t=actx.currentTime+.05+delay,N=[659.25,523.25,587.33,392,392,587.33,659.25,523.25];
+  N.forEach((f,i)=>note(f,t+i*.6+(i>=4?.4:0),i===3||i===7?2.2:1.4,out))}
 function checkBell(){if(!bellOn)return;const d=new Date(),dow=d.getDay();if(dow===0||dow===6||offDay(d))return;
-  const sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds(),key=ymd(d);
-  for(const b of BELLS){const k=key+b;if(sec>=b&&sec<b+15&&!fired[k]){fired[k]=1;melody()}}}
+  if(!audioOk())return;
+  const sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000,key=ymd(d);
+  for(const b of BELLS){const k=key+b;if(sec>b-120&&sec<b+15&&!fired[k]){fired[k]=1;melody(Math.max(0,b-sec))}}}
 // Son autorisé dès que possible ; sinon au premier clic ou touche n'importe où sur la page
 const bellBtn=document.getElementById("bell");
 function audioOk(){return actx&&actx.state==="running"}
@@ -213,7 +223,7 @@ document.getElementById("bell").onclick=async()=>{
   const wasLocked=!audioOk();
   await unlock();if(!audioOk())return;
   if(wasLocked&&bellOn){showLock();return}
-  bellOn=!bellOn;showLock();btn.textContent=bellOn?"🔔":"🔕";btn.classList.toggle("on",bellOn);btn.classList.toggle("off",!bellOn);
+  bellOn=!bellOn;showLock();if(!bellOn){cancelBells();fired={}}btn.textContent=bellOn?"🔔":"🔕";btn.classList.toggle("on",bellOn);btn.classList.toggle("off",!bellOn);
   if(bellOn)melody()};
 // Alerte intrusion
 const MSG="Merci d'évacuer le bâtiment dans le calme.";
@@ -238,6 +248,17 @@ document.getElementById("alarmYes").onclick=async()=>{
   try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();await actx.resume()}catch(e){}
   document.getElementById("alertOv").classList.add("show");if(actx)runAlarm()};
 document.getElementById("alarmStop").onclick=stopAlarm;
+// Compte à rebours géant 15 s avant chaque fin de cours
+const ENDS=[...new Set(SLOTS.filter(Boolean).map(s=>s[1]))].map(t=>mins(t)*60);
+let cdHidden=null;
+function countdown(){const ov=document.getElementById("cdOv"),d=new Date(),dow=d.getDay();
+  let left=null,end=null;
+  if(dow>0&&dow<6&&!offDay(d)){const sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds()+d.getMilliseconds()/1000;
+    for(const e of ENDS)if(e-sec>0&&e-sec<=15){left=Math.ceil(e-sec);end=ymd(d)+e;break}}
+  if(left===null||cdHidden===end){ov.classList.remove("show");return}
+  const n=document.getElementById("cdNum");n.textContent=left;n.classList.toggle("hot",left<=5);ov.classList.add("show")}
+document.getElementById("cdOv").onclick=()=>{const d=new Date(),sec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  const e=ENDS.find(e=>e-sec>0&&e-sec<=16);if(e)cdHidden=ymd(d)+e;countdown()};
 function shift(n){cur.setDate(cur.getDate()+n);render()}
 function goMonday(){while(cur.getDay()!==1)cur.setDate(cur.getDate()+1);render()}
 document.getElementById("prev").onclick=()=>shift(-1);
@@ -247,6 +268,7 @@ document.getElementById("pick").onchange=e=>{if(!e.target.value)return;const[y,m
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{view=b.dataset.v;try{localStorage.setItem("edtView",view)}catch(e){}render()});
 function tick(){const d=new Date(),p=n=>String(n).padStart(2,"0");document.getElementById("clock").innerHTML=`${p(d.getHours())}:${p(d.getMinutes())}<span>:${p(d.getSeconds())}</span>`}
 tick();setInterval(()=>{tick();nowLine();checkBell()},1000);
+countdown();setInterval(countdown,200);
 render();
 setInterval(()=>{if(ymd(new Date())===ymd(cur))render()},60000);
 </script>
