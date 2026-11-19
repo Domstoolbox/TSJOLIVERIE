@@ -65,7 +65,11 @@ td.cell.abs .lbl{display:inline-block;margin-top:4px;background:#1d1b2e;color:#f
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
 .card{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.06);border:1px solid var(--line)}
 .card h2{margin:0;padding:14px 16px;font-size:21px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
-.card h2 span{font-size:13px;font-weight:800;opacity:.85}
+.card h2 .nm{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.card h2{gap:10px}
+.card h2 .nm b{font-weight:900;font-size:20px;overflow-wrap:anywhere;letter-spacing:.02em}
+.card h2 .nm i{font-style:normal;font-weight:700;font-size:17px;opacity:.9}
+.card h2 span{text-align:right;white-space:nowrap;font-size:13px;font-weight:800;opacity:.85}
 .slot{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 16px;border-top:1px solid var(--line);align-items:center}
 .slot.live{background:#fff7cc}
 .time{font-weight:900;font-size:15px;line-height:1.15}
@@ -221,7 +225,7 @@ function render(){
     let h=`<div class="grid">`;
     for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t);
       const fa=fullDayAbs(t,day);
-      h+=`<div class="card"${fa?' style="opacity:.75"':""}><h2 style="background:${c};color:${txt(c)}">${t}<span>${fa?'<span class="absBadge">ABSENT</span>':items[0].s.replace(":","h")+" → "+items[items.length-1].e.replace(":","h")}</span></h2>`;
+      h+=`<div class="card"${fa?' style="opacity:.75"':""}><h2 style="background:${c};color:${txt(c)}"><div class="nm"><b>${t.split(" ")[0].toUpperCase()}</b><i>${t.split(" ").slice(1).join(" ")}</i></div><span>${fa?'<span class="absBadge">ABSENT</span>':items[0].s.replace(":","h")+" →<br>"+items[items.length-1].e.replace(":","h")}</span></h2>`;
       for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room">${x.r}</span><span class="cls">${x.c}</span>${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?' <span class="absBadge">ABSENT</span>':""}</div></div>`}
       h+=`</div>`}
     h+=`</div><div class="absent">Pas de cours ce jour-là :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
