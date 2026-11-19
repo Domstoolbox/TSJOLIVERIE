@@ -106,12 +106,16 @@ header>div:last-child{flex-wrap:nowrap!important;flex:none}
 .sync.err{color:#dc2626}
 .msg{display:flex;gap:12px;align-items:center;background:#fff3c4;border:2px solid #f59e0b;border-radius:16px;padding:12px 16px;margin-bottom:10px;font-weight:800;font-size:18px}
 .msg small{font-weight:700;color:var(--muted);font-size:14px}
-.room.mv{background:#f59e0b;color:#1d1b2e}
+.room.mv{background:#f59e0b;color:#1d1b2e;animation:blinkC 1s steps(1) infinite}
+td.cell .lbl.nw{animation:blinkC 1s steps(1) infinite}
 td.cell .lbl.nw{display:inline-block;margin-top:4px;background:#1d1b2e;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900}
 .slot[data-p],td.cell{cursor:pointer;user-select:none}
 .why{font-size:12px;font-weight:700;font-style:italic;color:#6b6880;margin-top:3px;text-decoration:none;line-height:1.2}
+.absBadge.cancel,td.cell .lbl.cancel{background:#dc2626!important;color:#fff!important;animation:blinkC 1s steps(1) infinite}
+@keyframes blinkC{50%{opacity:.15}}
+.card h2 .absBadge.cancel{box-shadow:0 0 0 2px #fff}
 .absBadge{background:#1d1b2e;color:#fff;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:900;letter-spacing:.04em}
-.slot.abs{opacity:.55}.slot.abs .cls,.slot.abs .room{text-decoration:line-through}
+.slot.abs .time,.slot.abs .room,.slot.abs .cls,.slot.abs .tag,.slot.abs .why{opacity:.55}.slot.abs .cls,.slot.abs .room{text-decoration:line-through}
 td.cell.abs{background:repeating-linear-gradient(135deg,#eceae4 0 8px,#f7f5f0 8px 16px)!important;color:#6b6880!important;outline:2px dashed #b9b3a5;outline-offset:-2px}
 td.cell.abs .lbl{display:inline-block;margin-top:4px;background:#1d1b2e;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900}
 .title{margin:0 0 14px;font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:.12em;color:var(--ink);border-bottom:3px solid var(--ink);padding-bottom:8px}
@@ -324,7 +328,10 @@ function syncErr(t){const sy=document.getElementById("sync");sy.className="sync 
 async function loadSheet(){try{const r=await fetch(API+"?_="+Date.now());const j=await r.json();if(j.ok)onRows(j.lignes);else syncErr()}catch(e){syncErr()}}
 async function api(body){const r=await fetch(API,{method:"POST",body:JSON.stringify(body)});return r.json()}
 function moveFor(x,day){return CHG.find(c=>c.k==="move"&&c.p===x.p&&day===c.from&&c.a===mins(x.s))||null}
-function absentFor(x,day){const c=CHG.find(c=>c.k!=="move"&&c.p===x.p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null||(mins(x.s)<c.b&&mins(x.e)>c.a)));return c?{t:c.k==="cancel"?"ANNULÉ":"ABSENT",why:c.why}:null}
+// Accord masculin / féminin
+const MALE=new Set(["Blain Frédérick","Nicouleaud Georges","Rouillé Dominique"]);
+const absWord=p=>MALE.has(p)?"ABSENT":"ABSENTE";
+function absentFor(x,day){const c=CHG.find(c=>c.k!=="move"&&c.p===x.p&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null||(mins(x.s)<c.b&&mins(x.e)>c.a)));return c?{t:c.k==="cancel"?"ANNULÉ":absWord(x.p),why:c.why}:null}
 function fullDayAbs(p,day){return CHG.some(c=>c.p===p&&c.k==="abs"&&day>=c.from&&day<=c.to&&(c.a==null||c.b==null))}
 function fmtD(k){const[y,m,d]=k.split("-");return d+"/"+m}
 function renderMsgs(){const day=ymd(cur),el=document.getElementById("msgs");
@@ -357,10 +364,10 @@ function render(){
     let h=`<div class="grid">`;
     for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t);
       const fa=fullDayAbs(t,day);
-      h+=`<div class="card"${fa?' style="opacity:.75"':""}><h2 style="background:${c};color:${txt(c)}"><div class="nm"><b>${t.split(" ")[0].toUpperCase()}</b><i>${t.split(" ").slice(1).join(" ")}</i></div><span>${fa?'<span class="absBadge">ABSENT</span>':items[0].s.replace(":","h")+" →<br>"+items[items.length-1].e.replace(":","h")}</span></h2>`;
-      for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}" data-p="${x.p}" data-s="${x.s}" title="Double-cliquer pour modifier ce cours"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room${x.old?" mv":""}">${x.r}</span><span class="cls">${x.c}</span>${x.old?`<div class="why">Salle changée (au lieu de ${x.old})${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?` <span class="absBadge">${ab.t}</span>`:""}${ab&&ab.why?`<div class="why">${esc(ab.why)}</div>`:""}</div></div>`}
+      h+=`<div class="card"><h2 style="background:${c};color:${txt(c)}"><div class="nm"><b>${t.split(" ")[0].toUpperCase()}</b><i>${t.split(" ").slice(1).join(" ")}</i></div><span>${fa?`<span class="absBadge cancel">${absWord(t)}</span>`:items[0].s.replace(":","h")+" →<br>"+items[items.length-1].e.replace(":","h")}</span></h2>`;
+      for(const x of items){const ab=absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}" data-p="${x.p}" data-s="${x.s}" title="Double-cliquer pour modifier ce cours"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room${x.old?" mv":""}">${x.r}</span><span class="cls">${x.c}</span>${x.old?`<div class="why">Salle changée (au lieu de ${x.old})${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?` <span class="absBadge${ab.t==="ANNULÉ"||ab.t.startsWith("ABSENT")?" cancel":""}">${ab.t}</span>`:""}${ab&&ab.why?`<div class="why">${esc(ab.why)}</div>`:""}</div></div>`}
       h+=`</div>`}
-    h+=`</div><div class="absent">Pas de cours ce jour-là :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
+    h+=`</div><div class="absent">Pas de cours ce jour-là AUX LABOS :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
     main.innerHTML=h;
   }else{
     let h=`<div class="tw"><table><tr><th>Heure</th>${ROOMS.map(r=>`<th>${r}${CAP[r]?`<span class="cap">${CAP[r]} max</span>`:""}</th>`).join("")}</tr>`;
@@ -373,7 +380,7 @@ function render(){
         const x=grid.find(x=>x.r===r&&x.s===s[0]&&!x.ghost)||grid.find(x=>x.r===r&&x.s===s[0]);
         if(x){let span=0,j=i;while(j<SLOTS.length){if(SLOTS[j]){span++;covered[r+j]=1;if(SLOTS[j][1]===x.e)break}else{span++;covered[r+j]=1}j++}
           const c=COLORS[x.p],ab=x.ghost?{t:"DÉPLACÉ → "+x.ghost,why:""}:absentFor(x,day);
-          h+=`<td rowspan="${span}" data-p="${x.p}" data-s="${x.s}" title="Double-cliquer pour modifier ce cours" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${x.old&&!x.ghost?`<span class="lbl nw">NOUVELLE SALLE</span><div class="why" style="color:inherit;opacity:.8">au lieu de ${x.old}${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${ab?`<span class="lbl">${ab.t}</span>${ab.why?`<div class="why">${esc(ab.why)}</div>`:""}`:""}</td>`}
+          h+=`<td rowspan="${span}" data-p="${x.p}" data-s="${x.s}" title="Double-cliquer pour modifier ce cours" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${x.old&&!x.ghost?`<span class="lbl nw">NOUVELLE SALLE</span><div class="why" style="color:inherit;opacity:.8">au lieu de ${x.old}${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${ab?`<span class="lbl${ab.t==="ANNULÉ"||ab.t.startsWith("ABSENT")?" cancel":""}">${ab.t}</span>${ab.why?`<div class="why">${esc(ab.why)}</div>`:""}`:""}</td>`}
         else h+=`<td></td>`}
       h+=`</tr>`});
     main.innerHTML=h+`</table><div id="nowLine"></div></div>`;
@@ -596,13 +603,13 @@ $("mgLogout").onclick=forget;
 $("mgList").onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.ed)mgEditLine(b.dataset.ed);else if(b.dataset.del)mgDel(b)};
 
 // ===== Techniciens de laboratoire : présences matin / après-midi =====
-const TECHS=[{n:"Clarisse",l:"C",c:"#ec4899"},{n:"Adrien",l:"A",c:"#2563eb"}];
+const TECHS=[{n:"Clarisse",l:"C",c:"#ec4899",f:1},{n:"Adrien",l:"A",c:"#2563eb",f:0}];
 let PRES={};
 function presOf(n,day){const o=(PRES[n]||{})[day];return o?o.v:""}
 function renderTech(){const day=ymd(cur),el=document.getElementById("tech"),dow=cur.getDay();
   if(dow===0||dow===6||offDay(cur)){el.innerHTML="";return}
   const box=(lab,k)=>`<div class="tbox"><small>${lab}</small>${TECHS.map(t=>{const on=presOf(t.n,day).includes(k);
-    return`<span class="tdot${on?"":" off"}" style="background:${t.c}" data-tech="${t.n}" title="${t.n} · ${on?"présent(e)":"absent(e)"} ${lab==="Matin"?"le matin":"l'après-midi"} — double-cliquer pour saisir ses présences">${t.l}</span>`}).join("")}</div>`;
+    return`<span class="tdot${on?"":" off"}" style="background:${t.c}" data-tech="${t.n}" title="${t.n} · ${(on?"présent":"absent")+(t.f?"e":"")} ${lab==="Matin"?"le matin":"l'après-midi"} — double-cliquer pour saisir ses présences">${t.l}</span>`}).join("")}</div>`;
   el.innerHTML=box("Matin","M")+box("Après-midi","A")}
 let tkName=null,tkMon=null,tkDraft={};
 function monday(d){const t=new Date(d);t.setHours(12,0,0,0);const w=(t.getDay()+6)%7;t.setDate(t.getDate()-w);return t}
