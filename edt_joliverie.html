@@ -65,7 +65,7 @@ th{font-size:15px;font-weight:900;padding:8px;background:var(--ink);color:#fff;b
 th .cap{display:block;font-size:12px;font-weight:700;opacity:.7;margin-top:2px}
 td{vertical-align:top;padding:0;height:52px}
 th:first-child,td.t{width:80px}td.t{font-weight:900;font-size:13px;white-space:nowrap;padding:6px 8px;color:var(--muted);background:#f4f1ea;border-radius:10px}
-.cell{border-radius:10px;padding:6px 8px;font-size:13px;font-weight:800;height:100%;line-height:1.2}
+td.cell{border-radius:10px;padding:6px 8px;font-size:13px;font-weight:800;line-height:1.2}
 .cell div{font-weight:700;font-size:12px;opacity:.9}
 #nowLine{position:absolute;left:10px;height:0;border-top:3px solid #e11d48;pointer-events:none;display:none;z-index:5}
 #nowLine:after{content:"";position:absolute;left:-7px;top:-8.5px;width:14px;height:14px;border-radius:50%;background:#e11d48}
@@ -145,7 +145,7 @@ function render(){
         const x=list.find(x=>x.r===r&&x.s===s[0]);
         if(x){let span=0,j=i;while(j<SLOTS.length){if(SLOTS[j]){span++;covered[r+j]=1;if(SLOTS[j][1]===x.e)break}else{span++;covered[r+j]=1}j++}
           const c=COLORS[x.p];
-          h+=`<td rowspan="${span}"><div class="cell" style="background:${c};color:${txt(c)}${live(x)?";outline:4px solid #1d1b2e":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div></div></td>`}
+          h+=`<td rowspan="${span}" class="cell" style="background:${c};color:${txt(c)}${live(x)?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div></td>`}
         else h+=`<td></td>`}
       h+=`</tr>`});
     main.innerHTML=h+`</table><div id="nowLine"></div></div>`;
