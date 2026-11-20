@@ -50,8 +50,6 @@ tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
 .fmt input{width:18px;height:18px;accent-color:var(--pri)}
 .tgl{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:600;cursor:pointer;user-select:none}
 .tgl input{width:22px;height:22px;accent-color:var(--ok)}
-#gsState{font-weight:600;margin:8px 0 0}
-#gsState.ok{color:var(--ok)}#gsState.warn{color:var(--warn)}#gsState.ko{color:var(--ko)}
 #after{display:none;margin-top:12px;padding:12px;border-radius:10px;background:var(--okbg);color:var(--ok)}
 #after.show{display:block}
 .small{font-size:.82rem;color:var(--mut)}
@@ -94,16 +92,6 @@ tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
         <button type="button" class="sec" id="clearBtn">Vider la liste</button>
       </div>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>☁️ Enregistrement automatique dans Google Sheets</h2>
-    <div class="grid" style="gap:10px">
-      <label class="field">Adresse du script (https://script.google.com/…/exec)<input id="gsUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
-      <label class="field">Code secret (écrit en haut du script)<input id="gsKey" type="text" autocomplete="off" spellcheck="false"></label>
-    </div>
-    <div class="row"><button type="button" class="sec" id="gsTest">Tester la liaison</button></div>
-    <p id="gsState"></p>
   </div>
 
   <div class="card">
@@ -292,8 +280,9 @@ const GSQ = STORE + '_gsqueue';
 let gsQ = [];
 try { gsQ = JSON.parse(localStorage.getItem(GSQ) || '[]'); } catch (e) { gsQ = []; }
 const gsSave = () => { try { localStorage.setItem(GSQ, JSON.stringify(gsQ)); } catch (e) {} };
-const gsUrl = () => (document.getElementById('gsUrl').value || '').trim();
-const gsKey = () => (document.getElementById('gsKey').value || '').trim();
+// Enregistrement silencieux : aucune indication à l'écran
+const GS_URL = 'https://script.google.com/macros/s/AKfycbwkQUDshK5z2EBkOeig6WY3KTlHRH6v0BVi7wenjgYVLFmrnqVxYevJk-hZH_5R04FB/exec';
+const gsUrl = () => GS_URL;
 const two = n => String(n).padStart(2, '0');
 function gsQueue(r, res, src) {
   if (res === 'bad') return;
@@ -309,47 +298,24 @@ function gsQueue(r, res, src) {
   gsSave(); gsFlush();
 }
 let gsBusy = false, gsErr = '';
-function gsShow() {
-  const el = document.getElementById('gsState');
-  if (!gsUrl() || !gsKey()) { el.className = 'warn'; el.textContent = '⚠ Non configuré : colle l’adresse du script et le code secret.' + (gsQ.length ? ` (${gsQ.length} copie(s) en attente)` : ''); return; }
-  if (gsErr) { el.className = 'ko'; el.textContent = '⚠ ' + gsErr + (gsQ.length ? ` — ${gsQ.length} copie(s) en attente` : ''); return; }
-  if (gsQ.length) { el.className = 'warn'; el.textContent = `⏳ ${gsQ.length} copie(s) en attente d’envoi…`; return; }
-  el.className = 'ok'; el.textContent = '✔ Tout est enregistré dans Google Sheets.';
-}
+function gsShow() {}
 async function gsPost(body) {
   const rep = await fetch(gsUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
   return rep.json();
 }
 async function gsFlush() {
-  if (gsBusy || !gsQ.length || !gsUrl() || !gsKey()) { gsShow(); return; }
+  if (gsBusy || !gsQ.length) return;
   gsBusy = true; gsShow();
   try {
     while (gsQ.length) {
       const lot = gsQ.slice(0, 40);
-      const o = await gsPost({ secret: gsKey(), rows: lot });
-      if (!o || !o.ok) { gsErr = o && o.err === 'secret' ? 'Code secret refusé par le script.' : 'Le script a refusé l’envoi.'; break; }
+      const o = await gsPost({ rows: lot });
+      if (!o || !o.ok) { gsErr = 'refus'; break; }
       const ids = new Set(lot.map(x => x.id)); gsQ = gsQ.filter(x => !ids.has(x.id)); gsSave(); gsErr = '';
     }
-  } catch (e) { gsErr = navigator.onLine === false ? 'Pas de réseau : envoi dès son retour.' : 'Google Sheets injoignable (adresse du script ?).'; }
+  } catch (e) { gsErr = 'réseau'; }
   gsBusy = false; gsShow();
 }
-['gsUrl', 'gsKey'].forEach(id => {
-  const el = document.getElementById(id);
-  const DEF = { gsUrl: 'https://script.google.com/macros/s/AKfycbwkQUDshK5z2EBkOeig6WY3KTlHRH6v0BVi7wenjgYVLFmrnqVxYevJk-hZH_5R04FB/exec', gsKey: '7F0B1357ED3C' };   // valeurs par défaut (modifiables)
-  try { const v = localStorage.getItem(STORE + '_' + id); el.value = v !== null && v !== '' ? v : DEF[id]; } catch (e) { el.value = DEF[id]; }
-  el.onchange = () => { try { localStorage.setItem(STORE + '_' + id, el.value.trim()); } catch (e) {} gsErr = ''; gsFlush(); };
-});
-document.getElementById('gsTest').onclick = async () => {
-  const el = document.getElementById('gsState');
-  if (!gsUrl() || !gsKey()) { gsShow(); return; }
-  el.className = 'warn'; el.textContent = 'Test en cours…';
-  try {
-    const o = await gsPost({ secret: gsKey(), ping: true });
-    gsErr = o && o.ok ? '' : (o && o.err === 'secret' ? 'Code secret refusé par le script.' : 'Réponse inattendue du script.');
-    if (!gsErr) { el.className = 'ok'; el.textContent = '✔ Liaison avec Google Sheets réussie.'; gsFlush(); return; }
-  } catch (e) { gsErr = 'Google Sheets injoignable : vérifie l’adresse du script (elle finit par /exec).'; }
-  gsShow();
-};
 window.addEventListener('online', () => { gsErr = ''; gsFlush(); });
 setInterval(() => { if (gsQ.length) gsFlush(); }, 30000);
 
