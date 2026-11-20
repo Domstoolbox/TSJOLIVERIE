@@ -408,7 +408,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 17/11/2026 - 08h48</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 14h32</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -677,6 +677,16 @@ document.getElementById('accessCodeBtn').onclick = () => {
   const input = document.getElementById('accessCodeInput');
   const entered = input.value.trim().toUpperCase();
   const base = getExpectedCode();
+
+  // Clé de copie (dernière ligne du QR code) : refait la copie PDF de l'élève
+  const ck = readCopyKey(input.value);
+  if (ck) {
+    if (ck.err) { showCodeMsg(ck.err, false); return; }
+    input.value = '';
+    document.getElementById('codeMsg').hidden = true;
+    regenerateCopy(ck);
+    return;
+  }
 
   const hx = sha256hex(CODE_SALT + entered);
   // Corrigé enseignant
@@ -1077,7 +1087,9 @@ document.getElementById('fsBtn').onclick = () => {
 };
 
 // ===== Blocage du copier-coller, du clic droit et des raccourcis d'outils développeur (sauf mode enseignant) =====
-function secBlock(e) { if (!adminMode) e.preventDefault(); }
+// Exception : la case du code d'accès accepte le collage (clé de copie) tant que le test n'a pas commencé
+const codePasteOk = e => !codeValidated && e && e.target && e.target.id === 'accessCodeInput';
+function secBlock(e) { if (!adminMode && !codePasteOk(e)) e.preventDefault(); }
 document.addEventListener('contextmenu', secBlock);
 // Sélection et glisser-déposer du texte bloqués (sauf dans les champs NOM / PRÉNOM / CLASSE), y compris en mode enseignant
 const isField = t => t && t.closest && t.closest('input,textarea,select');
@@ -1104,6 +1116,7 @@ document.addEventListener('selectionchange', () => {
 document.addEventListener('keydown', e => {
   if (adminMode) return;
   const ctrl = e.ctrlKey || e.metaKey, c = e.code;
+  if (codePasteOk(e) && ctrl && c === 'KeyV') return;   // Ctrl+V / Cmd+V dans la case du code d'accès
   const blocked = c === 'F12'
     || (ctrl && e.shiftKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyK'].includes(c))     // outils développeur
     || (e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyU'].includes(c))   // Mac
@@ -1177,7 +1190,6 @@ function releaseAwake() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) keepAwake(); });
 ['pointerdown', 'touchstart', 'keydown'].forEach(t => document.addEventListener(t, keepAwake, { capture: true, passive: true }));
-
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && detectorsArmed() && !testSubmitted && !fraudTriggered) {
     triggerFraud("Changement d'onglet ou réduction de la fenêtre");
@@ -1765,12 +1777,12 @@ function shuffleOptions(q) {
       [idx[i], idx[j]] = [idx[j], idx[i]];
     }
   }
-  return Object.assign({}, q, { o: idx.map(i => q.o[i]), a: q.a.map(x => idx.indexOf(x)) });
+  return Object.assign({}, q, { o: idx.map(i => q.o[i]), a: q.a.map(x => idx.indexOf(x)), _p: idx });
 }
 
 function getRandomQuestions(n) {
-  const shuffled = [...ALL_QUESTIONS].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, n).map(shuffleOptions);
+  const shuffled = [...ALL_QUESTIONS.keys()].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, n).map(k => Object.assign(shuffleOptions(ALL_QUESTIONS[k]), { _k: k }));
 }
 
 // --- Lecture à voix haute de la question (synthèse vocale du navigateur, fonctionne hors ligne) ---
@@ -3003,7 +3015,190 @@ function cl(s) {
   return [...s].filter(c => c.charCodeAt(0) < 256 || '’—–…€'.includes(c)).join('');   // € gardé (unité monétaire)
 }
 
-// Contenu du QR code de la copie PDF (une valeur par ligne) : TEST, NOM, prénom, classe, note, date, début, fin, code saisi
+
+// ===== Clé de la copie (dernière ligne du QR code) =====
+// Contient tout ce qu'il faut pour refaire à l'identique la copie PDF de l'élève : identité, date et heures,
+// code saisi, questions tirées, ordre des propositions, réponses, PAP, alarme, audio, calculatrice, appareil.
+// Tapée (ou collée) comme code d'accès, elle régénère cette copie PDF.
+const CK_ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';   // base 32 de Crockford (ni I, L, O, U)
+const CK_NUM = '0123456789.,-E+';                     // caractères d'une réponse numérique (4 bits chacun)
+const CK_EPOCH = 1767225600;                           // 01/01/2026 00:00:00 UTC
+const ckHash = str => { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; };
+const CK_BANK = ckHash(JSON.stringify(ALL_QUESTIONS.map(q => [q.t, q.o, q.a, q.n, q.sf, q.tol, q.m, q.fixed]))) & 0xFFFFF;   // empreinte de la banque
+const ckBits = n => { let b = 0; while ((1 << b) < n) b++; return b; };
+const ckFact = n => n <= 1 ? 1 : n * ckFact(n - 1);
+const ckKeep = q => q.fixed === true || q.o.some(o => /^\s*(toutes|tous|aucune|aucun|les deux)\b/i.test(o));   // même règle que shuffleOptions
+function ckWriter() {
+  const b = [];
+  const w = {
+    b,
+    put(v, n) { for (let i = n - 1; i >= 0; i--) b.push(Math.floor(v / 2 ** i) % 2); },
+    vint(v) { do { const c = v % 16; v = Math.floor(v / 16); w.put(v ? 1 : 0, 1); w.put(c, 4); } while (v); },
+    str(t) { const a = [...String(t)].map(c => c.charCodeAt(0)); w.vint(a.length); a.forEach(c => { if (c < 127) w.put(c, 7); else { w.put(127, 7); w.put(c & 0xFFFF, 16); } }); },
+    num(t) { const a = [...String(t)]; w.vint(a.length); a.forEach(c => { const j = CK_NUM.indexOf(c); if (j >= 0) w.put(j, 4); else { w.put(15, 4); w.put(c.charCodeAt(0) & 0xFFFF, 16); } }); }   // réponse numérique : 4 bits par caractère
+  };
+  return w;
+}
+function ckReader(b) {
+  let p = 0;
+  const r = {
+    get pos() { return p; },
+    get(n) { if (p + n > b.length) throw new Error('court'); let v = 0; for (let i = 0; i < n; i++) v = v * 2 + b[p++]; return v; },
+    vint() { let v = 0, m = 1, more; do { more = r.get(1); v += r.get(4) * m; m *= 16; if (m > 2 ** 40) throw new Error('long'); } while (more); return v; },
+    str() { const n = r.vint(); if (n > 200) throw new Error('long'); let t = ''; for (let i = 0; i < n; i++) { const c = r.get(7); t += String.fromCharCode(c < 127 ? c : r.get(16)); } return t; },
+    num() { const n = r.vint(); if (n > 200) throw new Error('long'); let t = ''; for (let i = 0; i < n; i++) { const c = r.get(4); t += c < 15 ? CK_NUM[c] : String.fromCharCode(r.get(16)); } return t; }
+  };
+  return r;
+}
+const ckSum = bits => ckHash(bits.join('')) & 0xFFFF;
+function ckDevice() {
+  let touch = false;
+  try { touch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 1; } catch (e) {}
+  if (!touch) return 'ordinateur';
+  const m = Math.min(window.screen.width || 0, window.screen.height || 0);
+  return m && m < 600 ? 'telephone' : 'tablette';
+}
+const CK_DEV = ['ordinateur', 'telephone', 'tablette'];
+
+// Fabrique la clé à partir de la copie qui vient d'être validée
+function copyKeyFromState() {
+  const g = id => document.getElementById(id).value.trim();
+  const w = ckWriter();
+  const sec = d => Math.floor(d.getTime() / 1000) - CK_EPOCH;
+  const dStart = questionsShownAt || answerStartedAt, dEnd = validatedAt || new Date();
+  const fraud = !adminMode && (getLogs().some(l => l.includes('🚨')) || refreshCount > 1);
+  w.put(1, 3);                       // version du format
+  w.put(CK_BANK, 20);
+  [isPap, adminMode, fraud, usedAudio, usedCalc].forEach(f => w.put(f ? 1 : 0, 1));
+  w.put(CK_DEV.indexOf(ckDevice()), 2);
+  w.vint(levelN);
+  w.put(Math.max(0, sec(dEnd)), 31);
+  w.put(dStart ? 1 : 0, 1);
+  if (dStart) { const dl = sec(dEnd) - sec(dStart); w.put(dl < 0 ? 1 : 0, 1); w.vint(Math.abs(dl)); }
+  w.str((g('nom') || 'ELEVE').toUpperCase()); w.str(g('prenom') || 'Inconnu'); w.str(g('classe') || 'Sans-Classe'); w.str(usedCode || '-');
+  w.vint(Q.length);
+  const kb = ckBits(ALL_QUESTIONS.length);
+  Q.forEach((q, i) => {
+    if (q._k === undefined) q._k = ALL_QUESTIONS.findIndex(x => x.t === q.t && JSON.stringify(x.n) === JSON.stringify(q.n) && (!x.o || x.o.length === (q.o || []).length && x.o.every(o => q.o.includes(o))));
+    if (q._k < 0) throw new Error('question introuvable');
+    if (!isNumQ(q) && !q._p) q._p = q.o.map(o => ALL_QUESTIONS[q._k].o.indexOf(o));
+    w.put(q._k, kb);
+    if (isNumQ(q)) { w.num(((document.querySelector(`input.numans[name=q${i}]`) || {}).value || '').trim()); return; }
+    const base = ALL_QUESTIONS[q._k], n = base.o.length;
+    if (!ckKeep(base)) {   // rang de l'ordre des propositions (code de Lehmer)
+      const rest = [...Array(n).keys()]; let rk = 0;
+      q._p.forEach((v, j) => { const pos = rest.indexOf(v); rk += pos * ckFact(n - 1 - j); rest.splice(pos, 1); });
+      w.put(rk, ckBits(ckFact(n)));
+    }
+    const c = [...document.querySelectorAll(`input[name=q${i}]:checked`)].map(e => +e.value);
+    if (isMultiQ(q)) for (let j = 0; j < n; j++) w.put(c.includes(j) ? 1 : 0, 1);
+    else w.put(c.length ? c[0] + 1 : 0, ckBits(n + 1));
+  });
+  w.put(ckSum(w.b), 16);
+  const b = w.b.slice();
+  while (b.length % 5) b.push(0);
+  let out = '';
+  for (let i = 0; i < b.length; i += 5) out += CK_ALPHA[b[i] * 16 + b[i + 1] * 8 + b[i + 2] * 4 + b[i + 3] * 2 + b[i + 4]];
+  return out;
+}
+
+// En cas d'imprévu, pas de clé : le QR code reste celui d'avant (9 lignes)
+function safeCopyKey() { try { return copyKeyFromState(); } catch (e) { console.warn('clé de copie', e); return null; } }
+
+// Lit une clé tapée ou collée. null : ce n'est pas une clé (code d'accès ordinaire) ; {err} : clé fautive
+function readCopyKey(txt) {
+  const t = String(txt).toUpperCase().replace(/[\s\-_.]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+  if (t.length < 30 || !/^[0-9A-Z]+$/.test(t)) return null;
+  const bad = { err: 'Clé de copie incorrecte : vérifiez qu’elle a été recopiée en entier, sans erreur.' };
+  if ([...t].some(c => CK_ALPHA.indexOf(c) < 0)) return bad;
+  const b = [];
+  [...t].forEach(c => { const v = CK_ALPHA.indexOf(c); for (let i = 4; i >= 0; i--) b.push((v >> i) & 1); });
+  try {
+    const r = ckReader(b);
+    if (r.get(3) !== 1) return bad;
+    const bank = r.get(20);
+    if (bank !== CK_BANK) return { err: 'Cette clé ne correspond pas à ce test : clé d’un autre test, d’une autre version de ce test, ou mal recopiée.' };
+    const [pap, admin, fraud, audio, calc] = [0, 0, 0, 0, 0].map(() => r.get(1) === 1);
+    const dev = CK_DEV[r.get(2)] || 'ordinateur';
+    const lv = r.vint();
+    const end = r.get(31);
+    let start = null;
+    if (r.get(1)) { const neg = r.get(1); const dl = r.vint(); start = end - (neg ? -dl : dl); }
+    const nom = r.str(), prenom = r.str(), classe = r.str(), code = r.str();
+    const nq = r.vint();
+    if (nq > 200) return bad;
+    const kb = ckBits(ALL_QUESTIONS.length), qs = [];
+    for (let i = 0; i < nq; i++) {
+      const k = r.get(kb), base = ALL_QUESTIONS[k];
+      if (!base && bank === CK_BANK) return bad;
+      if (!base) break;
+      if (isNumQ(base)) { qs.push({ k, raw: r.num() }); continue; }
+      const n = base.o.length;
+      let perm = [...Array(n).keys()];
+      if (!ckKeep(base)) {
+        let rk = r.get(ckBits(ckFact(n)));
+        if (rk >= ckFact(n)) return bad;
+        const rest = [...Array(n).keys()]; perm = [];
+        for (let j = n - 1; j >= 0; j--) { const f = ckFact(j), pos = Math.floor(rk / f); rk %= f; perm.push(rest.splice(pos, 1)[0]); }
+      }
+      let sel = [];
+      if (isMultiQ(base)) { for (let j = 0; j < n; j++) if (r.get(1)) sel.push(j); }
+      else { const v = r.get(ckBits(n + 1)); if (v > n) return bad; if (v) sel = [v - 1]; }
+      qs.push({ k, perm, sel });
+    }
+    const at = r.pos, sum = r.get(16);
+    if (sum !== ckSum(b.slice(0, at))) return bad;
+    if (b.length - r.pos >= 5 || b.slice(r.pos).some(x => x)) return bad;
+    return { key: t, pap, admin, fraud, audio, calc, dev, lv, end, start, nom, prenom, classe, code, qs };
+  } catch (e) { return bad; }
+}
+
+// Refait la copie PDF de l'élève à partir d'une clé lue par readCopyKey
+let REGEN = null;
+function regenerateCopy(st) {
+  const ids = ['nom', 'prenom', 'classe'], els = ids.map(id => document.getElementById(id));
+  const saved = { Q, RES: RES.slice(), isPap, levelN, adminMode, usedCode, questionsShownAt, answerStartedAt, validatedAt, usedAudio, usedCalc, vals: els.map(e => e.value) };
+  let tmpOpt = null;
+  try {
+    Q = st.qs.map(x => {
+      const q = ALL_QUESTIONS[x.k];
+      if (isNumQ(q)) return Object.assign({}, q, { _k: x.k });
+      return Object.assign({}, q, { o: x.perm.map(i => q.o[i]), a: q.a.map(v => x.perm.indexOf(v)), _p: x.perm, _k: x.k });
+    });
+    RES.length = 0;
+    Q.forEach((q, i) => {   // même correction que le bouton « Valider »
+      const x = st.qs[i];
+      if (isNumQ(q)) {
+        const raw = x.raw, v = parseNumAnswer(raw), ok = numAnswerOk(q, v, raw), empty = raw.trim() === '';
+        RES[i] = { ok, ans: empty ? '(pas de réponse)' : (v !== null && Array.isArray(q.sf) ? numPretty(v, q.sf[0]) : (v !== null ? numTyped(normNumAnswer(raw)) : raw.trim())), pts: empty ? 0 : (ok ? 1 : -WRONG_PENALTY), num: true };
+        return;
+      }
+      const c = x.sel;
+      const ok = isMultiQ(q) ? (c.length === q.a.length && q.a.every(j => c.includes(j))) : (c.length === 1 && c[0] === q.a[0]);
+      RES[i] = { ok, ans: c.length > 0 ? letters(c) : '(pas de réponse)', pts: c.length === 0 ? 0 : (ok ? 1 : -WRONG_PENALTY), sel: c };
+    });
+    isPap = st.pap; levelN = st.lv; adminMode = st.admin; usedCode = st.code === '-' ? '' : st.code;
+    usedAudio = st.audio; usedCalc = st.calc;
+    validatedAt = new Date((st.end + CK_EPOCH) * 1000);
+    questionsShownAt = st.start === null ? null : new Date((st.start + CK_EPOCH) * 1000);
+    answerStartedAt = null;
+    els[0].value = st.nom; els[1].value = st.prenom;
+    if (![...els[2].options].some(o => o.value === st.classe)) { tmpOpt = new Option(st.classe, st.classe); els[2].add(tmpOpt); }
+    els[2].value = st.classe;
+    REGEN = { fraud: st.fraud, dev: st.dev, key: st.key };
+    generatePDF();
+  } finally {
+    REGEN = null;
+    Q = saved.Q; RES.length = 0; saved.RES.forEach((v, i) => { RES[i] = v; });
+    isPap = saved.isPap; levelN = saved.levelN; adminMode = saved.adminMode; usedCode = saved.usedCode;
+    questionsShownAt = saved.questionsShownAt; answerStartedAt = saved.answerStartedAt; validatedAt = saved.validatedAt;
+    usedAudio = saved.usedAudio; usedCalc = saved.usedCalc;
+    els.forEach((e, i) => { e.value = saved.vals[i]; });
+    if (tmpOpt) tmpOpt.remove();
+  }
+}
+
+// Contenu du QR code de la copie PDF (une valeur par ligne) : TEST, NOM, prénom, classe, note, date, début, fin, code saisi, clé de la copie
 function buildQrPayload() {
   const g = id => document.getElementById(id).value.trim();
   const nom = g('nom') || "ELEVE";
@@ -3027,14 +3222,17 @@ function buildQrPayload() {
     sDate,
     dStart ? sStart : '-',
     sEnd,
-    usedCode || '-'
-  ].join('\n');
+    usedCode || '-',
+    REGEN ? REGEN.key : safeCopyKey()   // clé de la copie : permet de refaire ce PDF plus tard
+  ].filter(x => x !== null).join('\n');
 }
 // QR code (UTF-8, niveau M) : utilisé à l'écran ET sur la copie PDF
 function makeQr(payload) {
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   const qr = qrcode(0, 'M');
-  qr.addData(payload, 'Byte');
+  const cut = payload.lastIndexOf('\n') + 1, key = payload.slice(cut);
+  if (/^[0-9A-Z]{30,}$/.test(key)) { qr.addData(payload.slice(0, cut), 'Byte'); qr.addData(key, 'Alphanumeric'); }   // clé en mode alphanumérique : QR plus petit
+  else qr.addData(payload, 'Byte');
   qr.make();
   return qr;
 }
@@ -3100,7 +3298,7 @@ function generatePDF() {
     };
 
     const logs = getLogs();
-    const hasFraud = !adminMode && (logs.some(l => l.includes('🚨')) || refreshCount > 1);
+    const hasFraud = REGEN ? REGEN.fraud : !adminMode && (logs.some(l => l.includes('🚨')) || refreshCount > 1);
     const accent = hasFraud ? C.red : C.green;
 
     // --- EN-TÊTE COMPACT : identité | infos de passation | note + QR code ---
@@ -3222,7 +3420,7 @@ function generatePDF() {
       [[-0.8, 0.2], [0.8, 0.2], [-0.8, 1.4], [0.8, 1.4]].forEach(([dx, dy]) => doc.circle(cx + dx, cyL + dy, 0.33, 'F'));
     };
     // Type d'appareil : téléphone, tablette ou ordinateur
-    const deviceType = (() => {
+    const deviceType = REGEN ? REGEN.dev : (() => {
       let touch = false;
       try { touch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 1; } catch (e) {}
       if (!touch) return 'ordinateur';
