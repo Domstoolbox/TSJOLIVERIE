@@ -607,7 +607,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Sans molécules qui peuvent vibrer, pas de son !</span><span>Domstoolbox · Version du 18/11/2026 - 18h55</span></footer>
+  <footer class="foot"><span>Sans molécules qui peuvent vibrer, pas de son !</span><span>Domstoolbox · Version du 19/11/2026 - 09h20</span></footer>
 </div>
 
 <script>
@@ -856,6 +856,9 @@ function toNormalized(x, sig) {
   const mant = keep[0] + (sig > 1 ? '.' + keep.slice(1).join('') : '');
   return (neg ? '-' : '') + mant + 'E' + exp;
 }
+
+// Arrondi « au plus proche, la moitié vers le haut » (comme toNormalized et la correction) : 9,375 → 9,38
+function rHalf(x, sig) { const t = toNormalized(x, sig); return t === null ? x : Number(t); }
 
 function calcFormat(x) {
   if (x === null || !isFinite(x)) return 'Erreur';
@@ -1264,7 +1267,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   const SUPW = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
   function prettyPlain(x, sig){
     if (x === 0) return '0';
-    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    const r = rHalf(x, sig), e = Math.floor(Math.log10(Math.abs(r)));
     if (e < -2 || e >= sig) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',').replace('-', '−') + '×10' + String(e).split('').map(c => SUPW[c]).join('');
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',').replace('-', '−');
   }
@@ -1315,11 +1318,11 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const pick = a => a[Math.floor(Math.random() * a.length)];
-  const p3 = x => Number(Number(x).toPrecision(3));
+  const p3 = x => rHalf(Number(x), 3);
   function fx(x, sig) {
     sig = sig || 3;
     if (x === 0) return '0';
-    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    const r = rHalf(x, sig), e = Math.floor(Math.log10(Math.abs(r)));
     if (e < -3 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
@@ -1998,7 +2001,7 @@ body.locked #npad{display:none!important}
   }
   function pretty(x, sig) {
     if (x === 0) return '0';
-    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    const r = rHalf(x, sig), e = Math.floor(Math.log10(Math.abs(r)));
     if (e < -2 || e >= sig) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',').replace('-', '−') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',').replace('-', '−');
   }
@@ -2132,7 +2135,7 @@ body.locked #npad{display:none!important}
   function fmt(x, sig) {
     if (!sig) return String(x).replace('.', ',');
     if (x === 0) return '0';
-    const r = Number(x.toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    const r = rHalf(x, sig), e = Math.floor(Math.log10(Math.abs(r)));
     if (e < -2 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
@@ -2326,6 +2329,16 @@ body.locked #npad{display:none!important}
 #certOv .cbtns button{font-family:var(--f-body);font-weight:600;border-radius:999px;padding:11px 22px;border:0;cursor:pointer}
 #certOv .cdl{background:#ff8a1f;color:#1b1206}
 #certOv .ccl{background:#ffffff26;color:#fff}
+/* Écran QR code (avant le certificat) : grand QR à scanner par le professeur */
+#certOv .cqscreen{display:none}
+#certOv.qrmode>*:not(.cqscreen){display:none}
+#certOv.qrmode .cqscreen{display:flex;flex-direction:column;align-items:center;gap:14px;background:#fff;border-radius:22px;padding:18px 16px 20px;width:min(94vw,560px);box-shadow:0 16px 50px rgba(0,0,0,.45)}
+#certOv .cqwho{font-family:var(--f-body);font-weight:700;font-size:1.05rem;color:#14263a;text-align:center;line-height:1.3}
+#certOv .cqwho span{display:inline-block}
+#certOv .cqbig{width:min(84vw,calc(100vh - 210px),520px);aspect-ratio:1/1;background:#fff;padding:min(3vw,18px);box-sizing:border-box}
+#certOv .cqbig svg{display:block;width:100%;height:100%}
+#certOv .cqsee{font-family:var(--f-body);font-weight:700;font-size:1.1rem;border-radius:999px;padding:14px 30px;border:0;cursor:pointer;background:#ff8a1f;color:#1b1206}
+#certOv .cqback{background:#ffffff26;color:#fff}
 body.cert-open{overflow:hidden}
 .cert{width:794px;height:1123px;position:relative;box-sizing:border-box;padding:40px 46px 34px;background:#ffffff;color:#14263a;font-family:Lexend,system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column}
 .cert *{box-sizing:border-box}
@@ -2494,8 +2507,21 @@ body.cert-open{overflow:hidden}
     ov = document.createElement('div');
     ov.id = 'certOv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Certificat');
     ov.innerHTML = (teacher ? '' : '<div class="cmsg">' + certTier(typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE().note : 20).msg(typeof window.FICHE_NOTE === 'function' ? window.FICHE_NOTE().note : 20) + '</div>') +
-      '<div class="cbox"></div><div class="cbtns"><button type="button" class="cdl">Télécharger le certificat (PDF)</button><button type="button" class="ccl">Fermer</button></div>';
+      '<div class="cbox"></div><div class="cbtns"><button type="button" class="cdl">Télécharger le certificat (PDF)</button>' +
+      (teacher ? '' : '<button type="button" class="cqback">Revoir le QR code</button>') + '<button type="button" class="ccl">Fermer</button></div>';
     ov.querySelector('.cbox').appendChild(certNode().el);
+    if (!teacher) {                 // élève : d'abord le QR code en grand (à scanner), puis « Voir ton certificat »
+      const h = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const val = id => ((document.getElementById(id) || {}).value || '').trim();
+      const who = [val('prenom'), val('nom').toLocaleUpperCase('fr-FR')].filter(Boolean).join(' '), cl = val('classe');
+      const q = document.createElement('div'); q.className = 'cqscreen';
+      q.innerHTML = '<div class="cqwho">' + (who ? '<span>' + h(who) + '</span>' : '') + (who && cl ? ' · ' : '') + (cl ? '<span>' + h(cl) + '</span>' : '') + '</div>' +
+        '<div class="cqbig"></div><button type="button" class="cqsee">Voir ton certificat</button>';
+      const svg = ov.querySelector('.cqr svg'); if (svg) q.querySelector('.cqbig').appendChild(svg.cloneNode(true));
+      ov.appendChild(q); ov.classList.add('qrmode');
+      q.querySelector('.cqsee').addEventListener('click', () => { ov.classList.remove('qrmode'); fit(); ov.scrollTop = 0; });
+      ov.querySelector('.cqback').addEventListener('click', () => { ov.classList.add('qrmode'); ov.scrollTop = 0; });
+    }
     document.body.appendChild(ov); document.body.classList.add('cert-open');
     fit();
     ov.querySelector('.cdl').addEventListener('click', e => download(e.currentTarget));
@@ -2536,7 +2562,7 @@ body.cert-open{overflow:hidden}
   function fmtSig(x, sig) {          // jamais de nombre ambigu : 2050 (3 CS) → 2,05 × 10³ ; 120 → 1,20 × 10²
     if (!sig) return String(x).replace('.', ',');
     if (x === 0) return '0';
-    const r = Number(Number(x).toPrecision(sig)), e = Math.floor(Math.log10(Math.abs(r)));
+    const r = rHalf(Number(x), sig), e = Math.floor(Math.log10(Math.abs(r)));
     if (e < -3 || e >= sig || (e === sig - 1 && r % 10 === 0)) return (r / Math.pow(10, e)).toFixed(Math.max(0, sig - 1)).replace('.', ',') + ' × 10<sup>' + String(e).replace('-', '−') + '</sup>';
     return r.toFixed(Math.max(0, sig - 1 - e)).replace('.', ',');
   }
