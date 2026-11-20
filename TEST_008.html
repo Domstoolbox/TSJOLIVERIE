@@ -68,7 +68,8 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
 #calc.min .ck{display:none}
 @media (min-width:900px){body.calc-open{padding-right:372px}}
 @media (max-width:899px), (max-height:520px){
-  #calc{top:0;left:0;right:0;bottom:auto;width:100%;height:auto;max-height:100vh;max-height:100dvh;border-radius:0 0 14px 14px}
+  #calc{top:max(14px, env(safe-area-inset-top, 0px));left:max(10px, env(safe-area-inset-left, 0px));right:max(10px, env(safe-area-inset-right, 0px));bottom:auto;width:auto;height:auto;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);border-radius:14px}   /* décollée des bords : la croix ne tombe plus dans l’arrondi de l’écran (plein écran) */
+  #calc .ch{padding-right:12px!important}
   body.calc-open{padding-bottom:0;padding-right:0}
   #calcMin,#calcFx,#calcKeys{display:none!important}
   #calc .ck.bk{display:grid!important;grid-template-columns:repeat(6,1fr);grid-auto-rows:34px;gap:4px;padding:0 8px 6px;flex:none;overflow:visible}
@@ -376,7 +377,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 16h41</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 17h19</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -513,6 +514,18 @@ function getLogs() {
   } catch(e) {
     return [];
   }
+}
+
+// Alarme à compter pour la copie : seulement depuis la dernière copie validée sur cet appareil.
+// Recharger la page après une alarme ne l'efface pas ; une fois une copie validée, les alarmes d'avant ne comptent plus.
+function alarmInRun(logs) {
+  const V = "Test soumis et validé par l'élève";
+  const idx = [];
+  logs.forEach((l, i) => { if (l.includes(V)) idx.push(i); });
+  let from = 0, to = logs.length;
+  if (testSubmitted && idx.length) { to = idx[idx.length - 1]; from = idx.length > 1 ? idx[idx.length - 2] + 1 : 0; }
+  else if (idx.length) from = idx[idx.length - 1] + 1;
+  return logs.slice(from, to).some(l => l.includes('🚨'));
 }
 
 function logIncident(msg) {
@@ -2536,7 +2549,7 @@ function copyKeyFromState() {
   const w = ckWriter();
   const sec = d => Math.floor(d.getTime() / 1000) - CK_EPOCH;
   const dStart = questionsShownAt || answerStartedAt, dEnd = validatedAt || new Date();
-  const fraud = !adminMode && (getLogs().some(l => l.includes('🚨')) || refreshCount > 1);
+  const fraud = !adminMode && (alarmInRun(getLogs()) || refreshCount > 1);
   w.put(1, 3);                       // version du format
   w.put(CK_BANK, 20);
   [isPap, adminMode, fraud, usedAudio, usedCalc].forEach(f => w.put(f ? 1 : 0, 1));
@@ -2705,7 +2718,7 @@ let envMem = [], envBusy = false;
 function envLoad() { try { return JSON.parse(localStorage.getItem(ENV_KEY) || '[]'); } catch (e) { return envMem; } }
 function envSave(q) { envMem = q; try { localStorage.setItem(ENV_KEY, JSON.stringify(q)); } catch (e) {} }
 function envoiCopie(qr) {
-  if (adminMode || REGEN) return;
+  if (adminMode || (typeof REGEN !== 'undefined' && REGEN)) return;
   const q = envLoad();
   if (q.some(c => c.qr === qr)) return;
   q.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), qr });
@@ -2805,7 +2818,7 @@ function generatePDF() {
     };
 
     const logs = getLogs();
-    const hasFraud = REGEN ? REGEN.fraud : !adminMode && (logs.some(l => l.includes('🚨')) || refreshCount > 1);
+    const hasFraud = REGEN ? REGEN.fraud : !adminMode && (alarmInRun(logs) || refreshCount > 1);
     const accent = hasFraud ? C.red : C.green;
 
     // --- EN-TÊTE COMPACT : identité | infos de passation | note + QR code ---
