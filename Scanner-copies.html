@@ -138,7 +138,7 @@ function duree(a, b) {
 }
 
 // Contenu du QR code de la copie, une valeur par ligne :
-//   nouveau format : Test / NOM / Prénom / Classe / Note / Date / Début / Fin / Code
+//   nouveau format : Test / NOM / Prénom / Classe / Note / Date / Début / Fin / Code [/ Clé de la copie]
 //   ancien format  :        NOM / Prénom / Classe / Note / Date / Début / Fin / Code
 const NOTE_RE = /^([\d.,]+)\s*\/\s*(\d+)(?:\s*=\s*([\d.,]+)\s*\/\s*(\d+))?$/;
 function parsePayload(txt) {
@@ -147,14 +147,15 @@ function parsePayload(txt) {
   if (L.length >= 9 && NOTE_RE.test(L[4])) { test = L[0]; L = L.slice(1); }
   if (L.length < 8) return null;
   const [nom, prenom, classe, note, date, debut, fin, code] = L;
+  const cle = test && L[8] ? L[8] : '';   // clé de la copie (tests qui en ont une) : permet de refaire la copie PDF
   const m = NOTE_RE.exec(note);
   if (!nom || !m) return null;
   return {
-    test, nom, prenom, classe, date, debut, fin, code,
+    test, nom, prenom, classe, date, debut, fin, code, cle,
     note: `${m[1]} / ${m[2]}`,
     notePap: m[3] ? `${m[3]} / ${m[4]}` : '',
     sur20: num(m[1]) / num(m[2]) * 20,
-    raw: [test].concat(L.slice(0, 8)).join('\n')
+    raw: [test].concat(L.slice(0, 8), cle ? [cle] : []).join('\n')
   };
 }
 
@@ -687,18 +688,18 @@ function makeXlsx() {
   if (!window.XLSX) { alert('Génération du fichier Excel impossible : vérifie la connexion internet puis recharge la page.'); return false; }
   const list = sorted();
   const n = v => { const x = num(v); return isNaN(x) ? '' : x; };
-  const head = ['N°', 'Test', 'NOM', 'Prénom', 'Classe', 'Note', 'Barème', 'Note ramenée (PAP)', 'Barème complet (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi', 'Hors séance'];
+  const head = ['N°', 'Test', 'NOM', 'Prénom', 'Classe', 'Note', 'Barème', 'Note ramenée (PAP)', 'Barème complet (PAP)', 'Sur 20', 'Date', 'Début', 'Fin', 'Durée', 'Code saisi', 'Hors séance', 'Clé de la copie'];
   const data = list.map((r, i) => {
     const [p, b] = r.note.split('/').map(n);
     const [pp, bp] = r.notePap ? r.notePap.split('/').map(n) : ['', ''];
-    return [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, p, b, pp, bp, Math.round(r.sur20 * 100) / 100, r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code, r.hors ? 'OUI' : ''];
+    return [i + 1, r.test || '-', r.nom.toUpperCase(), r.prenom, r.classe, p, b, pp, bp, Math.round(r.sur20 * 100) / 100, r.date, r.debut, r.fin, duree(r.debut, r.fin), r.code, r.hors ? 'OUI' : '', r.cle || ''];
   });
   const ws = XLSX.utils.aoa_to_sheet([head].concat(data));
   const last = data.length + 1, foot = last + 1;
   XLSX.utils.sheet_add_aoa(ws, [['', '', 'Moyenne', '', '', '', '', '', '', { t: 'n', f: `ROUND(AVERAGE(J2:J${last}),2)` }]], { origin: `A${foot}` });
   for (let r = 2; r <= foot; r++) { const c = ws['J' + r]; if (c) c.z = '0.0'; }
-  ws['!cols'] = [5, 16, 18, 14, 10, 7, 8, 10, 10, 8, 11, 9, 9, 11, 12, 11].map(w => ({ wch: w }));
-  ws['!autofilter'] = { ref: `A1:P${last}` };
+  ws['!cols'] = [5, 16, 18, 14, 10, 7, 8, 10, 10, 8, 11, 9, 9, 11, 12, 11, 40].map(w => ({ wch: w }));
+  ws['!autofilter'] = { ref: `A1:Q${last}` };
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Résultats');
   const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
