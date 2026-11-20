@@ -376,7 +376,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 13h42</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 14h15</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -1044,7 +1044,9 @@ document.getElementById('fsBtn').onclick = () => {
 };
 
 // ===== Blocage du copier-coller, du clic droit et des raccourcis d'outils développeur (sauf mode enseignant) =====
-function secBlock(e) { if (!adminMode) e.preventDefault(); }
+// Exception : la case du code d'accès accepte le collage (clé de copie) tant que le test n'a pas commencé
+const codePasteOk = e => !codeValidated && e && e.target && e.target.id === 'accessCodeInput';
+function secBlock(e) { if (!adminMode && !codePasteOk(e)) e.preventDefault(); }
 document.addEventListener('contextmenu', secBlock);
 // Sélection et glisser-déposer du texte bloqués (sauf dans les champs NOM / PRÉNOM / CLASSE), y compris en mode enseignant
 const isField = t => t && t.closest && t.closest('input,textarea,select');
@@ -1071,6 +1073,7 @@ document.addEventListener('selectionchange', () => {
 document.addEventListener('keydown', e => {
   if (adminMode) return;
   const ctrl = e.ctrlKey || e.metaKey, c = e.code;
+  if (codePasteOk(e) && ctrl && c === 'KeyV') return;   // Ctrl+V / Cmd+V dans la case du code d'accès
   const blocked = c === 'F12'
     || (ctrl && e.shiftKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyK'].includes(c))     // outils développeur
     || (e.metaKey && e.altKey && ['KeyI', 'KeyJ', 'KeyC', 'KeyU'].includes(c))   // Mac
