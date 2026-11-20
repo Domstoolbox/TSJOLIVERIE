@@ -48,6 +48,10 @@ tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
 .fmt{display:flex;gap:16px;align-items:center;font-weight:600}
 .fmt label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .fmt input{width:18px;height:18px;accent-color:var(--pri)}
+.tgl{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:600;cursor:pointer;user-select:none}
+.tgl input{width:22px;height:22px;accent-color:var(--ok)}
+#gsState{font-weight:600;margin:8px 0 0}
+#gsState.ok{color:var(--ok)}#gsState.warn{color:var(--warn)}#gsState.ko{color:var(--ko)}
 #after{display:none;margin-top:12px;padding:12px;border-radius:10px;background:var(--okbg);color:var(--ok)}
 #after.show{display:block}
 .small{font-size:.82rem;color:var(--mut)}
@@ -74,6 +78,7 @@ tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
         <input type="file" id="photo" accept="image/*" capture="environment" hidden>
       </div>
       <p class="small" style="margin:8px 0 0">Sur téléphone, si la caméra en direct ne démarre pas, utilise « Photographier une copie » : l'appareil photo s'ouvre, prends la copie (QR code bien net), valide, puis recommence pour la suivante.</p>
+      <label class="tgl" title="Musique de victoire pour un sans-faute"><input type="checkbox" id="winOn" checked aria-label="Musique de victoire pour un sans-faute"> <span style="font-size:1.4rem">🎵</span></label>
       <div id="status"></div>
     </div>
 
@@ -89,6 +94,16 @@ tr.late td{background:var(--kobg);color:var(--ko);font-weight:600}
         <button type="button" class="sec" id="clearBtn">Vider la liste</button>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>☁️ Enregistrement automatique dans Google Sheets</h2>
+    <div class="grid" style="gap:10px">
+      <label class="field">Adresse du script (https://script.google.com/…/exec)<input id="gsUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="field">Code secret (écrit en haut du script)<input id="gsKey" type="text" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <div class="row"><button type="button" class="sec" id="gsTest">Tester la liaison</button></div>
+    <p id="gsState"></p>
   </div>
 
   <div class="card">
@@ -170,7 +185,7 @@ function horsSeance(r) {
 
 let lastKey = '';
 let lastIsStudent = true;
-function addPayload(txt, quiet) {
+function addPayload(txt, quiet, src) {
   const r = parsePayload(txt);
   if (r) r.hors = !quiet && horsSeance(r);
   if (!r) { if (!quiet) say('Ce QR code ne vient pas d’une copie de test.', 'ko'); return 'bad'; }
@@ -184,11 +199,12 @@ function addPayload(txt, quiet) {
   save(); render();
   const who = `${r.nom.toUpperCase()} ${r.prenom} (${r.classe}) — ${r.note}` + (r.test ? ` — ${r.test}` : '');
   lastIsStudent = isStudentCode(r);
+  gsQueue(r, res, src || (quiet ? 'Import' : 'Caméra'));   // envoi automatique vers Google Sheets
   if (!quiet) {
     if (res === 'dup') say('Déjà scannée : ' + who, 'warn');
     else if (!lastIsStudent) { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); fraudSound(); }   // code non élève : alarme de fraude au lieu du bip
     else if (r.hors) { say(`⚠ Copie du ${r.date}, fin à ${String(r.fin || '?').slice(0, 5)} : hors séance — ` + who, 'ko'); beep(); setTimeout(() => fraudSound(ANNONCE_HORS), 350); }   // bip puis alarme
-    else { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + who, 'ok'); beep(); }
+    else { say((res === 'upd' ? 'Mise à jour : ' : '✔ ') + (perfect(r) ? '🏆 Sans-faute ! ' : '') + who, 'ok'); beep(); if (perfect(r) && winOn()) setTimeout(victory, 250); }   // bip puis musique de victoire
   }
   return res;
 }
@@ -243,11 +259,99 @@ function beep() {
   try {
     AC = getAC();
     const o = AC.createOscillator(), g = AC.createGain();
-    o.frequency.value = 1150; g.gain.value = 0.15;
-    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + 0.12);
+    o.type = 'square'; o.frequency.value = 1150; g.gain.value = 0.5;   // bip plus fort
+    o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + 0.15);
   } catch (e) {}
   try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
 }
+
+// ===== Sans-faute : note = barème (10/10, 20/20, 30/30…) → petite musique de victoire (désactivable) =====
+const perfect = r => { const m = /^([\d.,]+)\s*\/\s*(\d+)/.exec(r.note || ''); return !!m && num(m[1]) > 0 && num(m[1]) === num(m[2]); };
+const winBox = document.getElementById('winOn');
+try { const v = localStorage.getItem(STORE + '_win'); if (v !== null) winBox.checked = v === '1'; } catch (e) {}
+winBox.onchange = () => { try { localStorage.setItem(STORE + '_win', winBox.checked ? '1' : '0'); } catch (e) {} };
+const winOn = () => winBox.checked;
+function victory() {
+  try {
+    const c = getAC(), t0 = c.currentTime + 0.02;
+    const notes = [[523.25, 0, .12], [659.25, .12, .12], [783.99, .24, .12], [1046.5, .36, .22], [783.99, .6, .1], [1046.5, .72, .5]];
+    notes.forEach(([f, at, d]) => {
+      [1, 2].forEach((h, k) => {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = k ? 'sine' : 'triangle'; o.frequency.value = f * h;
+        g.gain.setValueAtTime(0.0001, t0 + at); g.gain.exponentialRampToValueAtTime(k ? 0.05 : 0.22, t0 + at + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + d + 0.15);
+        o.connect(g); g.connect(c.destination); o.start(t0 + at); o.stop(t0 + at + d + 0.2);
+      });
+    });
+  } catch (e) {}
+}
+
+// ===== Google Sheets : chaque copie scannée est ajoutée comme une ligne (file d'attente si pas de réseau) =====
+const GSQ = STORE + '_gsqueue';
+let gsQ = [];
+try { gsQ = JSON.parse(localStorage.getItem(GSQ) || '[]'); } catch (e) { gsQ = []; }
+const gsSave = () => { try { localStorage.setItem(GSQ, JSON.stringify(gsQ)); } catch (e) {} };
+const gsUrl = () => (document.getElementById('gsUrl').value || '').trim();
+const gsKey = () => (document.getElementById('gsKey').value || '').trim();
+const two = n => String(n).padStart(2, '0');
+function gsQueue(r, res, src) {
+  if (res === 'bad') return;
+  const d = new Date();
+  gsQ.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    scanAt: `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`,
+    etat: res === 'new' ? 'Nouvelle' : res === 'upd' ? 'Mise à jour' : 'Déjà scannée', source: src,
+    test: r.test || '', nom: r.nom.toUpperCase(), prenom: r.prenom, classe: r.classe, note: r.note, notePap: r.notePap || '',
+    sur20: Math.round(r.sur20 * 100) / 100, date: r.date, debut: r.debut, fin: r.fin, duree: duree(r.debut, r.fin), code: r.code,
+    hors: !!r.hors, fraude: !isStudentCode(r), sansFaute: perfect(r)
+  });
+  gsSave(); gsFlush();
+}
+let gsBusy = false, gsErr = '';
+function gsShow() {
+  const el = document.getElementById('gsState');
+  if (!gsUrl() || !gsKey()) { el.className = 'warn'; el.textContent = '⚠ Non configuré : colle l’adresse du script et le code secret.' + (gsQ.length ? ` (${gsQ.length} copie(s) en attente)` : ''); return; }
+  if (gsErr) { el.className = 'ko'; el.textContent = '⚠ ' + gsErr + (gsQ.length ? ` — ${gsQ.length} copie(s) en attente` : ''); return; }
+  if (gsQ.length) { el.className = 'warn'; el.textContent = `⏳ ${gsQ.length} copie(s) en attente d’envoi…`; return; }
+  el.className = 'ok'; el.textContent = '✔ Tout est enregistré dans Google Sheets.';
+}
+async function gsPost(body) {
+  const rep = await fetch(gsUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
+  return rep.json();
+}
+async function gsFlush() {
+  if (gsBusy || !gsQ.length || !gsUrl() || !gsKey()) { gsShow(); return; }
+  gsBusy = true; gsShow();
+  try {
+    while (gsQ.length) {
+      const lot = gsQ.slice(0, 40);
+      const o = await gsPost({ secret: gsKey(), rows: lot });
+      if (!o || !o.ok) { gsErr = o && o.err === 'secret' ? 'Code secret refusé par le script.' : 'Le script a refusé l’envoi.'; break; }
+      const ids = new Set(lot.map(x => x.id)); gsQ = gsQ.filter(x => !ids.has(x.id)); gsSave(); gsErr = '';
+    }
+  } catch (e) { gsErr = navigator.onLine === false ? 'Pas de réseau : envoi dès son retour.' : 'Google Sheets injoignable (adresse du script ?).'; }
+  gsBusy = false; gsShow();
+}
+['gsUrl', 'gsKey'].forEach(id => {
+  const el = document.getElementById(id);
+  const DEF = { gsUrl: 'https://script.google.com/macros/s/AKfycbwkQUDshK5z2EBkOeig6WY3KTlHRH6v0BVi7wenjgYVLFmrnqVxYevJk-hZH_5R04FB/exec', gsKey: '7F0B1357ED3C' };   // valeurs par défaut (modifiables)
+  try { const v = localStorage.getItem(STORE + '_' + id); el.value = v !== null && v !== '' ? v : DEF[id]; } catch (e) { el.value = DEF[id]; }
+  el.onchange = () => { try { localStorage.setItem(STORE + '_' + id, el.value.trim()); } catch (e) {} gsErr = ''; gsFlush(); };
+});
+document.getElementById('gsTest').onclick = async () => {
+  const el = document.getElementById('gsState');
+  if (!gsUrl() || !gsKey()) { gsShow(); return; }
+  el.className = 'warn'; el.textContent = 'Test en cours…';
+  try {
+    const o = await gsPost({ secret: gsKey(), ping: true });
+    gsErr = o && o.ok ? '' : (o && o.err === 'secret' ? 'Code secret refusé par le script.' : 'Réponse inattendue du script.');
+    if (!gsErr) { el.className = 'ok'; el.textContent = '✔ Liaison avec Google Sheets réussie.'; gsFlush(); return; }
+  } catch (e) { gsErr = 'Google Sheets injoignable : vérifie l’adresse du script (elle finit par /exec).'; }
+  gsShow();
+};
+window.addEventListener('online', () => { gsErr = ''; gsFlush(); });
+setInterval(() => { if (gsQ.length) gsFlush(); }, 30000);
 
 // ===== Code d'accès élève ? =====
 // Code élève = une des deux bases du jour DE LA DATE DE LA COPIE + A, B, C, AW, BW ou CW.
@@ -487,7 +591,7 @@ function tick() {
         lastTxt = txt; lastAt = now;
         const box = document.getElementById('videoBox');
         box.classList.add('hit'); setTimeout(() => box.classList.remove('hit'), 600);
-        addPayload(txt);
+        addPayload(txt, false, 'Caméra');
       }
     } else if (txt) lastAt = now;   // même copie toujours devant la caméra : pas de répétition
   }
@@ -548,7 +652,7 @@ async function importFiles(list) {
     // nom du test repris du nom de fichier de la copie (…-TEST001-TGEN.pdf)
     try {
       const txt = await readFile(f);
-      const r = txt ? addPayload(txt, true) : 'bad';
+      const r = txt ? addPayload(txt, true, 'Import') : 'bad';
       if (r === 'new') added++; else if (r === 'upd') upd++; else if (r === 'dup') dup++; else fails.push(f.name);
       if ((r === 'new' || r === 'upd') && !lastIsStudent) nonStudent++;
     } catch (e) { fails.push(f.name); }
@@ -565,7 +669,7 @@ document.getElementById('photo').onchange = async e => {
   say('Lecture de la photo…', 'warn');
   try {
     const txt = await readFile(f);
-    if (txt) addPayload(txt); else say('QR code non trouvé sur la photo : reprends-la plus près, bien nette et sans reflet.', 'ko');
+    if (txt) addPayload(txt, false, 'Photo'); else say('QR code non trouvé sur la photo : reprends-la plus près, bien nette et sans reflet.', 'ko');
   } catch (x) { say('Photo illisible, recommence.', 'ko'); }
 };
 document.getElementById('pickBtn').onclick = () => document.getElementById('files').click();
@@ -678,6 +782,7 @@ function makePdf() {
 }
 
 render();
+gsFlush();
 </script>
 </body>
 </html>
