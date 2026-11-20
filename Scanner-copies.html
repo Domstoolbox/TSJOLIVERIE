@@ -294,7 +294,7 @@ function gsQueue(r, res, src) {
     etat: res === 'new' ? 'Nouvelle' : res === 'upd' ? 'Mise à jour' : 'Déjà scannée', source: src,
     test: r.test || '', nom: r.nom.toUpperCase(), prenom: r.prenom, classe: r.classe, note: r.note, notePap: r.notePap || '',
     sur20: Math.round(r.sur20 * 100) / 100, date: r.date, debut: r.debut, fin: r.fin, duree: duree(r.debut, r.fin), code: r.code,
-    hors: !!r.hors, fraude: !isStudentCode(r), sansFaute: perfect(r)
+    hors: !!r.hors, fraude: !isStudentCode(r), sansFaute: perfect(r), cle: r.cle || ''
   });
   gsSave(); gsFlush();
 }
