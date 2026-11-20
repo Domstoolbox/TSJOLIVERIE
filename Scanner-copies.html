@@ -282,7 +282,7 @@ let gsQ = [];
 try { gsQ = JSON.parse(localStorage.getItem(GSQ) || '[]'); } catch (e) { gsQ = []; }
 const gsSave = () => { try { localStorage.setItem(GSQ, JSON.stringify(gsQ)); } catch (e) {} };
 // Enregistrement silencieux : aucune indication à l'écran
-const GS_URL = 'https://script.google.com/macros/s/AKfycbwkQUDshK5z2EBkOeig6WY3KTlHRH6v0BVi7wenjgYVLFmrnqVxYevJk-hZH_5R04FB/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbyOrc9g992yy9_7tspKMTq6mjrAXVlVIVI17M__dQ6Puc0QjD7o5jU9vG8Bj3A9WNVi/exec';   // adresse /exec du script du fichier « SCANNER COPIE QRCODE »
 const gsUrl = () => GS_URL;
 const two = n => String(n).padStart(2, '0');
 function gsQueue(r, res, src) {
@@ -305,7 +305,7 @@ async function gsPost(body) {
   return rep.json();
 }
 async function gsFlush() {
-  if (gsBusy || !gsQ.length) return;
+  if (gsBusy || !gsQ.length || !GS_URL) return;
   gsBusy = true; gsShow();
   try {
     while (gsQ.length) {
