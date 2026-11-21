@@ -719,7 +719,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '21/11/2026 - 18h40';
+const VERSION_PAGE = '21/11/2026 - 18h50';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1011,7 +1011,7 @@ function findRender() {
   $('findList').innerHTML = L.slice(0, 300).map((c, i) => {
     const f = fichierDe(c.test), cert = /^CERTIFICAT/i.test(c.test);
     const acts = cert ? (c.regen && f ? `<button type="button" data-cert="${FIND.indexOf(c)}" title="Refaire le certificat (PDF)">📄</button>` : '<span class="na">—</span>')
-      : (c.cle ? `<button type="button" data-cle="${FIND.indexOf(c)}" title="Copier la clé">📋</button>${f ? `<button type="button" data-test="${FIND.indexOf(c)}" title="Refaire la copie (PDF)">📄</button>` : ''}` : '<span class="na">—</span>');
+      : (c.cle ? `<button type="button" data-cle="${FIND.indexOf(c)}" title="Copier la clé et ouvrir le test">📋</button>${f ? `<button type="button" data-test="${FIND.indexOf(c)}" title="Refaire la copie (PDF)">📄</button>` : ''}` : '<span class="na">—</span>');
     return `<div class="frow"><div class="who"><b>${esc(c.nom)}</b><span>${esc(c.prenom)}</span></div><div class="tst">${esc(c.test)}</div><div class="cl">${esc(c.classe)}</div><div class="dt">${esc(c.date)}<br>${esc(c.fin)}</div><div class="nte nt">${esc(String(c.note).replace(/\s/g, ''))}</div><div class="acts">${acts}</div></div>`;
   }).join('') || '<div class="empty">Aucune copie.</div>';
 }
@@ -1020,15 +1020,49 @@ $('btnFind').onclick = () => ouvrirFind('');
 $('tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-q]'); if (tr && S) ouvrirFind(tr.dataset.q); });
 $('findList').addEventListener('click', async e => {
   const b = e.target.closest('button'); if (!b) return;
+  // 📋 : la clé est copiée et le test s'ouvre, prêt à la coller dans la case du code d'accès
   if (b.dataset.cle) {
     const c = FIND[+b.dataset.cle];
     try { await navigator.clipboard.writeText(c.cle); } catch (x) { const t = document.createElement('textarea'); t.value = c.cle; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
     b.classList.add('ok'); b.textContent = '✓'; setTimeout(() => { b.classList.remove('ok'); b.textContent = '📋'; }, 1500);
-    toast('Clé copiée'); return;
+    const f = fichierDe(c.test); if (f) window.open(encodeURI(f), '_blank');
+    return;
   }
-  if (b.dataset.test) { const c = FIND[+b.dataset.test]; window.open(encodeURI(fichierDe(c.test)) + '#cle=' + encodeURIComponent(c.cle), '_blank'); return; }
-  if (b.dataset.cert) { const c = FIND[+b.dataset.cert]; window.open(encodeURI(fichierDe(c.test)) + '#regen=' + b64(c.regen), '_blank'); }
+  // 📄 : la copie PDF est téléchargée directement, sans afficher le test (page chargée en arrière-plan)
+  if (b.dataset.test) { const c = FIND[+b.dataset.test]; pdfCache(b, encodeURI(fichierDe(c.test)) + '#cle=' + encodeURIComponent(c.cle), false); return; }
+  if (b.dataset.cert) { const c = FIND[+b.dataset.cert]; pdfCache(b, encodeURI(fichierDe(c.test)) + '#regen=' + b64(c.regen), true); }
 });
+function pdfCache(btn, url, cert) {
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = '⏳';
+  const fin = ok => { btn.disabled = false; btn.textContent = ok ? '✓' : '📄'; btn.classList.toggle('ok', !!ok); setTimeout(() => { btn.textContent = '📄'; btn.classList.remove('ok'); }, 2500); };
+  const fr = document.createElement('iframe');
+  fr.style.cssText = 'position:fixed;left:-12000px;top:0;width:1200px;height:900px;border:0;visibility:hidden';
+  fr.src = url; document.body.appendChild(fr);
+  const stop = setTimeout(() => { fr.remove(); fin(false); toast('La copie n’a pas pu être créée'); }, 45000);
+  let fait = false;
+  const ok = () => { if (fait) return; fait = true; clearTimeout(stop); fin(true); toast('Copie PDF téléchargée'); setTimeout(() => fr.remove(), 4000); };
+  fr.onload = () => {
+    let d; try { d = fr.contentDocument; } catch (e) { d = null; }
+    if (!d) { clearTimeout(stop); fr.remove(); fin(false); window.open(url, '_blank'); return; }   // autre adresse : on ouvre l'onglet
+    const w = fr.contentWindow;
+    // le PDF est enregistré par un lien de téléchargement : on le repère pour savoir quand c'est fait
+    const clic = w.HTMLAnchorElement.prototype.click;
+    w.HTMLAnchorElement.prototype.click = function () { const r = clic.apply(this, arguments); if (this.download) ok(); return r; };
+    const save0 = () => { const J = w.jspdf && w.jspdf.jsPDF; if (J && !J.prototype.__tdb) { const sv = J.prototype.save; J.prototype.save = function () { const r = sv.apply(this, arguments); ok(); return r; }; J.prototype.__tdb = 1; } };
+    const t = setInterval(save0, 200); setTimeout(() => clearInterval(t), 40000);
+    if (cert) {   // certificat : code professeur, puis « Télécharger le certificat (PDF) »
+      const go = () => {
+        const inp = d.getElementById('certCode'), bt = d.getElementById('certCodeBtn');
+        if (!inp || !bt) return setTimeout(go, 200);
+        inp.value = '#@'; bt.click();
+        const dl = () => { const x = d.querySelector('#certOv .cdl'); if (x) x.click(); else setTimeout(dl, 200); };
+        setTimeout(dl, 300);
+      };
+      setTimeout(go, 300);
+    }
+  };
+}
 
 // ---------- Fenêtres : fermeture ----------
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.ov').hidden = true));
