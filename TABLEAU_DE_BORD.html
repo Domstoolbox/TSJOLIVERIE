@@ -224,6 +224,13 @@ td.n{font-family:var(--fm);color:var(--muted)}
 .stu.no{background:#dc2626}
 
 /* Connexion */
+.kpwin{background:var(--card);border-radius:24px;box-shadow:0 24px 70px rgba(0,0,0,.35);padding:18px}
+.kp{display:grid;grid-template-columns:repeat(3,78px);grid-auto-rows:68px;gap:10px;-webkit-tap-highlight-color:transparent}
+.kp button{border:0;border-radius:16px;background:#f1f2f7;color:#1f2433;font:700 28px var(--fm);cursor:pointer;transition:none;user-select:none;outline:none}
+.kp button.ok{grid-column:1/-1;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font:700 20px var(--f);letter-spacing:.04em}
+.kp button:disabled{opacity:.6}
+.kpwin.non{animation:kpNon .45s}
+@keyframes kpNon{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
 .login{display:flex;flex-direction:column;gap:12px}
 .login p{margin:0;color:var(--muted);font-size:13.5px}
 .login input{height:46px;border:1px solid #c8ccd8;border-radius:12px;padding:0 14px;font:600 16px var(--f)}
@@ -346,14 +353,8 @@ td.n{font-family:var(--fm);color:var(--muted)}
 
 <!-- Connexion -->
 <div class="ov" id="ovLogin" hidden>
-  <div class="win sm" role="dialog" aria-modal="true" aria-labelledby="lgT">
-    <div class="whead" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><h3 id="lgT">Connexion</h3></div>
-    <div class="wbody login">
-      <input type="password" id="pw" autocomplete="current-password" aria-label="Mot de passe" placeholder="Mot de passe">
-      <label class="rm"><input type="checkbox" id="pwKeep" checked> Se souvenir sur cet ordinateur</label>
-      <div class="msg" id="pwMsg"></div>
-      <button type="button" class="btn pri" id="pwGo">Se connecter</button>
-    </div>
+  <div class="kpwin" role="dialog" aria-modal="true" aria-label="Connexion">
+    <div class="kp" id="kp"><button type="button" data-k="#" aria-label="#">#</button><button type="button" data-k="{" aria-label="{">{</button><button type="button" data-k="[" aria-label="[">[</button><button type="button" data-k="|" aria-label="|">|</button><button type="button" data-k="@" aria-label="@">@</button><button type="button" data-k="]" aria-label="]">]</button><button type="button" data-k="}" aria-label="}">}</button><button type="button" data-k="¤" aria-label="¤">¤</button><button type="button" data-k="%" aria-label="%">%</button><button type="button" class="ok" id="pwGo">OK</button></div>
   </div>
 </div>
 
@@ -482,19 +483,28 @@ $('btnFlou').onclick = () => setFlou(!document.body.classList.contains('flou'));
 try { setFlou(localStorage.getItem('tdb_flou') === '1'); } catch (e) {}
 
 // ---------- Connexion ----------
-function askLogin(msg) { $('pwMsg').textContent = msg || ''; $('ovLogin').hidden = false; setTimeout(() => $('pw').focus(), 30); }
+// Clavier à symboles, sans zone d'affichage : rien ne montre ce qui est tapé (ni texte, ni points, ni touche qui s'allume)
+let saisie = '';
+function askLogin(msg) {
+  saisie = ''; $('ovLogin').hidden = false;
+  if (msg) { const w = document.querySelector('.kpwin'); w.classList.remove('non'); void w.offsetWidth; w.classList.add('non'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) {} }
+}
 async function login() {
-  const v = $('pw').value; if (!v) return;
+  const v = saisie; saisie = ''; if (!v) return;
   mdp = v; $('pwGo').disabled = true;
   const o = await call('admin');
   $('pwGo').disabled = false;
-  if (o) {
-    try { if ($('pwKeep').checked) localStorage.setItem(PW_KEY, v); else localStorage.removeItem(PW_KEY); } catch (e) {}
-    $('pw').value = ''; $('ovLogin').hidden = true;
-  }
+  if (o) { try { localStorage.setItem(PW_KEY, v); } catch (e) {} $('ovLogin').hidden = true; }
 }
+$('kp').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { saisie += b.dataset.k; b.blur(); } });
 $('pwGo').onclick = login;
-$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+// Clavier de l'ordinateur : toute touche est acceptée (l'ancien mot de passe reste donc utilisable), ⌫ efface, Entrée valide
+document.addEventListener('keydown', e => {
+  if ($('ovLogin').hidden || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'Enter') { e.preventDefault(); login(); }
+  else if (e.key === 'Backspace') { e.preventDefault(); saisie = saisie.slice(0, -1); }
+  else if (e.key.length === 1) { e.preventDefault(); saisie += e.key; }
+});
 $('btnLock').onclick = () => { try { localStorage.removeItem(PW_KEY); } catch (e) {} mdp = ''; S = null; render(); setSync('', 'Déconnecté'); askLogin(''); };
 
 // ---------- Affichage ----------
@@ -676,7 +686,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '21/11/2026 - 15h30';
+const VERSION_PAGE = '21/11/2026 - 15h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
