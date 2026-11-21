@@ -16,7 +16,7 @@ main{max-width:760px;margin:0 auto;padding:16px}
 @media print{#quiz section.q.qscroll{max-height:none!important;overflow:visible}}
 @media screen{html.ios-phone main{padding-top:84px}}   /* iPhone dans Google Sites : le haut du test ne passe jamais sous le bandeau */
 @media screen{html.ios-phone #calc{top:84px;max-height:calc(100vh - 84px);max-height:calc(100dvh - 84px)}}   /* iPhone : calculatrice sous le bandeau du site */
-@media screen{html:not(.in-frame) main:has(>:is(#codewarning,#papwarning,#netwarning,#fswarning,#splitwarning,#rulewarning,#fraudwarning):not([hidden])){min-height:100vh;min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}}
+@media screen{html:not(.in-frame) main:has(>:is(#codewarning,#idwarning,#papwarning,#netwarning,#fswarning,#splitwarning,#rulewarning,#fraudwarning):not([hidden])){min-height:100vh;min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}}
 h1{font-size:1.7rem;margin:.2em 0;color:var(--pri)}
 .sub{color:var(--mut);margin:0 0 12px}
 .q{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
@@ -106,6 +106,50 @@ body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-de
   #calcExpr{min-height:1.1em;padding-top:4px}
   #calc .ch{padding:4px 8px}
 }
+/* ===== Identité : classe, badge, confirmation (style application, sans encart coloré) ===== */
+#idwarning{position:relative;width:100%;max-width:640px;margin:16px auto;padding:8px 0;color:#1b1b1f;text-align:center;font-family:inherit}
+#idwarning button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#idwarning .idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+#idwarning .idtile{min-height:104px;border:0;border-radius:20px;color:#fff;font-size:clamp(1.3rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.02em;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+#idwarning .idtile.idautre{background:#fff;color:#475569;border:2px dashed #cbd2e0;box-shadow:none}
+#idwarning .idback{position:absolute;left:0;top:4px;width:44px;height:44px;border-radius:50%;border:1px solid #dfe3ec;background:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px rgba(16,24,40,.08)}
+#idwarning svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+#idwarning .idback svg{color:#334155}
+#idwarning .idchip{display:inline-block;color:#fff;font-weight:800;font-size:1.15rem;letter-spacing:.03em;border-radius:999px;padding:9px 22px;margin:4px 0 22px;box-shadow:0 4px 14px rgba(16,24,40,.15)}
+#idwarning .idpin{display:flex;justify-content:center;gap:clamp(6px,2vw,12px)}
+#idwarning .idpin span{width:clamp(40px,11vw,54px);height:clamp(54px,14vw,66px);border-radius:14px;background:#fff;border:2px solid #dfe3ec;display:flex;align-items:center;justify-content:center;font:800 clamp(1.6rem,6vw,2.1rem) ui-monospace,Consolas,monospace;color:#111827;transition:border-color .15s}
+#idwarning .idpin span.cur{border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+#idwarning .idpin span.on{border-color:#94a3b8}
+#idwarning .idpin span.on::after{content:"";width:16px;height:16px;border-radius:50%;background:#111827}
+#idwarning .idpin.busy span{border-color:#94a3b8;opacity:.6}
+#idwarning .idpin.err span{border-color:#dc2626;background:#fef2f2;animation:idshake .35s}
+@keyframes idshake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#idwarning .idmsg{min-height:1.4em;margin:10px 0 6px;font-weight:700;color:#dc2626}
+#idwarning .idpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+#idwarning .idpad button{height:58px;border-radius:16px;border:1px solid #e2e6ee;background:#fff;font-size:1.5rem;font-weight:700;color:#111827;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(16,24,40,.06)}
+#idwarning .idpad button:active{background:#eef2ff}
+#idwarning .idcard{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0}
+#idwarning .idav{width:84px;height:84px;border-radius:50%;color:#fff;font-size:1.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(16,24,40,.18)}
+#idwarning .idwho{display:flex;flex-direction:column;align-items:center;gap:2px}
+#idwarning .idwho b{font-size:clamp(1.5rem,5vw,2rem);font-weight:800;letter-spacing:.01em}
+#idwarning .idwho span{font-size:clamp(1.15rem,3.8vw,1.4rem);color:#334155;font-weight:600}
+#idwarning .idwho i{font-style:normal;margin-top:8px;color:#fff;font-weight:800;font-size:.95rem;border-radius:999px;padding:5px 14px}
+#idwarning .idact{display:flex;gap:28px;margin-top:8px}
+#idwarning .idround{width:68px;height:68px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+#idwarning .idround svg{width:30px;height:30px;stroke-width:3}
+#idwarning .idround.ok{background:#16a34a;color:#fff}
+#idwarning .idround.no{background:#fff;color:#64748b;border:1px solid #dfe3ec;box-shadow:0 2px 8px rgba(16,24,40,.08)}
+#idwarning .idform{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end;text-align:left;margin-top:52px}
+#idwarning .idform label span{display:block;font-size:.78rem;font-weight:800;letter-spacing:.08em;color:#64748b;margin:0 0 5px 4px}
+#idwarning .idform input{display:block;width:100%;box-sizing:border-box;height:52px;padding:0 14px;border-radius:14px;border:2px solid #dfe3ec;background:#fff;font-size:1.1rem;font-weight:700;color:#111827;text-transform:uppercase}
+#idwarning .idform input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+#idwarning .idform input.err{border-color:#dc2626;background:#fef2f2}
+#idwarning .idform .idround{justify-self:center;grid-column:1/-1;margin-top:6px}
+#idwarning .idstop{display:inline-flex;align-items:center;gap:12px;background:#dc2626;color:#fff;border-radius:18px;padding:18px 26px;font-size:clamp(1.2rem,4vw,1.5rem);font-weight:800;box-shadow:0 8px 24px rgba(220,38,38,.3)}
+#idwarning .idstop svg{width:30px;height:30px;stroke-width:2.6}
+#idwarning .idload{width:42px;height:42px;margin:20px auto;border-radius:50%;border:4px solid #dfe3ec;border-top-color:#2563eb;animation:idspin .8s linear infinite}
+@keyframes idspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#idwarning .idload{animation-duration:2s}#idwarning .idpin.err span{animation:none}}
 #rulewarning{background-color:#ea580c;color:#fff;border-radius:16px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;padding:clamp(20px,4vw,30px) clamp(12px,3vw,24px);margin:16px 0;position:relative}
 #rulewarning h2{font-size:clamp(1.2rem,3.2vw,1.6rem);margin:0 0 12px 0}
 #rulewarning ul{list-style:none;margin:0 auto 20px;padding:0;display:block;width:fit-content;max-width:100%;text-align:left;font-size:1.15rem;line-height:1.9}
@@ -377,7 +421,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 20/11/2026 - 17h19</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 21/11/2026 - 15h55</small></div>
+
+  <div id="idwarning" hidden>
+    <div id="idStep"></div>
+  </div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -703,7 +751,8 @@ document.getElementById('accessCodeBtn').onclick = () => {
     logIncident(admin
       ? `Mode enseignant activé : sécurités désactivées (code ${entered})`
       : (entered ? `Code d'accès validé avec succès (${entered})` : "Test lancé sans code"));
-    checkNetworkState();          // le bleu disparaît, le violet (question PAP) apparaît
+    if (admin) IDENT.done = true; else identStart(entered);   // élève : classe et badge avant la question PAP
+    checkNetworkState();          // le bleu disparaît, l'identité puis le violet (question PAP) apparaissent
   } else {
     logIncident("Code d'accès saisie incorrecte");
     showCodeMsg('Code incorrect.', false);
@@ -718,6 +767,7 @@ function choosePap(pap) {
   const n = pap ? Math.round(levelN * PAP_RATIO) : levelN;
   logIncident(`PAP : ${pap ? 'Oui' : 'Non'} (test de ${n} questions)`);
   startTest(n);
+  identFill();                   // identité trouvée grâce au badge (ou écrite à la main) : champs remplis et verrouillés
   document.getElementById('code-blur-zone').classList.remove('blurred-content');
   checkNetworkState();
   updateRulesGate();
@@ -924,6 +974,7 @@ function triggerFraud(reasonLog) {
   fraudTriggered = true;
 
   logIncident(`🚨 ALERTE / ALARME DÉCLENCHÉE : ${reasonLog}`);
+  if (typeof idActivite === 'function') idActivite('alarme');   // le tableau de bord affiche l'alarme en direct
 
   const quizEl = document.getElementById('quiz');
   if (quizEl) quizEl.innerHTML = '';
@@ -1115,7 +1166,8 @@ function checkNetworkState() {
     netWarn.hidden = true;
     soundBanner.hidden = true;
     codeWarn.hidden = codeValidated;
-    papWarn.hidden = !codeValidated;
+    document.getElementById('idwarning').hidden = !codeValidated || IDENT.done;
+    papWarn.hidden = !codeValidated || !IDENT.done;
     return;
   }
 
@@ -2709,42 +2761,224 @@ function buildQrPayload() {
     REGEN ? REGEN.key : safeCopyKey()   // clé de la copie : permet de refaire ce PDF plus tard
   ].filter(x => x !== null).join('\n');
 }
-// ===== Envoi de la copie au fichier Google Sheets « SCANNER COPIE TOTAL » =====
+// ===== Envoi de la copie aux fichiers Google Sheets « SCANNER COPIE TOTAL » et « Tableau de Bord » =====
 // Le contenu du QR code est mis en attente sur l'appareil dès la validation, puis envoyé sans rien afficher
 // dès qu'Internet est rallumé (jamais pendant un test en cours). Rien n'est envoyé en mode enseignant.
 const TOTAL_URL = 'https://script.google.com/macros/s/AKfycbylGfrpfkK2-IAFQFzSny_gcsZO2hNjz4YljSS0dZXDo2RHdRhV0i-G8YIJcqkq4YVq/exec';   // script du fichier « SCANNER COPIE TOTAL »
-const ENV_KEY = 'domstoolbox_envois';
-let envMem = [], envBusy = false;
-function envLoad() { try { return JSON.parse(localStorage.getItem(ENV_KEY) || '[]'); } catch (e) { return envMem; } }
-function envSave(q) { envMem = q; try { localStorage.setItem(ENV_KEY, JSON.stringify(q)); } catch (e) {} }
+const TDB_URL = 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec';     // script du fichier « Tableau de Bord - TESTS et CERTIFICATS »
+const ENV_DEST = [{ url: TOTAL_URL, key: 'domstoolbox_envois' }, { url: TDB_URL, key: 'domstoolbox_envois_tdb' }];
+const envMem = {}, envBusy = {};
+function envLoad(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return envMem[k] || []; } }
+function envSave(k, q) { envMem[k] = q; try { localStorage.setItem(k, JSON.stringify(q)); } catch (e) {} }
 function envoiCopie(qr) {
   if (adminMode || (typeof REGEN !== 'undefined' && REGEN)) return;
-  const q = envLoad();
-  if (q.some(c => c.qr === qr)) return;
-  q.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), qr });
-  envSave(q);
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  ENV_DEST.forEach(d => {
+    const q = envLoad(d.key);
+    if (q.some(c => c.qr === qr)) return;
+    q.push({ id, qr, identite: IDENT.mode || '' });
+    envSave(d.key, q);
+  });
   envFlush();
 }
-async function envFlush() {
-  if (envBusy || !TOTAL_URL || !navigator.onLine) return;
+function envFlush() { ENV_DEST.forEach(envFlushUn); }
+async function envFlushUn(d) {
+  if (envBusy[d.key] || !d.url || !navigator.onLine) return;
   if (codeValidated && !testSubmitted) return;   // jamais pendant un test
-  const q = envLoad();
+  const q = envLoad(d.key);
   if (!q.length) return;
-  envBusy = true;
+  envBusy[d.key] = true;
   try {
     const lot = q.slice(0, 20);
-    const rep = await fetch(TOTAL_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ copies: lot }), redirect: 'follow' });
+    const rep = await fetch(d.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ copies: lot }), redirect: 'follow' });
     const o = await rep.json();
     if (o && o.ok) {
       const ids = new Set(o.ids || []);
-      envSave(envLoad().filter(c => !ids.has(c.id)));
+      envSave(d.key, envLoad(d.key).filter(c => !ids.has(c.id)));
     }
   } catch (e) {}
-  envBusy = false;
+  envBusy[d.key] = false;
 }
 window.addEventListener('online', () => setTimeout(envFlush, 1500));
 window.addEventListener('load', () => setTimeout(envFlush, 1500));
 setInterval(envFlush, 20000);
+
+// ===== Identité de l'élève (tableau de bord) : classe puis n° de badge, juste après le code d'accès =====
+// Le tableau de bord dit si les tests sont ouverts, quelles classes existent, lesquelles sont fermées et si AUTRE est permis.
+// Badge reconnu : identité remplie et verrouillée. Tout refus : « Accès non autorisé ». 5 badges faux : refus.
+// Pas de réseau : l'élève écrit son identité à la main (copie marquée « Non vérifiée »).
+const IDENT = { done: false, mode: '', classes: [], fermees: [], autre: false, classe: '', essais: 0, code: '', who: null, step: '', badge: '' };
+const ID_CLASSES_SECOURS = ['1STI2D-1', '1STI2D-2', '1STI2D-3', '1STI2D-4'];
+// Mêmes couleurs de classes que le tableau de bord (dans l'ordre de l'onglet Classes)
+const ID_COULEURS = [['#2563eb', '#1e40af'], ['#7c3aed', '#5b21b6'], ['#0d9488', '#0f766e'], ['#ea580c', '#c2410c'], ['#db2777', '#9d174d'], ['#0891b2', '#155e75']];
+const ID_SVG = {
+  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  no: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  del: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>'
+};
+function idEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function idGrad(c) { const i = IDENT.classes.indexOf(c), k = ID_COULEURS[(i < 0 ? 0 : i) % ID_COULEURS.length]; return `linear-gradient(135deg,${k[0]},${k[1]})`; }
+async function idCall(o) {
+  const ctl = 'AbortController' in window ? new AbortController() : null;
+  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 9000);
+  try {
+    const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o), redirect: 'follow', signal: ctl ? ctl.signal : undefined });
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+function idShow(step, html) { IDENT.step = step; document.getElementById('idStep').innerHTML = html; }
+function idFocus(id) { setTimeout(() => { const e = document.getElementById(id); if (e) try { e.focus(); } catch (x) {} }, 30); }
+const idBack = () => `<button type="button" class="idback" id="idBack" aria-label="Retour">${ID_SVG.back}</button>`;
+// Lancé juste après un code élève valide
+async function identStart(code) {
+  IDENT.code = code;
+  idShow('load', '<div class="idload" aria-label="Chargement"></div>');
+  checkNetworkState();
+  if (!navigator.onLine) { idManuel(); return; }
+  try {
+    const o = await idCall({ action: 'debut', code });
+    if (!o || !o.ok) { idManuel(); return; }
+    if (!o.ouvert) { idFerme(); return; }
+    IDENT.classes = o.classes || []; IDENT.fermees = o.fermees || []; IDENT.autre = !!o.autre;
+    idClasses();
+  } catch (e) { idManuel(); }
+}
+// Refus : un seul message pour tous les cas (le professeur en voit la raison sur son tableau de bord)
+const ID_REFUS = 'Accès non autorisé';
+function idStop(t) {
+  idShow('stop', `<div class="idstop">${ID_SVG.stop}<span>${idEsc(t)}</span></div>`);
+  setTimeout(idRetourCode, 3000);                 // puis retour à la saisie du code d'accès
+}
+// Retour à l'écran du code d'accès : tout est remis à zéro (le compteur de badges faux, lui, est gardé)
+function idRetourCode() {
+  if (IDENT.step !== 'stop') return;
+  Object.assign(IDENT, { done: false, mode: '', classe: '', who: null, step: '', badge: '', code: '' });
+  codeValidated = false; usedCode = ''; levelN = 0;
+  if (typeof releaseAwake === 'function') releaseAwake();
+  const inp = document.getElementById('accessCodeInput'); inp.value = '';
+  document.getElementById('codeMsg').hidden = true;
+  document.getElementById('idStep').innerHTML = '';
+  checkNetworkState();
+  try { inp.focus(); } catch (e) {}
+}
+function idFerme() { idStop(ID_REFUS); }
+function idClasses() {
+  idShow('classes', '<div class="idgrid">' + IDENT.classes.map(c => `<button type="button" class="idtile" data-c="${idEsc(c)}" style="background:${idGrad(c)}">${idEsc(c)}</button>`).join('') +
+    '<button type="button" class="idtile idautre" data-autre="1">AUTRE</button></div>');
+}
+// Badge : 6 cases qui se remplissent au fil de la frappe (clavier de l'écran ou de l'ordinateur), validation automatique au 6e chiffre
+function idBadge(err) {
+  IDENT.badge = '';
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
+  idShow('badge', `${idBack()}<div class="idchip" style="background:${idGrad(IDENT.classe)}">${idEsc(IDENT.classe)}</div>
+    <div class="idpin${err ? ' err' : ''}" id="idPin">${'<span></span>'.repeat(6)}</div>
+    <p class="idmsg" id="idMsg">${err ? 'Badge inconnu' : ''}</p>
+    <div class="idpad">${keys.map(k => k === '' ? '<span></span>' : `<button type="button" data-k="${k}" ${k === 'del' ? 'aria-label="Effacer"' : ''}>${k === 'del' ? ID_SVG.del : k}</button>`).join('')}</div>`);
+  idPinDraw();
+}
+function idPinDraw() {
+  const cells = document.querySelectorAll('#idPin span');
+  cells.forEach((c, i) => { c.textContent = ''; c.classList.toggle('cur', i === IDENT.badge.length); c.classList.toggle('on', i < IDENT.badge.length); });   // chiffres jamais affichés : un point par chiffre tapé
+}
+function idKey(k) {
+  if (IDENT.step !== 'badge') return;
+  const pin = document.getElementById('idPin');
+  if (pin && pin.classList.contains('err')) { pin.classList.remove('err'); document.getElementById('idMsg').textContent = ''; }
+  if (k === 'del') IDENT.badge = IDENT.badge.slice(0, -1);
+  else if (/^\d$/.test(k) && IDENT.badge.length < 6) IDENT.badge += k;
+  idPinDraw();
+  if (IDENT.badge.length === 6) idCheckBadge();
+}
+function idManuel(autre) {
+  IDENT.mode = autre ? 'autre' : 'manuel';
+  const cls = autre || !IDENT.classes.length ? ID_CLASSES_SECOURS.concat(IDENT.classes).filter((c, i, a) => a.indexOf(c) === i) : IDENT.classes;
+  idShow('manuel', `${autre ? idBack() : ''}<div class="idform">
+    <label><span>NOM</span><input type="text" id="idNom" autocomplete="off"></label>
+    <label><span>PRÉNOM</span><input type="text" id="idPre" autocomplete="off"></label>
+    <label><span>CLASSE</span><input type="text" id="idCls" list="idClsList" autocomplete="off"></label><datalist id="idClsList">${cls.map(c => `<option value="${idEsc(c)}">`).join('')}</datalist>
+    <button type="button" class="idround ok" id="idManOk" aria-label="Valider">${ID_SVG.ok}</button></div>`);
+  idFocus('idNom');
+}
+function idConfirm() {
+  const w = IDENT.who, ini = ((w.prenom || ' ')[0] + (w.nom || ' ')[0]).toUpperCase();
+  idShow('confirm', `<div class="idcard">
+    <div class="idav" style="background:${idGrad(w.classe)}">${idEsc(ini)}</div>
+    <div class="idwho"><b>${idEsc(w.nom)}</b><span>${idEsc(w.prenom)}</span><i style="background:${idGrad(w.classe)}">${idEsc(w.classe)}</i></div>
+    <div class="idact"><button type="button" class="idround no" id="idNo" aria-label="Ce n’est pas moi">${ID_SVG.no}</button><button type="button" class="idround ok" id="idYes" aria-label="C’est moi">${ID_SVG.ok}</button></div></div>`);
+  idFocus('idYes');
+}
+async function idCheckBadge() {
+  const b = IDENT.badge;
+  IDENT.step = 'wait';
+  document.getElementById('idPin').classList.add('busy');
+  let o;
+  try { o = await idCall({ action: 'badge', code: IDENT.code, classe: IDENT.classe, badge: b }); }
+  catch (e) { idManuel(); return; }
+  if (!o || !o.ok) { idManuel(); return; }
+  if (!o.ouvert) { idFerme(); return; }
+  if (!o.trouve) {
+    IDENT.essais++;
+    if (IDENT.essais >= 5) { logIncident('Identité : 5 badges inconnus de suite'); idStop(ID_REFUS); return; }
+    idBadge(true); return;
+  }
+  if (!o.autorise) { logIncident(`Identité : ${o.nom} ${o.prenom} (${o.classe}) non autorisé`); idStop(ID_REFUS); return; }
+  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe };
+  idConfirm();
+}
+// Signale au tableau de bord qu'un élève commence le test (« en cours ») ou que l'alarme s'est déclenchée. Sans réponse attendue.
+const ID_TEST = 'TEST 003';
+function idActivite(etat) {
+  if (adminMode || !IDENT.who || !IDENT.code || !navigator.onLine) return;
+  try {
+    fetch(TDB_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'activite', code: IDENT.code, test: ID_TEST, classe: IDENT.who.classe, nom: IDENT.who.nom, prenom: IDENT.who.prenom, etat, identite: IDENT.mode }) }).catch(() => {});
+  } catch (e) {}
+}
+function idValide(nom, prenom, classe, mode) {
+  IDENT.mode = mode; IDENT.who = { nom: nom.toLocaleUpperCase('fr-FR'), prenom, classe };
+  IDENT.done = true; IDENT.step = 'done';
+  logIncident(`Identité (${mode === 'badge' ? 'badge' : mode === 'autre' ? 'AUTRE' : 'non vérifiée'}) : ${IDENT.who.nom} ${prenom} — ${classe}`);
+  document.getElementById('idwarning').hidden = true;
+  idActivite('encours');
+  checkNetworkState();
+}
+// Après le choix PAP (le test est construit) : les champs NOM, PRÉNOM et CLASSE sont remplis et verrouillés
+function identFill() {
+  const w = IDENT.who; if (!w) return;
+  const n = document.getElementById('nom'), p = document.getElementById('prenom'), c = document.getElementById('classe');
+  n.value = w.nom; p.value = w.prenom;
+  if (![...c.options].some(o => o.value === w.classe)) { const o = document.createElement('option'); o.textContent = w.classe; c.appendChild(o); }
+  c.value = w.classe;
+  n.readOnly = true; p.readOnly = true; c.disabled = true;
+  if (typeof checkIdentityAndUnblur === 'function') checkIdentityAndUnblur();
+  document.getElementById('ident').hidden = true;
+}
+document.getElementById('idStep').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.k) { idKey(t.dataset.k); return; }
+  if (t.dataset.autre) { if (IDENT.autre) idManuel(true); else idStop(ID_REFUS); return; }
+  if (t.dataset.c) { IDENT.classe = t.dataset.c; if (IDENT.fermees.includes(IDENT.classe)) idStop(ID_REFUS); else idBadge(); return; }
+  if (t.id === 'idBack') { IDENT.classes.length ? idClasses() : idManuel(); return; }
+  if (t.id === 'idYes') { idValide(IDENT.who.nom, IDENT.who.prenom, IDENT.who.classe, 'badge'); return; }
+  if (t.id === 'idNo') { IDENT.who = null; idBadge(); return; }
+  if (t.id === 'idManOk') {
+    const v = id => (document.getElementById(id).value || '').trim().replace(/\s+/g, ' ');
+    const vide = ['idNom', 'idPre', 'idCls'].filter(id => !v(id));
+    document.querySelectorAll('.idform input').forEach(i => i.classList.toggle('err', vide.includes(i.id)));
+    if (vide.length) return;
+    idValide(v('idNom'), v('idPre'), v('idCls').toUpperCase(), IDENT.mode);
+  }
+});
+// Clavier de l'ordinateur : chiffres et effacement pour le badge, Entrée pour valider
+document.addEventListener('keydown', e => {
+  if (document.getElementById('idwarning').hidden) return;
+  if (IDENT.step === 'badge') {
+    if (/^\d$/.test(e.key)) { e.preventDefault(); idKey(e.key); }
+    else if (e.key === 'Backspace') { e.preventDefault(); idKey('del'); }
+  } else if (IDENT.step === 'manuel' && e.key === 'Enter') { e.preventDefault(); document.getElementById('idManOk').click(); }
+});
 
 // QR code (UTF-8, niveau M) : utilisé à l'écran ET sur la copie PDF
 function makeQr(payload) {

@@ -34,6 +34,52 @@ body.need-fs .sheet,body.need-fs #calc,body.need-fs #npad{display:none!important
 #codegate .cg-ko{margin:14px auto 0;max-width:300px;background:#fde8e6;color:#b42318;border-radius:10px;padding:8px 12px;font-weight:600}
 body.need-code .sheet,body.need-code #fswarning,body.need-code #calc,body.need-code #npad{display:none!important}
 body:not(.need-code) #codegate{display:none}
+/* ===== Identité : classe, badge, confirmation (style application, sans encart coloré) ===== */
+#idwarning{position:relative;width:100%;max-width:640px;margin:16px auto;padding:8px 0;color:#1b1b1f;text-align:center;font-family:inherit}
+#idwarning button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#idwarning .idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+#idwarning .idtile{min-height:104px;border:0;border-radius:20px;color:#fff;font-size:clamp(1.3rem,3.6vw,1.6rem);font-weight:800;letter-spacing:.02em;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+#idwarning .idtile.idautre{background:#fff;color:#475569;border:2px dashed #cbd2e0;box-shadow:none}
+#idwarning .idback{position:absolute;left:0;top:4px;width:44px;height:44px;border-radius:50%;border:1px solid #dfe3ec;background:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px rgba(16,24,40,.08)}
+#idwarning svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+#idwarning .idback svg{color:#334155}
+#idwarning .idchip{display:inline-block;color:#fff;font-weight:800;font-size:1.15rem;letter-spacing:.03em;border-radius:999px;padding:9px 22px;margin:4px 0 22px;box-shadow:0 4px 14px rgba(16,24,40,.15)}
+#idwarning .idpin{display:flex;justify-content:center;gap:clamp(6px,2vw,12px)}
+#idwarning .idpin span{width:clamp(40px,11vw,54px);height:clamp(54px,14vw,66px);border-radius:14px;background:#fff;border:2px solid #dfe3ec;display:flex;align-items:center;justify-content:center;font:800 clamp(1.6rem,6vw,2.1rem) ui-monospace,Consolas,monospace;color:#111827;transition:border-color .15s}
+#idwarning .idpin span.cur{border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+#idwarning .idpin span.on{border-color:#94a3b8}
+#idwarning .idpin span.on::after{content:"";width:16px;height:16px;border-radius:50%;background:#111827}
+#idwarning .idpin.busy span{border-color:#94a3b8;opacity:.6}
+#idwarning .idpin.err span{border-color:#dc2626;background:#fef2f2;animation:idshake .35s}
+@keyframes idshake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#idwarning .idmsg{min-height:1.4em;margin:10px 0 6px;font-weight:700;color:#dc2626}
+#idwarning .idpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+#idwarning .idpad button{height:58px;border-radius:16px;border:1px solid #e2e6ee;background:#fff;font-size:1.5rem;font-weight:700;color:#111827;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(16,24,40,.06)}
+#idwarning .idpad button:active{background:#eef2ff}
+#idwarning .idcard{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 0}
+#idwarning .idav{width:84px;height:84px;border-radius:50%;color:#fff;font-size:1.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(16,24,40,.18)}
+#idwarning .idwho{display:flex;flex-direction:column;align-items:center;gap:2px}
+#idwarning .idwho b{font-size:clamp(1.5rem,5vw,2rem);font-weight:800;letter-spacing:.01em}
+#idwarning .idwho span{font-size:clamp(1.15rem,3.8vw,1.4rem);color:#334155;font-weight:600}
+#idwarning .idwho i{font-style:normal;margin-top:8px;color:#fff;font-weight:800;font-size:.95rem;border-radius:999px;padding:5px 14px}
+#idwarning .idact{display:flex;gap:28px;margin-top:8px}
+#idwarning .idround{width:68px;height:68px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 6px 18px rgba(16,24,40,.16)}
+#idwarning .idround svg{width:30px;height:30px;stroke-width:3}
+#idwarning .idround.ok{background:#16a34a;color:#fff}
+#idwarning .idround.no{background:#fff;color:#64748b;border:1px solid #dfe3ec;box-shadow:0 2px 8px rgba(16,24,40,.08)}
+#idwarning .idform{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end;text-align:left;margin-top:52px}
+#idwarning .idform label span{display:block;font-size:.78rem;font-weight:800;letter-spacing:.08em;color:#64748b;margin:0 0 5px 4px}
+#idwarning .idform input{display:block;width:100%;box-sizing:border-box;height:52px;padding:0 14px;border-radius:14px;border:2px solid #dfe3ec;background:#fff;font-size:1.1rem;font-weight:700;color:#111827;text-transform:uppercase}
+#idwarning .idform input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.15)}
+#idwarning .idform input.err{border-color:#dc2626;background:#fef2f2}
+#idwarning .idform .idround{justify-self:center;grid-column:1/-1;margin-top:6px}
+#idwarning .idstop{display:inline-flex;align-items:center;gap:12px;background:#dc2626;color:#fff;border-radius:18px;padding:18px 26px;font-size:clamp(1.2rem,4vw,1.5rem);font-weight:800;box-shadow:0 8px 24px rgba(220,38,38,.3)}
+#idwarning .idstop svg{width:30px;height:30px;stroke-width:2.6}
+#idwarning .idload{width:42px;height:42px;margin:20px auto;border-radius:50%;border:4px solid #dfe3ec;border-top-color:#2563eb;animation:idspin .8s linear infinite}
+@keyframes idspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#idwarning .idload{animation-duration:2s}#idwarning .idpin.err span{animation:none}}
+body:not(.need-code) #idwarning{display:none!important}
+body.need-code #idwarning{margin-top:max(24px,10vh)}
 @media (max-width:600px){#fswarning{margin:16px 12px;padding-top:64px}#fswarning #fsTts{top:12px;right:12px;width:42px;height:42px}}
 
 /* Une précision entre parenthèses (ex. « (3 chiffres significatifs) ») ne se coupe jamais */
@@ -452,6 +498,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   <div class="cg-row"><input type="password" id="certCode" placeholder="CODE D'ACCÈS" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Code d'accès"><button type="button" id="certCodeBtn">Valider</button></div>
   <p class="cg-ko" id="certCodeMsg" hidden>Code incorrect.</p>
 </div>
+<div id="idwarning" hidden><div id="idStep"></div></div>
 <div id="fswarning" hidden>
   <button type="button" id="fsTts" title="Écouter" aria-label="Écouter ce texte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>
   <h2><span class="fsic" aria-hidden="true">🖥️</span>Plein écran obligatoire</h2>
@@ -494,14 +541,14 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 21/11/2026 - 13h54</span></footer>
+  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 21/11/2026 - 15h50</span></footer>
 </div>
 
 <script>
 /* ===== Sécurités anti-triche (reprises du TEST 001, sans l'obligation de couper le réseau) ===== */
 (function(){
   const $ = id => document.getElementById(id);
-  let adminMode = location.hash === '#prof', started = false, fraudTriggered = false, alarmPlaying = false;
+  let adminMode = false, started = false, fraudTriggered = false, alarmPlaying = false;
 
   // ----- Plein écran -----
   const FS_ROOT = document.documentElement;
@@ -573,6 +620,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   function triggerFraud(reason){
     if (!armed()) return;
     fraudTriggered = true;
+    if (typeof window.idActivite === 'function') window.idActivite('alarme');   // le tableau de bord affiche l'alarme en direct
     console.warn('Alarme : ' + reason);
     // Efface toutes les réponses
     document.querySelectorAll('.sheet input').forEach(i => { if (i.type === 'checkbox' || i.type === 'radio') i.checked = false; else i.value = ''; });
@@ -1827,6 +1875,7 @@ function sha256hex(str) {
     const eleve = [base1(), base2()].some(b => /^[ABC]W?$/.test(c.startsWith(b) ? c.slice(b.length) : ''));
     if (!prof && !eleve) { msg.hidden = false; inp.value = ''; inp.focus(); return; }
     window.CERT_CODE = prof ? '#@' : c;
+    if (!prof && typeof window.certIdentStart === 'function') { window.certIdentStart(c); return; }   // élève : classe et badge (tableau de bord)
     if (prof && typeof window.setCertAdmin === 'function') window.setCertAdmin();
     document.body.classList.remove('need-code');
     const n = document.getElementById('nom'); if (n) setTimeout(() => { try { n.focus(); } catch (e) {} }, 50);
@@ -2423,6 +2472,7 @@ body.cert-open{overflow:hidden}
     const stars = [0, 1, 2].map(i => `<i class="${i < TR.stars ? 'on' : ''}">★</i>`).join('');
     const payload = ['CERTIFICAT COMBUSTION (' + D.F.nom.toUpperCase() + ')', nom || 'ELEVE', pre || 'Inconnu', cls || 'Sans-Classe', note,
       day.toLocaleDateString('fr-FR'), t0 ? t0.toLocaleTimeString('fr-FR') : '-', t1.toLocaleTimeString('fr-FR'), num].join('\n');
+    if (window.FICHE_DONE && typeof window.envoiCopie === 'function') window.envoiCopie(payload);   // copie envoyée sans rien afficher (TOTAL + tableau de bord)
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     const qr = qrcode(0, 'M'); qr.addData(payload, 'Byte'); qr.make();
     const qrSvg = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
@@ -2891,6 +2941,217 @@ body.cert-open{overflow:hidden}
     h.addEventListener('click', openDialog);
   }
   window.paperMake = make;      // (tests)
+})();
+</script>
+<script>
+/* ===== Tableau de bord : identité de l'élève (classe puis badge), suivi en direct et envoi silencieux de la copie =====
+   Même fonctionnement que les tests : après le code d'accès élève, l'élève choisit sa classe puis tape son badge.
+   Tout refus : « Accès non autorisé » pendant 3 s puis retour au code. Pas de réseau ou AUTRE : identité écrite à la main.
+   La copie (contenu du QR code du certificat) part sans rien afficher vers « SCANNER COPIE TOTAL » et le tableau de bord. */
+(function(){
+const TOTAL_URL = 'https://script.google.com/macros/s/AKfycbylGfrpfkK2-IAFQFzSny_gcsZO2hNjz4YljSS0dZXDo2RHdRhV0i-G8YIJcqkq4YVq/exec';   // script du fichier « SCANNER COPIE TOTAL »
+const TDB_URL = 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec';     // script du fichier « Tableau de Bord - TESTS et CERTIFICATS »
+const ID_TEST = 'CERTIFICAT COMBUSTION';
+const estProf = () => window.CERT_CODE === '#@';
+const enCours = () => { const c = document.body.classList; return !c.contains('need-code') && !c.contains('no-id') && !c.contains('locked') && !window.FICHE_DONE; };
+const logIncident = t => { try { console.info(t); } catch (e) {} };
+
+// ----- Envoi de la copie (file d'attente sur l'appareil, envoyée hors certificat en cours) -----
+const ENV_DEST = [{ url: TOTAL_URL, key: 'domstoolbox_envois' }, { url: TDB_URL, key: 'domstoolbox_envois_tdb' }];
+const envMem = {}, envBusy = {};
+function envLoad(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return envMem[k] || []; } }
+function envSave(k, q) { envMem[k] = q; try { localStorage.setItem(k, JSON.stringify(q)); } catch (e) {} }
+window.envoiCopie = function (qr) {
+  if (estProf()) return;
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  ENV_DEST.forEach(d => {
+    const q = envLoad(d.key);
+    if (q.some(c => c.qr === qr)) return;
+    q.push({ id, qr, identite: IDENT.mode || '' });
+    envSave(d.key, q);
+  });
+  envFlush();
+};
+function envFlush() { ENV_DEST.forEach(envFlushUn); }
+async function envFlushUn(d) {
+  if (envBusy[d.key] || !d.url || !navigator.onLine || enCours()) return;
+  const q = envLoad(d.key);
+  if (!q.length) return;
+  envBusy[d.key] = true;
+  try {
+    const lot = q.slice(0, 20);
+    const rep = await fetch(d.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ copies: lot }), redirect: 'follow' });
+    const o = await rep.json();
+    if (o && o.ok) { const ids = new Set(o.ids || []); envSave(d.key, envLoad(d.key).filter(c => !ids.has(c.id))); }
+  } catch (e) {}
+  envBusy[d.key] = false;
+}
+window.addEventListener('online', () => setTimeout(envFlush, 1500));
+window.addEventListener('load', () => setTimeout(envFlush, 1500));
+setInterval(envFlush, 20000);
+
+// ----- Identité -----
+const IDENT = { done: false, mode: '', classes: [], fermees: [], autre: false, classe: '', essais: 0, code: '', who: null, step: '', badge: '' };
+window.CERT_IDENT = IDENT;
+const ID_CLASSES_SECOURS = ['1STI2D-1', '1STI2D-2', '1STI2D-3', '1STI2D-4'];
+const ID_COULEURS = [['#2563eb', '#1e40af'], ['#7c3aed', '#5b21b6'], ['#0d9488', '#0f766e'], ['#ea580c', '#c2410c'], ['#db2777', '#9d174d'], ['#0891b2', '#155e75']];
+const ID_SVG = {
+  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  ok: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  no: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  del: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-5 6M12 9l5 6"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>'
+};
+const $id = id => document.getElementById(id);
+function idEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function idGrad(c) { const i = IDENT.classes.indexOf(c), k = ID_COULEURS[(i < 0 ? 0 : i) % ID_COULEURS.length]; return `linear-gradient(135deg,${k[0]},${k[1]})`; }
+async function idCall(o) {
+  const ctl = 'AbortController' in window ? new AbortController() : null;
+  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 9000);
+  try {
+    const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o), redirect: 'follow', signal: ctl ? ctl.signal : undefined });
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+function idShow(step, html) { IDENT.step = step; $id('idStep').innerHTML = html; }
+function idFocus(id) { setTimeout(() => { const e = $id(id); if (e) try { e.focus(); } catch (x) {} }, 30); }
+const idBack = () => `<button type="button" class="idback" id="idBack" aria-label="Retour">${ID_SVG.back}</button>`;
+// Lancé par l'écran du code d'accès, juste après un code élève valide
+window.certIdentStart = async function (code) {
+  IDENT.code = code;
+  $id('codegate').style.display = 'none'; $id('idwarning').hidden = false;
+  idShow('load', '<div class="idload" aria-label="Chargement"></div>');
+  if (!navigator.onLine) { idManuel(); return; }
+  try {
+    const o = await idCall({ action: 'debut', code });
+    if (!o || !o.ok) { idManuel(); return; }
+    if (!o.ouvert) { idStop(ID_REFUS); return; }
+    IDENT.classes = o.classes || []; IDENT.fermees = o.fermees || []; IDENT.autre = !!o.autre;
+    idClasses();
+  } catch (e) { idManuel(); }
+};
+const ID_REFUS = 'Accès non autorisé';
+function idStop(t) {
+  idShow('stop', `<div class="idstop">${ID_SVG.stop}<span>${idEsc(t)}</span></div>`);
+  setTimeout(idRetourCode, 3000);
+}
+// Retour à l'écran du code d'accès (le compteur de badges faux est gardé)
+function idRetourCode() {
+  if (IDENT.step !== 'stop') return;
+  Object.assign(IDENT, { done: false, mode: '', classe: '', who: null, step: '', badge: '', code: '' });
+  window.CERT_CODE = '';
+  $id('idStep').innerHTML = ''; $id('idwarning').hidden = true; $id('codegate').style.display = '';
+  const inp = $id('certCode'); inp.value = ''; $id('certCodeMsg').hidden = true;
+  try { inp.focus(); } catch (e) {}
+}
+function idClasses() {
+  idShow('classes', '<div class="idgrid">' + IDENT.classes.map(c => `<button type="button" class="idtile" data-c="${idEsc(c)}" style="background:${idGrad(c)}">${idEsc(c)}</button>`).join('') +
+    '<button type="button" class="idtile idautre" data-autre="1">AUTRE</button></div>');
+}
+function idBadge(err) {
+  IDENT.badge = '';
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
+  idShow('badge', `${idBack()}<div class="idchip" style="background:${idGrad(IDENT.classe)}">${idEsc(IDENT.classe)}</div>
+    <div class="idpin${err ? ' err' : ''}" id="idPin">${'<span></span>'.repeat(6)}</div>
+    <p class="idmsg" id="idMsg">${err ? 'Badge inconnu' : ''}</p>
+    <div class="idpad">${keys.map(k => k === '' ? '<span></span>' : `<button type="button" data-k="${k}" ${k === 'del' ? 'aria-label="Effacer"' : ''}>${k === 'del' ? ID_SVG.del : k}</button>`).join('')}</div>`);
+  idPinDraw();
+}
+function idPinDraw() {
+  document.querySelectorAll('#idPin span').forEach((c, i) => { c.textContent = ''; c.classList.toggle('cur', i === IDENT.badge.length); c.classList.toggle('on', i < IDENT.badge.length); });
+}
+function idKey(k) {
+  if (IDENT.step !== 'badge') return;
+  const pin = $id('idPin');
+  if (pin && pin.classList.contains('err')) { pin.classList.remove('err'); $id('idMsg').textContent = ''; }
+  if (k === 'del') IDENT.badge = IDENT.badge.slice(0, -1);
+  else if (/^\d$/.test(k) && IDENT.badge.length < 6) IDENT.badge += k;
+  idPinDraw();
+  if (IDENT.badge.length === 6) idCheckBadge();
+}
+function idManuel(autre) {
+  IDENT.mode = autre ? 'autre' : 'manuel';
+  const cls = autre || !IDENT.classes.length ? ID_CLASSES_SECOURS.concat(IDENT.classes).filter((c, i, a) => a.indexOf(c) === i) : IDENT.classes;
+  idShow('manuel', `${autre ? idBack() : ''}<div class="idform">
+    <label><span>NOM</span><input type="text" id="idNom" autocomplete="off"></label>
+    <label><span>PRÉNOM</span><input type="text" id="idPre" autocomplete="off"></label>
+    <label><span>CLASSE</span><input type="text" id="idCls" list="idClsList" autocomplete="off"></label><datalist id="idClsList">${cls.map(c => `<option value="${idEsc(c)}">`).join('')}</datalist>
+    <button type="button" class="idround ok" id="idManOk" aria-label="Valider">${ID_SVG.ok}</button></div>`);
+  idFocus('idNom');
+}
+function idConfirm() {
+  const w = IDENT.who, ini = ((w.prenom || ' ')[0] + (w.nom || ' ')[0]).toUpperCase();
+  idShow('confirm', `<div class="idcard">
+    <div class="idav" style="background:${idGrad(w.classe)}">${idEsc(ini)}</div>
+    <div class="idwho"><b>${idEsc(w.nom)}</b><span>${idEsc(w.prenom)}</span><i style="background:${idGrad(w.classe)}">${idEsc(w.classe)}</i></div>
+    <div class="idact"><button type="button" class="idround no" id="idNo" aria-label="Ce n’est pas moi">${ID_SVG.no}</button><button type="button" class="idround ok" id="idYes" aria-label="C’est moi">${ID_SVG.ok}</button></div></div>`);
+  idFocus('idYes');
+}
+async function idCheckBadge() {
+  const b = IDENT.badge;
+  IDENT.step = 'wait';
+  $id('idPin').classList.add('busy');
+  let o;
+  try { o = await idCall({ action: 'badge', code: IDENT.code, classe: IDENT.classe, badge: b }); }
+  catch (e) { idManuel(); return; }
+  if (!o || !o.ok) { idManuel(); return; }
+  if (!o.ouvert) { idStop(ID_REFUS); return; }
+  if (!o.trouve) {
+    IDENT.essais++;
+    if (IDENT.essais >= 5) { logIncident('Identité : 5 badges inconnus de suite'); idStop(ID_REFUS); return; }
+    idBadge(true); return;
+  }
+  if (!o.autorise) { logIncident(`Identité : ${o.nom} ${o.prenom} (${o.classe}) non autorisé`); idStop(ID_REFUS); return; }
+  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe };
+  idConfirm();
+}
+// Signale au tableau de bord qu'un élève commence le certificat (« en cours ») ou que l'alarme s'est déclenchée
+window.idActivite = function (etat) {
+  if (estProf() || !IDENT.who || !IDENT.code || !navigator.onLine) return;
+  try {
+    fetch(TDB_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'activite', code: IDENT.code, test: ID_TEST, classe: IDENT.who.classe, nom: IDENT.who.nom, prenom: IDENT.who.prenom, etat, identite: IDENT.mode }) }).catch(() => {});
+  } catch (e) {}
+};
+// Identité confirmée : champs NOM, PRÉNOM, CLASSE remplis et verrouillés, puis suite normale (plein écran, fiche)
+function idValide(nom, prenom, classe, mode) {
+  IDENT.mode = mode; IDENT.who = { nom: nom.toLocaleUpperCase('fr-FR'), prenom, classe };
+  IDENT.done = true; IDENT.step = 'done';
+  logIncident(`Identité (${mode === 'badge' ? 'badge' : mode === 'autre' ? 'AUTRE' : 'non vérifiée'}) : ${IDENT.who.nom} ${prenom} — ${classe}`);
+  const n = $id('nom'), p = $id('prenom'), c = $id('classe');
+  n.value = IDENT.who.nom; p.value = prenom;
+  if (![...c.options].some(o => o.value === classe)) { const o = document.createElement('option'); o.textContent = classe; c.appendChild(o); }
+  c.value = classe;
+  [n, p, c].forEach(el => { el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
+  const ok = $id('identOk'); if (ok) { ok.disabled = false; ok.click(); }
+  n.readOnly = true; p.readOnly = true; c.disabled = true;
+  $id('idwarning').hidden = true; $id('idStep').innerHTML = '';
+  document.body.classList.remove('need-code');
+  window.idActivite('encours');
+}
+$id('idStep').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.k) { idKey(t.dataset.k); return; }
+  if (t.dataset.autre) { if (IDENT.autre) idManuel(true); else idStop(ID_REFUS); return; }
+  if (t.dataset.c) { IDENT.classe = t.dataset.c; if (IDENT.fermees.includes(IDENT.classe)) idStop(ID_REFUS); else idBadge(); return; }
+  if (t.id === 'idBack') { IDENT.classes.length ? idClasses() : idManuel(); return; }
+  if (t.id === 'idYes') { idValide(IDENT.who.nom, IDENT.who.prenom, IDENT.who.classe, 'badge'); return; }
+  if (t.id === 'idNo') { IDENT.who = null; idBadge(); return; }
+  if (t.id === 'idManOk') {
+    const v = id => ($id(id).value || '').trim().replace(/\s+/g, ' ');
+    const vide = ['idNom', 'idPre', 'idCls'].filter(id => v(id).length < (id === 'idCls' ? 1 : 2));
+    document.querySelectorAll('.idform input').forEach(i => i.classList.toggle('err', vide.includes(i.id)));
+    if (vide.length) return;
+    idValide(v('idNom'), v('idPre'), v('idCls').toUpperCase(), IDENT.mode);
+  }
+});
+document.addEventListener('keydown', e => {
+  if ($id('idwarning').hidden) return;
+  if (IDENT.step === 'badge') {
+    if (/^\d$/.test(e.key)) { e.preventDefault(); idKey(e.key); }
+    else if (e.key === 'Backspace') { e.preventDefault(); idKey('del'); }
+  } else if (IDENT.step === 'manuel' && e.key === 'Enter') { e.preventDefault(); $id('idManOk').click(); }
+});
 })();
 </script>
 </body>
