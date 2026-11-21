@@ -421,7 +421,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 21/11/2026 - 10h24</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 21/11/2026 - 11h10</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -974,6 +974,7 @@ function triggerFraud(reasonLog) {
   fraudTriggered = true;
 
   logIncident(`🚨 ALERTE / ALARME DÉCLENCHÉE : ${reasonLog}`);
+  if (typeof idActivite === 'function') idActivite('alarme');   // le tableau de bord affiche l'alarme en direct
 
   const quizEl = document.getElementById('quiz');
   if (quizEl) quizEl.innerHTML = '';
@@ -2926,11 +2927,21 @@ async function idCheckBadge() {
   IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe };
   idConfirm();
 }
+// Signale au tableau de bord qu'un élève commence le test (« en cours ») ou que l'alarme s'est déclenchée. Sans réponse attendue.
+const ID_TEST = 'TEST 008';
+function idActivite(etat) {
+  if (adminMode || !IDENT.who || !IDENT.code || !navigator.onLine) return;
+  try {
+    fetch(TDB_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'activite', code: IDENT.code, test: ID_TEST, classe: IDENT.who.classe, nom: IDENT.who.nom, prenom: IDENT.who.prenom, etat, identite: IDENT.mode }) }).catch(() => {});
+  } catch (e) {}
+}
 function idValide(nom, prenom, classe, mode) {
   IDENT.mode = mode; IDENT.who = { nom: nom.toLocaleUpperCase('fr-FR'), prenom, classe };
   IDENT.done = true; IDENT.step = 'done';
   logIncident(`Identité (${mode === 'badge' ? 'badge' : mode === 'autre' ? 'AUTRE' : 'non vérifiée'}) : ${IDENT.who.nom} ${prenom} — ${classe}`);
   document.getElementById('idwarning').hidden = true;
+  idActivite('encours');
   checkNetworkState();
 }
 // Après le choix PAP (le test est construit) : les champs NOM, PRÉNOM et CLASSE sont remplis et verrouillés

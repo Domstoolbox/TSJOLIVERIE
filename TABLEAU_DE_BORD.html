@@ -72,6 +72,34 @@ tr.nonverif td{background:#fffbeb}
 /* ----- Milieu : classes + activité ----- */
 .mid{display:grid;grid-template-columns:290px 290px repeat(3,minmax(0,1fr));gap:12px;min-height:0}
 .card.vide{background:transparent;border:2px dashed #d5d8e3;box-shadow:none}
+/* ----- Tuile « En direct » ----- */
+.livelist{overflow:auto;min-height:0;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.lv{border-radius:10px;padding:7px 10px;background:var(--bg);display:flex;flex-direction:column;gap:2px;border-left:4px solid #94a3b8}
+.lv>div{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.lv b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .lv b span{font-weight:500}
+.lv small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv em{flex:none;font-size:12.5px}
+#liveTag{display:inline-flex;gap:4px;background:none;padding:0}
+#liveTag .nb{font:700 12px var(--f);border-radius:999px;padding:2px 8px}
+#liveTag .nb.b{background:#dbeafe;color:#1d4ed8} #liveTag .nb.g{background:var(--green-bg);color:var(--green-ink)}
+.lv.encours{border-left-color:#2563eb} .lv.alarme{border-left-color:#dc2626;background:#fef2f2} .lv.fini{border-left-color:#16a34a}
+.lv em{font-style:normal;font-weight:700;white-space:nowrap}
+.lv.encours em{color:#1d4ed8} .lv.alarme em{color:#b91c1c} .lv.fini em{color:#15803d}
+/* Activité sous le nom, dans la fenêtre d'une classe */
+.stu small{display:block;margin-top:4px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.22);border-radius:6px;padding:2px 6px;align-self:flex-start}
+.stu small.alarme{background:#fff;color:#b91c1c}
+/* ----- Tuile « Post-it » ----- */
+.posts{overflow:auto;min-height:0;display:flex;flex-direction:column;gap:8px;padding:2px}
+.pi{position:relative;border-radius:4px 4px 14px 4px;padding:8px 10px 6px;box-shadow:0 2px 6px rgba(16,24,40,.12)}
+.pi.jaune{background:#fef08a} .pi.rose{background:#fbcfe8} .pi.vert{background:#bbf7d0} .pi.bleu{background:#bfdbfe} .pi.orange{background:#fed7aa}
+.pi textarea{display:block;width:100%;border:0;background:transparent;resize:none;font:600 15px/1.35 var(--f);color:#1b1b1f;padding:0;overflow:hidden;min-height:22px}
+.pi textarea:focus{outline:none}
+.pi .pt{display:flex;justify-content:flex-end;gap:4px;margin-top:2px;opacity:.55}
+.pi:hover .pt,.pi:focus-within .pt{opacity:1}
+.pi .pt button{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.55);padding:0;font-size:13px;line-height:1;cursor:pointer}
+.pi .pt .pc{background:conic-gradient(#fef08a 0 20%,#fbcfe8 0 40%,#bbf7d0 0 60%,#bfdbfe 0 80%,#fed7aa 0)}
+.pi .pt .pd.armed{background:#dc2626;color:#fff;border-color:#dc2626}
+
 /* ----- Tuile scanner (webcam) ----- */
 .card h2 .grow{flex:1}
 .mini{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;font-size:15px}
@@ -182,7 +210,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
 .erow .del{width:40px;height:36px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--red);font-size:18px}
 .wfoot{display:flex;gap:10px;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
 .wfoot .grow{flex:1;font-size:13px;color:var(--muted)}
-@media (max-width:1100px){.mid{grid-template-columns:290px 290px minmax(0,1fr)}.card.vide+.card.vide{display:none}}
+@media (max-width:1100px){.app{height:auto;min-height:100vh}.mid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(320px,auto)}}
 /* ----- Téléphone ----- */
 @media (max-width:760px){
   .app{padding:10px 10px 14px;gap:10px}
@@ -201,7 +229,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
   .erow.h{display:none}
   .whead{padding:12px 14px} .wbody{padding:12px 14px}
 }
-@media (max-width:760px){.mid{grid-template-columns:1fr}.card.vide{display:none}.set{grid-template-columns:1fr}}
+@media (max-width:760px){.mid{grid-template-columns:1fr}.card.vide{display:none}.livelist,.posts{max-height:320px}.set{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1b1b1f;color:#fff;border-radius:12px;padding:10px 16px;font-weight:600;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .toast[hidden]{display:none}
 </style>
@@ -248,8 +276,14 @@ td.n{font-family:var(--fm);color:var(--muted)}
         <div class="camres" id="camRes" hidden></div>
       </div>
     </div>
-    <div class="card vide" aria-hidden="true"></div>
-    <div class="card vide" aria-hidden="true"></div>
+    <div class="card live">
+      <h2>En direct <span class="tag" id="liveTag"></span></h2>
+      <div class="livelist" id="live"></div>
+    </div>
+    <div class="card post">
+      <h2>Post-it <span class="grow"></span><button type="button" class="mini" id="postAdd" title="Nouveau post-it" aria-label="Nouveau post-it"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></h2>
+      <div class="posts" id="posts"></div>
+    </div>
   </section>
 
   <section class="card copies">
@@ -421,8 +455,56 @@ function render() {
     `<tr><td colspan="15" style="color:var(--muted)">${S ? 'Aucune copie reçue pour l’instant.' : ''}</td></tr>`;
   if (enHaut || !render.done) box.scrollTop = 0;
   render.done = true;
+  renderLive();
+  renderPosts();
   if (!$('ovClass').hidden) renderClass();
 }
+
+// ---------- En direct : qui fait quoi aujourd'hui ----------
+const cleEl = (c, n, p) => [c, n, p].map(x => String(x || '').trim().toUpperCase()).join('|');
+const depuis = h => { const m = /^(\d{1,2}):(\d{2})/.exec(h || ''); if (!m) return ''; const d = new Date(), t = (d.getHours() * 60 + d.getMinutes()) - (+m[1] * 60 + +m[2]); return t > 0 ? t + ' min' : t === 0 ? '< 1 min' : ''; };
+function etatTxt(a) { return a.etat === 'fini' ? '✓ ' + String(a.note || 'fini').replace(/\s/g, '') : a.etat === 'alarme' ? '⚠ Alarme' : '⏳ ' + depuis(a.debut); }
+function renderLive() {
+  const l = S && S.activite ? S.activite.slice() : [];
+  const ordre = { alarme: 0, encours: 1, fini: 2 };
+  l.sort((a, b) => ordre[a.etat] - ordre[b.etat] || String(b.heure || b.fin || '').localeCompare(String(a.heure || a.fin || '')));
+  const nb = k => l.filter(a => a.etat === k).length;
+  $('liveTag').innerHTML = S ? `<span class="nb b" title="En cours">⏳ ${nb('encours') + nb('alarme')}</span><span class="nb g" title="Finis">✓ ${nb('fini')}</span>` : '';
+  $('live').innerHTML = l.map(a => `<div class="lv ${a.etat}"><div><b>${esc(a.nom)} <span>${esc(a.prenom)}</span></b><em>${esc(etatTxt(a))}</em></div><small>${esc(a.classe)} · ${esc(a.test)}</small></div>`).join('')
+    || (S ? '<div class="empty">Aucun élève en test aujourd’hui.</div>' : '');
+}
+
+// ---------- Post-it ----------
+const COULEURS = ['jaune', 'rose', 'vert', 'bleu', 'orange'];
+let POSTS = null, postT = 0;
+const enEdition = () => $('posts').contains(document.activeElement);
+function renderPosts() {
+  if (enEdition()) return;                                   // ne jamais effacer ce que l'on est en train d'écrire
+  POSTS = S && S.postits ? S.postits.map(p => Object.assign({}, p)) : [];
+  $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
+  $('posts').querySelectorAll('textarea').forEach(auto);
+}
+function auto(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
+function savePosts(now) { clearTimeout(postT); postT = setTimeout(() => call('postits', { postits: POSTS }), now ? 0 : 1200); }
+$('postAdd').onclick = () => {
+  if (!S) { askLogin(''); return; }
+  POSTS.unshift({ texte: '', couleur: COULEURS[(POSTS.length) % COULEURS.length] }); S.postits = POSTS.map(p => Object.assign({}, p));
+  renderPosts(); const t = $('posts').querySelector('textarea'); if (t) t.focus(); savePosts();
+};
+$('posts').addEventListener('input', e => {
+  const n = e.target.closest('[data-p]'); if (!n || e.target.tagName !== 'TEXTAREA') return;
+  POSTS[+n.dataset.p].texte = e.target.value; S.postits = POSTS.map(p => Object.assign({}, p)); auto(e.target); savePosts();
+});
+$('posts').addEventListener('focusout', () => setTimeout(() => { if (!enEdition()) savePosts(true); }, 0));
+$('posts').addEventListener('click', e => {
+  const n = e.target.closest('[data-p]'); if (!n) return; const i = +n.dataset.p;
+  if (e.target.closest('[data-pc]')) { POSTS[i].couleur = COULEURS[(COULEURS.indexOf(POSTS[i].couleur) + 1) % COULEURS.length]; n.className = 'pi ' + POSTS[i].couleur; S.postits = POSTS.map(p => Object.assign({}, p)); savePosts(); }
+  if (e.target.closest('[data-pd]')) {
+    const b = e.target.closest('[data-pd]');
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); setTimeout(() => b.classList.remove('armed'), 2500); return; }
+    POSTS.splice(i, 1); S.postits = POSTS.map(p => Object.assign({}, p)); document.activeElement && document.activeElement.blur(); renderPosts(); savePosts(true);
+  }
+});
 
 // ---------- ON / OFF ----------
 $('switch').onclick = async () => {
@@ -450,7 +532,10 @@ $('classes').addEventListener('click', e => { const b = e.target.closest('[data-
 function renderClass() {
   const c = S && S.classes[curCls]; if (!c) { $('ovClass').hidden = true; return; }
   $('clT').textContent = c.nom;
-  $('students').innerHTML = c.eleves.map((e, i) => `<button type="button" class="stu ${e.ok ? 'ok' : 'no'}" data-i="${i}" aria-pressed="${e.ok}"><b>${esc(e.nom)}</b><span>${esc(e.prenom)}</span></button>`).join('') || '<div class="empty">Aucun élève dans cette classe.</div>';
+  const act = {};
+  (S.activite || []).forEach(a => { const k = cleEl(a.classe, a.nom, a.prenom); if (!act[k] || a.etat !== 'fini' || act[k].etat === 'fini') act[k] = a; });
+  $('students').innerHTML = c.eleves.map((e, i) => { const a = act[cleEl(c.nom, e.nom, e.prenom)];
+    return `<button type="button" class="stu ${e.ok ? 'ok' : 'no'}" data-i="${i}" aria-pressed="${e.ok}"><b>${esc(e.nom)}</b><span>${esc(e.prenom)}</span>${a ? `<small class="${a.etat}">${esc(a.test)} · ${esc(etatTxt(a))}</small>` : ''}</button>`; }).join('') || '<div class="empty">Aucun élève dans cette classe.</div>';
 }
 $('students').addEventListener('click', async e => {
   const b = e.target.closest('[data-i]'); if (!b) return;
