@@ -277,48 +277,49 @@ function victory() {
 }
 
 // ===== Google Sheets : chaque copie scannée est ajoutée comme une ligne (file d'attente si pas de réseau) =====
-const GSQ = STORE + '_gsqueue';
-let gsQ = [];
-try { gsQ = JSON.parse(localStorage.getItem(GSQ) || '[]'); } catch (e) { gsQ = []; }
-const gsSave = () => { try { localStorage.setItem(GSQ, JSON.stringify(gsQ)); } catch (e) {} };
+// Deux destinations : « SCANNER COPIE QRCODE » et le fichier du tableau de bord (source « Scan »)
+const GS_DEST = [
+  { url: 'https://script.google.com/macros/s/AKfycbyOrc9g992yy9_7tspKMTq6mjrAXVlVIVI17M__dQ6Puc0QjD7o5jU9vG8Bj3A9WNVi/exec', key: STORE + '_gsqueue' },       // « SCANNER COPIE QRCODE »
+  { url: 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec', key: STORE + '_gsqueue_tdb' }  // « Tableau de Bord - TESTS et CERTIFICATS »
+];
+GS_DEST.forEach(d => { try { d.q = JSON.parse(localStorage.getItem(d.key) || '[]'); } catch (e) { d.q = []; } d.busy = false; });
+const gsSave = d => { try { localStorage.setItem(d.key, JSON.stringify(d.q)); } catch (e) {} };
 // Enregistrement silencieux : aucune indication à l'écran
-const GS_URL = 'https://script.google.com/macros/s/AKfycbyOrc9g992yy9_7tspKMTq6mjrAXVlVIVI17M__dQ6Puc0QjD7o5jU9vG8Bj3A9WNVi/exec';   // adresse /exec du script du fichier « SCANNER COPIE QRCODE »
-const gsUrl = () => GS_URL;
 const two = n => String(n).padStart(2, '0');
 function gsQueue(r, res, src) {
   if (res === 'bad') return;
   const d = new Date();
-  gsQ.push({
+  const row = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
     scanAt: `${two(d.getDate())}/${two(d.getMonth() + 1)}/${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`,
     etat: res === 'new' ? 'Nouvelle' : res === 'upd' ? 'Mise à jour' : 'Déjà scannée', source: src,
     test: r.test || '', nom: r.nom.toUpperCase(), prenom: r.prenom, classe: r.classe, note: r.note, notePap: r.notePap || '',
     sur20: Math.round(r.sur20 * 100) / 100, date: r.date, debut: r.debut, fin: r.fin, duree: duree(r.debut, r.fin), code: r.code,
     hors: !!r.hors, fraude: !isStudentCode(r), sansFaute: perfect(r), cle: r.cle || ''
-  });
-  gsSave(); gsFlush();
+  };
+  GS_DEST.forEach(dst => { dst.q.push(Object.assign({}, row)); gsSave(dst); });
+  gsFlush();
 }
-let gsBusy = false, gsErr = '';
-function gsShow() {}
-async function gsPost(body) {
-  const rep = await fetch(gsUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
+async function gsPost(url, body) {
+  const rep = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
   return rep.json();
 }
-async function gsFlush() {
-  if (gsBusy || !gsQ.length || !GS_URL) return;
-  gsBusy = true; gsShow();
+async function gsFlushUn(d) {
+  if (d.busy || !d.q.length || !d.url) return;
+  d.busy = true;
   try {
-    while (gsQ.length) {
-      const lot = gsQ.slice(0, 40);
-      const o = await gsPost({ rows: lot });
-      if (!o || !o.ok) { gsErr = 'refus'; break; }
-      const ids = new Set(lot.map(x => x.id)); gsQ = gsQ.filter(x => !ids.has(x.id)); gsSave(); gsErr = '';
+    while (d.q.length) {
+      const lot = d.q.slice(0, 40);
+      const o = await gsPost(d.url, { rows: lot });
+      if (!o || !o.ok) break;
+      const ids = new Set(lot.map(x => x.id)); d.q = d.q.filter(x => !ids.has(x.id)); gsSave(d);
     }
-  } catch (e) { gsErr = 'réseau'; }
-  gsBusy = false; gsShow();
+  } catch (e) {}
+  d.busy = false;
 }
-window.addEventListener('online', () => { gsErr = ''; gsFlush(); });
-setInterval(() => { if (gsQ.length) gsFlush(); }, 30000);
+function gsFlush() { GS_DEST.forEach(gsFlushUn); }
+window.addEventListener('online', gsFlush);
+setInterval(() => { if (GS_DEST.some(d => d.q.length)) gsFlush(); }, 30000);
 
 // ===== Code d'accès élève ? =====
 // Code élève = une des deux bases du jour DE LA DATE DE LA COPIE + A, B, C, AW, BW ou CW.
