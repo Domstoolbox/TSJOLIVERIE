@@ -660,7 +660,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 21/11/2026 - 15h50</span></footer>
+  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 21/11/2026 - 18h09</span></footer>
 </div>
 
 <script>
@@ -2058,6 +2058,7 @@ function sha256hex(str) {
     if (!prof && typeof window.certIdentStart === 'function') { window.certIdentStart(c); return; }   // élève : classe et badge (tableau de bord)
     if (prof && typeof window.setCertAdmin === 'function') window.setCertAdmin();
     document.body.classList.remove('need-code');
+    if (prof && typeof window.certRegen === 'function' && window.certRegen()) return;   // certificat refait depuis le tableau de bord
     const n = document.getElementById('nom'); if (n) setTimeout(() => { try { n.focus(); } catch (e) {} }, 50);
   }
   btn.addEventListener('click', check);
@@ -2637,7 +2638,7 @@ body.cert-open{overflow:hidden}
     const nom = (document.getElementById('nom').value || '').trim().toLocaleUpperCase('fr-FR');
     const pre = (document.getElementById('prenom').value || '').trim().toLocaleUpperCase('fr-FR');
     const cls = (document.getElementById('classe').value || '').trim();
-    const now = new Date(), date = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const now = window.CERT_REGEN_NOW ? new Date(window.CERT_REGEN_NOW) : new Date(), date = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
     let hsh = 5381; for (const ch of (pre + nom + D.F.id + now.toDateString())) hsh = ((hsh * 33) ^ ch.charCodeAt(0)) >>> 0;
     const num = 'THER-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + hsh.toString(16).toUpperCase().slice(-5).padStart(5, '0');
     const formula = D.F.ico || '';
@@ -2650,7 +2651,7 @@ body.cert-open{overflow:hidden}
     const stars = [0, 1, 2].map(i => `<i class="${i < TR.stars ? 'on' : ''}">★</i>`).join('');
     const payload = ['CERTIFICAT THERMIQUE (' + D.F.nom.toUpperCase() + ')', nom || 'ELEVE', pre || 'Inconnu', cls || 'Sans-Classe', note,
       day.toLocaleDateString('fr-FR'), t0 ? t0.toLocaleTimeString('fr-FR') : '-', t1.toLocaleTimeString('fr-FR'), num].join('\n');
-    if (window.FICHE_DONE && typeof window.envoiCopie === 'function') window.envoiCopie(payload);   // copie envoyée sans rien afficher (TOTAL + tableau de bord)
+    if (window.FICHE_DONE && typeof window.envoiCopie === 'function') window.envoiCopie(payload, { nom, prenom: (document.getElementById('prenom').value || '').trim(), classe: cls, data: D, nt: NT, start: t0 ? +t0 : 0, end: +t1, now: +now });   // copie envoyée sans rien afficher (TOTAL + tableau de bord)
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     const qr = qrcode(0, 'M'); qr.addData(payload, 'Byte'); qr.make();
     const qrSvg = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
@@ -3139,13 +3140,13 @@ const ENV_DEST = [{ url: TOTAL_URL, key: 'domstoolbox_envois' }, { url: TDB_URL,
 const envMem = {}, envBusy = {};
 function envLoad(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return envMem[k] || []; } }
 function envSave(k, q) { envMem[k] = q; try { localStorage.setItem(k, JSON.stringify(q)); } catch (e) {} }
-window.envoiCopie = function (qr) {
+window.envoiCopie = function (qr, regen) {
   if (estProf()) return;
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   ENV_DEST.forEach(d => {
     const q = envLoad(d.key);
     if (q.some(c => c.qr === qr)) return;
-    q.push({ id, qr, identite: IDENT.mode || '' });
+    q.push(regen ? { id, qr, identite: IDENT.mode || '', regen } : { id, qr, identite: IDENT.mode || '' });
     envSave(d.key, q);
   });
   envFlush();
@@ -3167,6 +3168,27 @@ async function envFlushUn(d) {
 window.addEventListener('online', () => setTimeout(envFlush, 1500));
 window.addEventListener('load', () => setTimeout(envFlush, 1500));
 setInterval(envFlush, 20000);
+
+// ----- Certificat refait depuis le tableau de bord (adresse « …#regen=… », puis code professeur #@) -----
+let REGEN = null;
+(function () {
+  const m = /^#regen=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try { REGEN = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) { REGEN = null; }
+})();
+window.certRegen = function () {
+  if (!REGEN || !estProf() || typeof window.showCertificate !== 'function') return false;
+  const R = REGEN; REGEN = null;
+  const n = $id('nom'), p = $id('prenom'), c = $id('classe');
+  n.value = R.nom || ''; p.value = R.prenom || '';
+  if (R.classe && ![...c.options].some(o => o.value === R.classe)) { const o = document.createElement('option'); o.textContent = R.classe; c.appendChild(o); }
+  c.value = R.classe || '';
+  window.FICHE_DATA = R.data; window.FICHE_NOTE = () => R.nt;
+  window.FICHE_START = R.start ? new Date(R.start) : null; window.FICHE_END = R.end ? new Date(R.end) : null;
+  window.CERT_REGEN_NOW = R.now || R.end || 0;
+  window.showCertificate(true);
+  return true;
+};
 
 // ----- Identité -----
 const IDENT = { done: false, mode: '', classes: [], fermees: [], autre: false, classe: '', essais: 0, code: '', who: null, step: '', badge: '' };

@@ -143,6 +143,29 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .cabadge b{font:700 22px var(--fm);color:var(--ink,#0b1f3a);letter-spacing:.06em}
 .cabadge small{flex-basis:100%;color:#c2410c;font-weight:600;min-height:1em}
 @media (max-width:760px){.cagrid{grid-template-columns:1fr}.caph{align-items:center}.caph .cafr,.caph #caZoom,.caph .cabtns{width:220px}.caprev .idc{zoom:1}}
+
+/* ----- Retrouver une copie ----- */
+.ib.find{width:36px;height:34px;margin:-4px 0}
+.ib.find svg,.findbar svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.findwin{width:min(920px,100%);height:min(86vh,760px);display:flex;flex-direction:column}
+.findbar{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.findbar svg{width:20px;height:20px;color:var(--muted);flex:none}
+.findbar input{flex:1;border:0;outline:none;font:500 17px var(--f);background:transparent;min-width:0}
+.findbody{flex:1;overflow:auto;padding:6px 12px 12px}
+.frow{display:grid;grid-template-columns:150px minmax(0,1fr) 92px 112px 70px 92px;gap:10px;align-items:center;padding:9px 8px;border-bottom:1px solid var(--line);font-size:14px}
+.frow:last-child{border-bottom:0}
+.frow .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .who span{color:var(--muted);font-size:13px}
+.frow .tst{font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .dt{color:var(--muted);font-size:13px;line-height:1.25}
+.frow .nte{font-weight:700;text-align:right}
+.frow .acts{display:flex;gap:6px;justify-content:flex-end}
+.frow .acts button{width:40px;height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:17px;cursor:pointer}
+.frow .acts button:hover{background:#f0fdfa}
+.frow .acts button.ok{background:#dcfce7;border-color:#86efac}
+.frow .acts .na{color:#cbd5e1;font-size:13px;padding-right:12px}
+#tbody tr[data-q]{cursor:pointer}
+@media (max-width:760px){.frow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"who acts" "tst nte" "dt dt"}.frow .who{grid-area:who}.frow .acts{grid-area:acts}.frow .tst{grid-area:tst}.frow .nte{grid-area:nte}.frow .dt{grid-area:dt}.frow .cl{display:none}}
 /* ----- Note en grand au scan ----- */
 .pop{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2vh;text-align:center;color:#fff;padding:4vw;overflow:hidden;cursor:pointer;
   background:radial-gradient(circle at 50% 45%,#7c3aed 0%,#4c1d95 70%);animation:popFond .25s ease-out}
@@ -163,6 +186,7 @@ body.flou .nt{filter:blur(7px);user-select:none}
 @media (prefers-reduced-motion:reduce){.pop,.pop *{animation:none!important}.pop .cf{display:none}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0}
 .card h2{margin:0;font:700 17px var(--fh);display:flex;align-items:center;gap:10px}
+.cnt.vide span:first-child{color:var(--muted);font-weight:600}
 .card h2 .tag{font:600 12px var(--f);color:var(--muted);background:var(--bg);border-radius:999px;padding:2px 9px}
 .classes{display:grid;grid-template-columns:1fr;gap:10px;align-content:start;overflow:auto;min-height:0;padding:2px}
 .clsw{position:relative}
@@ -343,7 +367,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </section>
 
   <section class="card copies">
-    <h2>Dernières copies <span class="tag" id="nbCopies"></span></h2>
+    <h2>Dernières copies <span class="tag" id="nbCopies"></span><span class="grow"></span><button type="button" class="ib find" id="btnFind" title="Retrouver une copie" aria-label="Retrouver une copie" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button></h2>
     <div class="tbox" id="tbox">
       <table><thead><tr><th>N°</th><th>Source</th><th>Test</th><th>Nom</th><th>Prénom</th><th>Classe</th><th>Note</th><th>Ramenée (PAP)</th><th>Sur 20</th><th>Date</th><th>Début</th><th>Fin</th><th>Durée</th><th>Code</th><th>Identité</th></tr></thead>
       <tbody id="tbody"></tbody></table>
@@ -401,6 +425,14 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </div>
 </div>
 
+<div class="ov" id="ovFind" hidden>
+  <div class="win findwin" role="dialog" aria-modal="true" aria-label="Retrouver une copie">
+    <div class="whead" style="background:linear-gradient(110deg,#0f766e,#0e7490)"><h3>Copies</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="findbar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="findQ" placeholder="Nom, prénom, classe, test, date…" autocomplete="off"><span class="tag" id="findN"></span></div>
+    <div class="wbody findbody"><div id="findList"></div></div>
+  </div>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -408,7 +440,6 @@ td.n{font-family:var(--fm);color:var(--muted)}
 const API = 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec';
 const REFRESH_S = 20;                 // actualisation automatique (secondes)
 const PW_KEY = 'tdb_mdp';
-const TESTS_SUIVIS = ['TEST 008', 'CERTIFICAT COMBUSTION'];   // toujours affichés dans « Aujourd'hui », même à 0
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -457,6 +488,7 @@ async function call(action, extra) {
       else setSync('ko', 'Erreur : ' + o.err);
       return null;
     }
+    if (o.liste) { setSync('ok', 'À jour · ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })); return o; }   // recherche de copies
     (o.classes || []).forEach(c => triEleves(c.eleves));
     S = o; render();
     setSync('ok', 'À jour · ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -514,6 +546,7 @@ function jourLong(dmy) { const [d, m, y] = dmy.split('/').map(Number), dt = new 
 const auj = () => new Date().toLocaleDateString('fr-FR');
 
 function render() {
+  $('btnFind').hidden = !S;
   showBases();
   // Interrupteur
   const sw = $('switch');
@@ -534,8 +567,8 @@ function render() {
   const today = auj(), jours = S ? S.jours : [];
   $('todayLbl').textContent = jourLong(today);
   const tj = (jours.find(j => j.date === today) || { tests: {} }).tests;
-  const noms = [...new Set(TESTS_SUIVIS.concat(Object.keys(tj)))];
-  $('todayCnt').innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' + noms.map(t => `<div class="cnt"><span>${esc(t)}</span><span>${tj[t] || 0}</span></div>`).join('') + '</div>';
+  const noms = Object.keys(tj).sort();   // seulement les tests et certificats qui ont reçu au moins une copie aujourd'hui
+  $('todayCnt').innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' + (noms.length ? noms.map(t => `<div class="cnt"><span>${esc(t)}</span><span>${tj[t] || 0}</span></div>`).join('') : '<div class="cnt vide"><span>Aucune copie</span><span>0</span></div>') + '</div>';
   // Intitulé toujours sur une ligne : la taille du texte se réduit si l'intitulé est long
   // (même taille pour tous les intitulés : celle qui convient au plus long)
   const lbs = [...$('todayCnt').querySelectorAll('.cnt span:first-child')];
@@ -549,7 +582,7 @@ function render() {
   const box = $('tbox'), enHaut = box.scrollTop <= 4;
   const cp = S ? S.copies : [], d0 = S ? S.total - cp.length : 0;
   $('nbCopies').textContent = S ? S.total + ' au total' : '';
-  $('tbody').innerHTML = cp.map((c, i) => [c, i]).reverse().map(([c, i]) => `<tr class="${c.fraude || c.hors ? 'alerte' : c.identite && c.identite !== 'Badge' ? 'nonverif' : c.sansFaute ? 'sf' : ''}"><td class="n">${d0 + i + 1}</td><td><span class="src ${c.source === 'Scan' ? 'scan' : 'env'}">${c.source === 'Scan' ? 'Scan' : 'Envoi'}</span></td><td>${esc(c.test)}</td><td><b>${esc(c.nom)}</b></td><td>${esc(c.prenom)}</td><td>${esc(c.classe)}</td><td class="nt">${esc(c.note)}</td><td class="nt">${esc(c.pap)}</td><td class="nt">${esc(c.sur20)}</td><td>${esc(c.date)}</td><td>${esc(c.debut)}</td><td>${esc(c.fin)}</td><td>${esc(c.duree)}</td><td>${esc(c.code)}</td><td>${c.identite ? `<span class="idt ${c.identite === 'Badge' ? 'badge' : c.identite === 'AUTRE' ? 'autre' : 'manuel'}">${esc(c.identite)}</span>` : ''}</td></tr>`).join('') ||
+  $('tbody').innerHTML = cp.map((c, i) => [c, i]).reverse().map(([c, i]) => `<tr class="${c.fraude || c.hors ? 'alerte' : c.identite && c.identite !== 'Badge' ? 'nonverif' : c.sansFaute ? 'sf' : ''}" data-q="${esc((c.nom + ' ' + c.prenom).trim())}"><td class="n">${d0 + i + 1}</td><td><span class="src ${c.source === 'Scan' ? 'scan' : 'env'}">${c.source === 'Scan' ? 'Scan' : 'Envoi'}</span></td><td>${esc(c.test)}</td><td><b>${esc(c.nom)}</b></td><td>${esc(c.prenom)}</td><td>${esc(c.classe)}</td><td class="nt">${esc(c.note)}</td><td class="nt">${esc(c.pap)}</td><td class="nt">${esc(c.sur20)}</td><td>${esc(c.date)}</td><td>${esc(c.debut)}</td><td>${esc(c.fin)}</td><td>${esc(c.duree)}</td><td>${esc(c.code)}</td><td>${c.identite ? `<span class="idt ${c.identite === 'Badge' ? 'badge' : c.identite === 'AUTRE' ? 'autre' : 'manuel'}">${esc(c.identite)}</span>` : ''}</td></tr>`).join('') ||
     `<tr><td colspan="15" style="color:var(--muted)">${S ? 'Aucune copie reçue pour l’instant.' : ''}</td></tr>`;
   if (enHaut || !render.done) box.scrollTop = 0;
   render.done = true;
@@ -686,7 +719,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '21/11/2026 - 16h05';
+const VERSION_PAGE = '21/11/2026 - 18h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -950,6 +983,52 @@ async function cartePrint() {
   setTimeout(() => fr.remove(), 1500);
   cartePreview();
 }
+
+
+// ---------- Retrouver une copie : clé du test ou données du certificat → refaire la copie PDF ----------
+let FIND = null;
+const sansAccent = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+// Fichier du test ou du certificat (même dossier que le tableau de bord sur GitHub)
+function fichierDe(test) {
+  const t = String(test || '').replace(/\s*\(.*\)\s*$/, '').trim();
+  let m = /^TEST\s+(\d{3})$/i.exec(t); if (m) return 'TEST_' + m[1] + '.html';
+  m = /^CERTIFICAT\s+(.+)$/i.exec(t); if (m) return 'Certificat ' + sansAccent(m[1]).toUpperCase().replace(/-/g, '') + '.html';
+  return '';
+}
+const b64 = t => btoa(unescape(encodeURIComponent(t))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+async function ouvrirFind(q) {
+  $('ovFind').hidden = false; $('findQ').value = q || ''; $('findList').innerHTML = '<div class="empty">Chargement…</div>'; $('findN').textContent = '';
+  setTimeout(() => $('findQ').focus(), 30);
+  const o = await call('recherche');
+  if (!o) { $('findList').innerHTML = '<div class="empty">Impossible de charger les copies.</div>'; return; }
+  FIND = o.liste || []; findRender();
+}
+function findRender() {
+  if (!FIND) return;
+  const mots = sansAccent($('findQ').value).toLowerCase().split(/\s+/).filter(Boolean);
+  const L = FIND.filter(c => { const t = sansAccent([c.nom, c.prenom, c.classe, c.test, c.date].join(' ')).toLowerCase(); return mots.every(m => t.includes(m)); });
+  $('findN').textContent = L.length;
+  $('findList').innerHTML = L.slice(0, 300).map((c, i) => {
+    const f = fichierDe(c.test), cert = /^CERTIFICAT/i.test(c.test);
+    const acts = cert ? (c.regen && f ? `<button type="button" data-cert="${FIND.indexOf(c)}" title="Refaire le certificat (PDF)">📄</button>` : '<span class="na">—</span>')
+      : (c.cle ? `<button type="button" data-cle="${FIND.indexOf(c)}" title="Copier la clé">📋</button>${f ? `<button type="button" data-test="${FIND.indexOf(c)}" title="Refaire la copie (PDF)">📄</button>` : ''}` : '<span class="na">—</span>');
+    return `<div class="frow"><div class="who"><b>${esc(c.nom)}</b><span>${esc(c.prenom)}</span></div><div class="tst">${esc(c.test)}</div><div class="cl">${esc(c.classe)}</div><div class="dt">${esc(c.date)}<br>${esc(c.fin)}</div><div class="nte nt">${esc(String(c.note).replace(/\s/g, ''))}</div><div class="acts">${acts}</div></div>`;
+  }).join('') || '<div class="empty">Aucune copie.</div>';
+}
+$('findQ').addEventListener('input', findRender);
+$('btnFind').onclick = () => ouvrirFind('');
+$('tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-q]'); if (tr && S) ouvrirFind(tr.dataset.q); });
+$('findList').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.cle) {
+    const c = FIND[+b.dataset.cle];
+    try { await navigator.clipboard.writeText(c.cle); } catch (x) { const t = document.createElement('textarea'); t.value = c.cle; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    b.classList.add('ok'); b.textContent = '✓'; setTimeout(() => { b.classList.remove('ok'); b.textContent = '📋'; }, 1500);
+    toast('Clé copiée'); return;
+  }
+  if (b.dataset.test) { const c = FIND[+b.dataset.test]; window.open(encodeURI(fichierDe(c.test)) + '#cle=' + encodeURIComponent(c.cle), '_blank'); return; }
+  if (b.dataset.cert) { const c = FIND[+b.dataset.cert]; window.open(encodeURI(fichierDe(c.test)) + '#regen=' + b64(c.regen), '_blank'); }
+});
 
 // ---------- Fenêtres : fermeture ----------
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.ov').hidden = true));

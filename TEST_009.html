@@ -421,7 +421,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 21/11/2026 - 15h55</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 21/11/2026 - 18h09</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -698,6 +698,15 @@ function showCodeMsg(text, ok) {
   m.hidden = false;
 }
 
+// Clé reçue dans l'adresse (bouton « Refaire la copie » du tableau de bord) : la copie PDF est refaite directement
+(function () {
+  const m = /^#cle=(.+)$/.exec(location.hash); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  window.addEventListener('load', () => setTimeout(() => {
+    const i = document.getElementById('accessCodeInput'); i.value = decodeURIComponent(m[1]);
+    document.getElementById('accessCodeBtn').click();
+  }, 400));
+})();
 document.getElementById('accessCodeBtn').onclick = () => {
   const input = document.getElementById('accessCodeInput');
   const entered = input.value.trim().toUpperCase();
