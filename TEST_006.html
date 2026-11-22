@@ -427,7 +427,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 22/11/2026 - 05h27</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 22/11/2026 - 09h00</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -2887,7 +2887,14 @@ function idCamStop() { if (idCam) { clearTimeout(idCam.t); try { idCam.s.getTrac
 function idChargerJsQR() {
   return window.jsQR ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
 }
+// Bip (et vibration) quand la carte est lue ; le son est préparé au toucher de la tuile « SCANNER MA CARTE »
+let idAC = null;
+function idBip() {
+  try { const c = idAC; if (c) { const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = 1150; g.gain.value = 0.4; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.15); } } catch (e) {}
+  try { navigator.vibrate && navigator.vibrate(80); } catch (e) {}
+}
 async function idScan(msg) {
+  try { idAC = idAC || new (window.AudioContext || window.webkitAudioContext)(); if (idAC.state !== 'running') idAC.resume(); } catch (e) {}
   idShow('scan', `${idBack()}<div class="idcam"><video id="idVid" playsinline muted></video><i></i></div><p class="idmsg" id="idMsg">${msg ? idEsc(msg) : ''}</p>`);
   try {
     const r = await Promise.all([navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }), idChargerJsQR()]);
@@ -2906,7 +2913,7 @@ async function idScan(msg) {
         g.drawImage(v, 0, 0, cv.width, cv.height);
         const q = jsQR(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'attemptBoth' });
         const t = q && String(q.data).trim();
-        if (t && /^\d{6}$/.test(t)) { idCamStop(); idCheckScan(t); return; }
+        if (t && /^\d{6}$/.test(t)) { idBip(); idCamStop(); idCheckScan(t); return; }
       }
       idCam.t = setTimeout(boucle, 150);
     };

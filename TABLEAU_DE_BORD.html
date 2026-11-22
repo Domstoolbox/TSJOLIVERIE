@@ -156,6 +156,14 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .findbar svg{width:20px;height:20px;color:var(--muted);flex:none}
 .lotbtn{height:38px;padding:0 14px;white-space:nowrap;font-size:14px}
 .findbar input{flex:1;border:0;outline:none;font:500 17px var(--f);background:transparent;min-width:0}
+.findfil{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line)}
+.findfil:empty{display:none}
+.findfil .fch{height:34px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font:700 14px var(--f);color:var(--ink);cursor:pointer;white-space:nowrap}
+.findfil .fch.g{padding:0 10px;min-width:38px;margin-left:-3px}
+.findfil .fch.on{background:#0f766e;border-color:#0f766e;color:#fff}
+.findfil .fsep{width:1px;height:24px;background:var(--line);margin:0 4px}
+.findfil select{height:34px;border-radius:999px;border:1.5px solid var(--line);padding:0 12px;font:700 14px var(--f);background:#fff;color:var(--ink);margin-left:auto}
+.findfil select.on{background:#0f766e;border-color:#0f766e;color:#fff}
 .findbody{flex:1;overflow:auto;padding:6px 12px 12px}
 .frow{display:grid;grid-template-columns:150px minmax(0,1fr) 92px 112px 70px 92px;gap:10px;align-items:center;padding:9px 8px;border-bottom:1px solid var(--line);font-size:14px}
 .frow:last-child{border-bottom:0}
@@ -527,7 +535,8 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <div class="ov" id="ovFind" hidden>
   <div class="win findwin" role="dialog" aria-modal="true" aria-label="Retrouver une copie">
     <div class="whead" style="background:linear-gradient(110deg,#0f766e,#0e7490)"><h3>Copies</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
-    <div class="findbar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="findQ" placeholder="Nom, prénom, classe, test, date…" autocomplete="off"><span class="tag" id="findN"></span><button type="button" class="btn sec lotbtn" id="findLot" hidden title="Toutes les copies de la liste (la meilleure de chaque élève) dans un seul PDF, avec une page de récapitulatif">📚 Un seul PDF</button></div>
+    <div class="findbar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="findQ" placeholder="Nom, prénom, classe, test, date…" autocomplete="off"><span class="tag" id="findN"></span><button type="button" class="btn sec lotbtn" id="findLot" hidden title="Toutes les copies de tests de la liste (la meilleure de chaque élève) dans un seul PDF, avec une page de récapitulatif">📚 Un seul PDF</button></div>
+    <div class="findfil" id="findFil"></div>
     <div class="wbody findbody"><div id="findList"></div></div>
   </div>
 </div>
@@ -833,7 +842,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 08h50';
+const VERSION_PAGE = '22/11/2026 - 09h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1148,8 +1157,28 @@ async function ouvrirFind(q) {
   setTimeout(() => $('findQ').focus(), 30);
   const o = await call('recherche');
   if (!o) { $('findList').innerHTML = '<div class="empty">Impossible de charger les copies.</div>'; return; }
-  FIND = o.liste || []; findRender();
+  FIND = o.liste || []; FILTRE = { cl: new Set(), date: '' }; filtresRender(); findRender();
 }
+// Filtres : classes et groupes (un toucher = coché / décoché), date (liste des jours où il y a des copies)
+let FILTRE = { cl: new Set(), date: '' };
+const groupeDe = c => { const k = S && S.classes.find(x => x.nom === c.classe), e = k && k.eleves.find(x => cleNom(x.nom, x.prenom) === cleNom(c.nom, c.prenom)); return e ? (e.groupe === 'B' ? 'B' : 'A') : ''; };
+function filtresRender() {
+  if (!FIND) return;
+  const vus = FIND.filter(c => !c.efface), noms = [...new Set((S ? S.classes.map(c => c.nom) : []).concat(vus.map(c => c.classe)))].filter(Boolean);
+  const dates = [...new Set(vus.map(c => c.date).filter(Boolean))].sort((a, b) => { const n = d => { const m = /(\d+)\/(\d+)\/(\d+)/.exec(d); return m ? +m[3] * 1e4 + +m[2] * 100 + +m[1] : 0; }; return n(b) - n(a); });
+  const ch = (v, t, g) => `<button type="button" class="fch${g ? ' g' : ''}${FILTRE.cl.has(v) ? ' on' : ''}" data-f="${esc(v)}">${esc(t)}</button>`;
+  $('findFil').innerHTML = noms.map(n => ch(n, n) + (S && S.classes.some(c => c.nom === n) ? ch(n + '|A', 'A', 1) + ch(n + '|B', 'B', 1) : '')).join('<span class="fsep"></span>') +
+    `<select id="findDate" class="${FILTRE.date ? 'on' : ''}" aria-label="Date"><option value="">Toutes les dates</option>${dates.map(d => `<option${d === FILTRE.date ? ' selected' : ''}>${esc(d)}</option>`).join('')}</select>`;
+}
+$('findFil').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if (!b) return;
+  const v = b.dataset.f, cl = v.split('|')[0];
+  if (FILTRE.cl.has(v)) FILTRE.cl.delete(v);
+  else { FILTRE.cl.add(v); if (v.includes('|')) FILTRE.cl.delete(cl); else { FILTRE.cl.delete(cl + '|A'); FILTRE.cl.delete(cl + '|B'); } }   // classe entière OU ses groupes
+  filtresRender(); findRender();
+});
+$('findFil').addEventListener('change', e => { if (e.target.id === 'findDate') { FILTRE.date = e.target.value; e.target.classList.toggle('on', !!FILTRE.date); findRender(); } });
+const filtreOk = c => (!FILTRE.date || c.date === FILTRE.date) && (!FILTRE.cl.size || FILTRE.cl.has(c.classe) || FILTRE.cl.has(c.classe + '|' + groupeDe(c)));
 function actsCopie(c) { return actsCopie0(c) + `<button type="button" class="del" data-eff="${FIND.indexOf(c)}" title="Effacer cette copie partout (comme si l’élève n’avait jamais fait ce test)">🗑</button>`; }
 function actsCopie0(c) {
   const f = fichierDe(c.test), cert = /^CERTIFICAT/i.test(c.test), i = FIND.indexOf(c);
@@ -1159,9 +1188,9 @@ function actsCopie0(c) {
 function findRender() {
   if (!FIND) return;
   const mots = sansAccent($('findQ').value).toLowerCase().split(/\s+/).filter(Boolean);
-  const L = FIND.filter(c => !c.efface).filter(c => { const t = sansAccent([c.nom, c.prenom, c.classe, c.test, c.date].join(' ')).toLowerCase(); return mots.every(m => t.includes(m)); });
+  const L = FIND.filter(c => !c.efface && filtreOk(c)).filter(c => { const t = sansAccent([c.nom, c.prenom, c.classe, c.test, c.date].join(' ')).toLowerCase(); return mots.every(m => t.includes(m)); });
   $('findN').textContent = L.length;
-  FIND_VUE = L; $('findLot').hidden = !L.some(c => fichierDe(c.test) && (/^CERTIFICAT/i.test(c.test) ? c.regen : c.cle));
+  FIND_VUE = L; $('findLot').hidden = !L.some(c => !/^CERTIFICAT/i.test(c.test) && fichierDe(c.test) && c.cle);   // impression groupée : tests seulement
   $('findList').innerHTML = L.slice(0, 300).map((c, i) => {
     const acts = actsCopie(c);
     return `<div class="frow"><div class="who"><b>${esc(c.nom)}</b><span>${esc(c.prenom)}</span></div><div class="tst">${esc(c.test)}</div><div class="cl">${esc(c.classe)}</div><div class="dt">${esc(c.date)}<br>${esc(c.fin)}</div><div class="nte nt">${esc(String(c.note).replace(/\s/g, ''))}</div><div class="acts">${acts}</div></div>`;
@@ -1556,8 +1585,8 @@ async function ouvrirFiche(nom, prenom, classe) {
   const k = cleNom(nom, prenom), L = FIND.filter(c => cleNom(c.nom, c.prenom) === k);
   const notes = L.map(c => ({ c, v: sur20(c), t: dateNum(c) })).filter(x => !isNaN(x.v)).sort((a, b) => a.t - b.t);
   const moy = notes.length ? notes.reduce((a, x) => a + x.v, 0) / notes.length : NaN;
-  const nbT = new Set(L.map(c => c.test.replace(/\s*\(.*\)\s*$/, ''))).size;
-  $('fiStats').innerHTML = `<div><b>${L.length}</b><span>copie${L.length > 1 ? 's' : ''}</span></div><div><b>${nbT}</b><span>tests et certificats</span></div><div><b class="nt">${isNaN(moy) ? '—' : fmt1(moy)}</b><span>moyenne sur 20</span></div><div><b class="nt">${notes.length ? fmt1(Math.max(...notes.map(x => x.v))) : '—'}</b><span>meilleure note</span></div>`;
+  const faits = cert => new Set(L.filter(c => /^CERTIFICAT/i.test(c.test) === cert).map(c => c.test.replace(/\s*\(.*\)\s*$/, '').toUpperCase())).size, nbT = faits(false), nbC = faits(true);
+  $('fiStats').innerHTML = `<div><b>${L.length}</b><span>copie${L.length > 1 ? 's' : ''}</span></div><div><b>${nbT}</b><span>test${nbT > 1 ? 's' : ''}</span></div><div><b>${nbC}</b><span>certificat${nbC > 1 ? 's' : ''}</span></div><div><b class="nt">${isNaN(moy) ? '—' : fmt1(moy)}</b><span>moyenne sur 20</span></div><div><b class="nt">${notes.length ? fmt1(Math.max(...notes.map(x => x.v))) : '—'}</b><span>meilleure note</span></div>`;
   $('fiCurve').innerHTML = notes.length > 1 ? courbe(notes) : '';
   $('fiList').innerHTML = L.map(c => `<div class="frow"><div class="tst">${esc(c.test)}</div><div class="who"><span>${esc(c.classe)}</span></div><div class="cl"></div><div class="dt">${esc(c.date)}<br>${esc(c.fin)}</div><div class="nte nt">${esc(String(c.note).replace(/\s/g, ''))}</div><div class="acts">${actsCopie(c)}</div></div>`).join('') || '<div class="empty">Aucune copie pour cet élève.</div>';
 }
@@ -1629,7 +1658,7 @@ $('findLot').onclick = async () => {
   const bt = $('findLot');
   // la meilleure copie (note sur 20) de chaque élève pour chaque test ; à égalité, la plus récente
   const best = {};
-  FIND_VUE.filter(c => fichierDe(c.test) && (/^CERTIFICAT/i.test(c.test) ? c.regen : c.cle)).forEach(c => {
+  FIND_VUE.filter(c => !/^CERTIFICAT/i.test(c.test) && fichierDe(c.test) && c.cle).forEach(c => {
     const k = cleNom(c.nom, c.prenom) + '#' + c.test.replace(/\s*\(.*\)\s*$/, '').toUpperCase(), v = sur20(c), o = best[k];
     if (!o || (isNaN(sur20(o)) ? 0 : sur20(o)) < (isNaN(v) ? 0 : v) || (sur20(o) === v && dateNum(c) > dateNum(o))) best[k] = c;
   });
