@@ -195,6 +195,15 @@ body.proj .code{height:52px;font-size:24px;padding:0 18px}
 .apchoix button{flex:1;min-width:150px;border:0;border-radius:14px;padding:14px 16px;font:800 20px var(--fh);color:#fff;cursor:pointer;text-align:left}
 .apchoix button small{display:block;font:600 13px var(--f);opacity:.9;margin-top:2px}
 .apchoix .gA{background:#0ea5e9}.apchoix .gB{background:#f59e0b}.apchoix .gT{background:#475569}
+.apcours{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#eef2ff;color:#1e3a8a;font:700 16px var(--f)}
+.apcours:empty{display:none}.apcours svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.apcours.vide{background:var(--bg);color:var(--muted);font-weight:600}
+.apchoix.pre button{opacity:.5}.apchoix.pre button.pre{opacity:1;box-shadow:0 0 0 4px #fff,0 0 0 7px #1e3a8a}
+.aplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.aplist button{border:0;border-radius:14px;padding:16px;font:800 18px var(--fh);color:#fff;text-align:left;cursor:pointer}
+.cours-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:90;background:#1e3a8a;color:#fff;border-radius:14px;padding:12px 20px;font:700 17px var(--f);box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;max-width:calc(100vw - 24px)}
+.cours-toast small{display:block;font-weight:600;font-size:14px;opacity:.85}
+.cours-toast[hidden]{display:none}
 .apbar{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:stretch;margin-bottom:14px}
 .apcam{position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#0f172a}
 .apcam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
@@ -403,6 +412,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
     <button type="button" class="switch autre unk" id="swAutre" aria-pressed="false" title="Bouton « AUTRE » dans les tests"><span class="knob"></span><b>AUTRE</b></button>
     <span class="gap"></span>
     <span class="sync" id="sync"><i></i><span id="syncTxt">Connexion…</span></span>
+    <button type="button" class="ib" id="btnAppel" title="Faire l’appel" aria-label="Faire l’appel"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button>
     <a class="ib" id="btnEdt" href="https://domstoolbox.github.io/TSJOLIVERIE/edt_joliverie.html" target="_blank" rel="noopener" title="Agenda du labo" aria-label="Agenda du labo"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/></svg></a>
     <button type="button" class="ib" id="btnProj" title="Mode projection" aria-label="Mode projection"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
     <button type="button" class="ib" id="btnFlou" title="Flouter les notes" aria-label="Flouter les notes" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -458,6 +468,14 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <div class="ov" id="ovLogin" hidden>
   <div class="kpwin" role="dialog" aria-modal="true" aria-label="Connexion">
     <div class="kp" id="kp"><button type="button" data-k="#" aria-label="#">#</button><button type="button" data-k="{" aria-label="{">{</button><button type="button" data-k="[" aria-label="[">[</button><button type="button" data-k="|" aria-label="|">|</button><button type="button" data-k="@" aria-label="@">@</button><button type="button" data-k="]" aria-label="]">]</button><button type="button" data-k="}" aria-label="}">}</button><button type="button" data-k="¤" aria-label="¤">¤</button><button type="button" data-k="%" aria-label="%">%</button><button type="button" class="ok" id="pwGo">OK</button></div>
+  </div>
+</div>
+
+<!-- Appel : choix de la classe quand l'agenda ne donne pas de cours -->
+<div class="ov" id="ovAppel" hidden>
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="aplT" style="width:min(560px,100%)">
+    <div class="whead" style="background:linear-gradient(135deg,#1b1b1f,#3f3f46)"><h3 id="aplT">Appel</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="wbody"><div class="apcours" id="aplInfo"></div><div class="aplist" id="aplList"></div></div>
   </div>
 </div>
 
@@ -521,6 +539,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </div>
 </div>
 
+<div class="cours-toast" id="coursToast" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -814,7 +833,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 08h00';
+const VERSION_PAGE = '22/11/2026 - 08h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1305,7 +1324,7 @@ function appelLu(t) {
   if (!APPEL.concernes.has(k)) { appelInfo(el.prenom + ' : groupe ' + (el.groupe === 'B' ? 'B' : 'A'), 'ko'); sonKo(); return; }
   if (APPEL.presents.has(k)) {   // déjà compté présent aujourd'hui : s'il est en rouge (remis en rouge entre-temps), on le repasse en vert
     if (!el.ok) { el.ok = true; render(); renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk(); }
-    else appelInfo(el.prenom + ' : déjà là', 'deja');
+    else appelInfo(el.prenom + ' ' + el.nom + ' : présence déjà enregistrée', 'deja');
     return;
   }
   APPEL.presents.add(k); el.ok = true; render(); renderClass();
@@ -1328,7 +1347,7 @@ window.tdbCarte = function (code) {
   if (!aj || !aj[k]) { M('ok', '🪪' + nomH); sonOk(); return; }           // pas d'appel aujourd'hui pour lui (sa classe ou son groupe)
   if (aj[k] && aj[k] !== 'NON') {
     if (!el.ok) { el.ok = true; render(); if (!$('ovClass').hidden) renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); M('ok', '✓' + nomH); sonOk(); }
-    else M('warn', 'Déjà là' + nomH);
+    else M('warn', 'Présence déjà enregistrée' + nomH);
     return;
   }
   const h = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -1348,18 +1367,131 @@ async function appelFin() {
   const o = await call('appel', { classe: c.nom, presents, absents });
   if (o) toast(`Appel enregistré : ${presents.length} présent${presents.length > 1 ? 's' : ''}, ${absents.length} absent${absents.length > 1 ? 's' : ''}`);
 }
-function appelChoix() {
+function appelChoix(pre) {   // pre = { groupe, txt } : cours trouvé dans l'agenda (groupe présélectionné)
   const c = S && S.classes[curCls]; if (!c) return;
   const n = g => c.eleves.filter(e => !g || (e.groupe === 'B' ? 'B' : 'A') === g).length, aj = (S.appelJour && S.appelJour[c.nom]) || {};
   const fait = g => { const L = c.eleves.filter(e => !g || (e.groupe === 'B' ? 'B' : 'A') === g); return L.length && L.every(e => aj[cleNom(e.nom, e.prenom)]); };
-  const b = (g, cls, t) => `<button type="button" class="${cls}" data-g="${g}">${t}<small>${n(g)} élève${n(g) > 1 ? 's' : ''}${fait(g) ? ' · appel déjà fait : retardataires' : ''}</small></button>`;
-  $('apChoix').innerHTML = b('A', 'gA', 'Groupe A') + b('B', 'gB', 'Groupe B') + b('', 'gT', 'Classe entière');
-  $('apChoix').hidden = !$('apChoix').hidden;
+  const b = (g, cls, t) => `<button type="button" class="${cls}${pre && pre.groupe === g ? ' pre' : ''}" data-g="${g}">${t}<small>${n(g)} élève${n(g) > 1 ? 's' : ''}${fait(g) ? ' · appel déjà fait : retardataires' : ''}</small></button>`;
+  $('apChoix').innerHTML = (pre ? `<div class="apcours">${EDT_ICO}<span>${pre.txt}</span></div>` : '') + b('A', 'gA', 'Groupe A') + b('B', 'gB', 'Groupe B') + b('', 'gT', 'Classe entière');
+  $('apChoix').classList.toggle('pre', !!pre);
+  $('apChoix').hidden = pre ? false : !$('apChoix').hidden;
 }
 $('apChoix').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; $('apChoix').hidden = true; appelDebut(b.dataset.g); });
 $('clAppel').onclick = () => { if (APPEL) appelFin(); else appelChoix(); };
 $('apFin').onclick = appelFin;
 new MutationObserver(() => { if ($('ovClass').hidden) { $('apChoix').hidden = true; if (APPEL) appelFin(); } }).observe($('ovClass'), { attributes: true, attributeFilter: ['hidden'] });
+
+// ---------- Agenda du labo (edt_joliverie.html) : cours en ce moment, présélection de l'appel, mélodies ----------
+// L'emploi du temps est lu directement dans la page de l'agenda (même site GitHub) : une modification de l'agenda est prise en compte ici.
+// Les changements du jour (annulation, absence, cours déplacé, changement de salle) sont lus dans le Google Sheet de l'agenda.
+const EDT_URL = 'https://domstoolbox.github.io/TSJOLIVERIE/edt_joliverie.html', EDT_PROF = 'Rouillé Dominique', EDT_AVANT = 5;   // minutes avant le début
+const EDT_ICO = '<svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>';
+let EDT = null, EDT_T = 0, EDT_CHG_T = 0;
+const edtMin = t => { const m = /^(\d{1,2})[:h](\d{2})/.exec(String(t || '')); return m ? +m[1] * 60 + +m[2] : null; };
+const edtYmd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const edtH = m => Math.floor(m / 60) + 'h' + String(m % 60).padStart(2, '0');
+function edtIsoD(t) {   // mêmes formats de date que l'agenda : 2026-11-22, 22/11/2026, ou date complète
+  t = String(t || '').trim(); let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t); if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(t); if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+  const d = new Date(t); return isNaN(d) ? null : edtYmd(d);
+}
+function edtSemaine(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), j = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - j); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7) % 2 === 0 ? 'A' : 'B'; }
+async function edtCharger(force) {
+  const now = Date.now();
+  try {
+    if (!EDT || force || now - EDT_T > 3600e3) {   // la page de l'agenda : relue toutes les heures
+      const h = await (await fetch(EDT_URL + '?_=' + now, { cache: 'no-store' })).text();
+      const g = re => { const m = re.exec(h); if (!m) throw new Error('agenda illisible'); return m[1]; };
+      const E = { data: JSON.parse(g(/const DATA=(\[[\s\S]*?\]);/)), feries: JSON.parse(g(/const FERIES=(\{[\s\S]*?\});/)),
+        off: JSON.parse(g(/const OFF=(\[[\s\S]*?\]);/)), api: g(/const API="([^"]+)"/), lignes: EDT ? EDT.lignes : [] };
+      EDT = E; EDT_T = now;
+    }
+    if (now - EDT_CHG_T > 300e3 || force) {   // les changements : relus toutes les 5 minutes
+      const j = await (await fetch(EDT.api + '?_=' + now)).json();
+      if (j && j.ok) { EDT.lignes = j.lignes || []; EDT_CHG_T = now; }
+    }
+  } catch (e) {}
+  return EDT;
+}
+// Mes cours d'un jour, changements compris ; deux créneaux qui se suivent avec la même classe = un seul cours
+function edtMesCours(d) {
+  if (!EDT) return [];
+  const k = edtYmd(d), dow = d.getDay(), wk = edtSemaine(d), P = EDT_PROF;
+  if (dow === 0 || dow === 6 || EDT.feries[k] || EDT.off.some(([a, b]) => k >= a && k < b)) return [];
+  const L = EDT.lignes.filter(l => l.enseignant === P), absent = (s, e) => L.some(l => (l.type === 'annulation' || l.type === 'absence') && edtIsoD(l.du) && k >= edtIsoD(l.du) && k <= (edtIsoD(l.au) || edtIsoD(l.du)) && (edtMin(l.debut) == null || edtMin(l.fin) == null || (s < edtMin(l.fin) && e > edtMin(l.debut))));
+  const base = (jour, st) => { const [y, m, j] = jour.split('-'), dt = new Date(+y, m - 1, +j, 12); return EDT.data.find(x => x.p === P && x.s === st && x.d === dt.getDay() && (x.w === '' || x.w === edtSemaine(dt))); };
+  let C = EDT.data.filter(x => x.p === P && x.d === dow && (x.w === '' || x.w === wk))
+    .filter(x => !L.some(l => l.type === 'deplacement' && edtIsoD(l.du) === k && l.debut === x.s))   // cours déplacé ailleurs
+    .map(x => ({ c: x.c, r: x.r, s: edtMin(x.s), e: edtMin(x.e), st: x.s }));
+  L.filter(l => l.type === 'deplacement' && edtIsoD(l.au) === k).forEach(l => { const o = base(edtIsoD(l.du), l.debut), [ns, ne] = String(l.fin || '').split('-'); if (o && ns && ne) C.push({ c: o.c, r: l.jusqua || o.r, s: edtMin(ns), e: edtMin(ne), st: ns }); });   // cours déplacé ici
+  C.forEach(x => { const mv = L.find(l => l.type === 'salle' && edtIsoD(l.du) === k && l.debut === x.st && l.jusqua); if (mv) x.r = mv.jusqua; });
+  C = C.filter(x => !absent(x.s, x.e)).sort((a, b) => a.s - b.s);
+  const R = []; C.forEach(x => { const p = R[R.length - 1]; if (p && p.c === x.c && p.e === x.s) p.e = x.e; else R.push({ ...x }); });
+  return R;
+}
+// « 1 STI 2 gr A » → classe 1STI2D-2, groupe A
+const edtNorm = t => sansAccent(String(t || '')).toUpperCase().replace(/2D/g, '').replace(/[^A-Z0-9]/g, '');
+function edtClasse(c) {
+  const m = /^(.*?)\s*gr\.?\s*([AB])\s*$/i.exec(c), nom = m ? m[1] : c, groupe = m ? m[2].toUpperCase() : '';
+  const i = S ? S.classes.findIndex(k => edtNorm(k.nom) === edtNorm(nom)) : -1;
+  return { i, groupe };
+}
+const edtTxt = (x, cl) => `<b>${esc(cl ? S.classes[cl.i].nom : x.c)}</b> · ${cl && cl.groupe ? 'Groupe ' + cl.groupe : 'Classe entière'} · ${edtH(x.s)} – ${edtH(x.e)}${x.r ? ' · ' + esc(x.r) : ''}`;
+function edtMaintenant() { const d = new Date(), m = d.getHours() * 60 + d.getMinutes(); return edtMesCours(d).find(x => m >= x.s - EDT_AVANT && m < x.e) || null; }
+function ouvrirClasse(i) { curCls = i; $('clHead').className = 'whead c' + (i % 6); $('ovClass').hidden = false; renderClass(); }
+$('btnAppel').onclick = async () => {
+  if (!S) { askLogin(''); return; }
+  if (APPEL) { ouvrirClasse(APPEL.cls); return; }
+  const b = $('btnAppel'); b.disabled = true; await edtCharger(); b.disabled = false;
+  const x = edtMaintenant(), cl = x && edtClasse(x.c);
+  if (x && cl.i >= 0) { $('ovAppel').hidden = true; ouvrirClasse(cl.i); appelChoix({ groupe: cl.groupe, txt: edtTxt(x, cl) }); return; }
+  $('aplInfo').className = 'apcours vide';
+  $('aplInfo').innerHTML = EDT_ICO + '<span>' + (!EDT ? 'Agenda injoignable' : x ? esc(x.c) + ' : classe absente du tableau de bord' : 'Pas de cours en ce moment') + '</span>';
+  $('aplList').innerHTML = S.classes.map((c, i) => `<button type="button" class="c${i % 6}" data-i="${i}">${esc(c.nom)}</button>`).join('');
+  $('ovAppel').hidden = false;
+};
+$('aplList').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; $('ovAppel').hidden = true; ouvrirClasse(+b.dataset.i); appelChoix(); });
+
+// Mélodies : 1 minute avant le début de chacun de mes cours, et 1 minute avant la fin (tableau de bord ouvert)
+function edtNote(c, f, t0, dur, vol) {
+  const o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), g2 = c.createGain();
+  o.type = 'sine'; o2.type = 'sine'; o.frequency.value = f; o2.frequency.value = f * 2.01; g2.gain.value = .25;
+  o2.connect(g2).connect(g); o.connect(g).connect(c.destination);
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .02); g.gain.exponentialRampToValueAtTime(.001, t0 + dur);
+  o.start(t0); o2.start(t0); o.stop(t0 + dur); o2.stop(t0 + dur);
+}
+function edtMelodie(fin, delai) {   // delai (s) : programmée sur l'horloge du son, elle sonne à l'heure exacte même onglet en arrière-plan
+  try {
+    const c = getAC(), t = c.currentTime + .05 + (delai || 0);
+    const N = fin ? [783.99, 659.25, 523.25, 392.00, 523.25] : [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];   // fin : descendante ; début : montante
+    N.forEach((f, i) => edtNote(c, f, t + i * .42, i === N.length - 1 ? 1.8 : .9, .4));
+  } catch (e) {}
+}
+let edtFait = {}, ctT = 0;
+function coursAnnonce(titre, x) {
+  const cl = edtClasse(x.c), el = $('coursToast');
+  el.innerHTML = titre + '<small>' + edtTxt(x, cl.i >= 0 ? cl : null) + '</small>'; el.hidden = false;
+  clearTimeout(ctT); ctT = setTimeout(() => el.hidden = true, 60000);
+}
+$('coursToast').onclick = () => $('coursToast').hidden = true;
+function edtVeille() {
+  if (!EDT) return;
+  const d = new Date(), sec = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds(), k = edtYmd(d), C = edtMesCours(d);
+  // Onglet en arrière-plan ou fenêtre réduite : le navigateur ne fait tourner ce contrôle qu'une fois par minute environ.
+  // La mélodie est donc programmée jusqu'à 2 min 30 à l'avance sur l'horloge du son, qui, elle, reste exacte.
+  const prog = (cle, cible, fin, titre, x) => {
+    if (edtFait[cle] || sec < cible - 150 || sec >= cible + 30) return;
+    edtFait[cle] = 1; const delai = Math.max(0, cible - sec);
+    edtMelodie(fin, delai); setTimeout(() => coursAnnonce(titre, x), delai * 1000);
+  };
+  C.forEach((x, i) => {
+    const suite = C[i - 1] && C[i - 1].e === x.s;   // cours qui suit directement un autre : seule la mélodie de fin du précédent
+    if (!suite) prog(k + 'd' + x.s, x.s * 60 - 60, false, 'Cours dans 1 minute', x);
+    prog(k + 'f' + x.e, x.e * 60 - 60, true, 'Fin du cours dans 1 minute', x);
+  });
+}
+edtCharger().then(edtVeille);
+setInterval(() => { edtCharger().then(edtVeille); }, 5000);
 
 // ---------- Fiche élève : appui long sur un élève (le clic court le passe vert / rouge) ----------
 let appuiLong = false;
