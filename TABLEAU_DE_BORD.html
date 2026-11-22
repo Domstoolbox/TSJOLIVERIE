@@ -335,6 +335,15 @@ td.n{font-family:var(--fm);color:var(--muted)}
 .kp button.ok{grid-column:1/-1;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;font:700 20px var(--f);letter-spacing:.04em}
 .kp button:disabled{opacity:.6}
 .kpwin.non{animation:kpNon .45s}
+.kpcarte{display:block;width:100%;margin-top:10px;height:58px;border:2px solid #1e3a8a;border-radius:16px;background:#eef2ff;color:#1e3a8a;font:800 17px var(--f);letter-spacing:.05em;cursor:pointer}
+.kpcam{position:relative;width:254px;height:296px;border-radius:16px;overflow:hidden;background:#0b1020}
+.kpcam[hidden],.kp[hidden]{display:none}
+.kpcam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}.kpcam video.dos{transform:none}
+.kpcam::after{content:"";position:absolute;inset:38px 30px;border:3px solid rgba(255,255,255,.85);border-radius:14px;pointer-events:none}
+.kpsw{position:absolute;top:8px;right:8px;width:40px;height:40px;border:0;border-radius:12px;background:rgba(0,0,0,.45);cursor:pointer;z-index:2}
+.kpsw svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kpmsg{position:absolute;left:0;right:0;bottom:0;padding:8px;text-align:center;font:700 14px var(--f);color:#fff;background:rgba(0,0,0,.55)}
+.kpmsg:empty{display:none}
 @keyframes kpNon{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
 .login{display:flex;flex-direction:column;gap:12px}
 .login p{margin:0;color:var(--muted);font-size:13.5px}
@@ -480,6 +489,8 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <div class="ov" id="ovLogin" hidden>
   <div class="kpwin" role="dialog" aria-modal="true" aria-label="Connexion">
     <div class="kp" id="kp"><button type="button" data-k="#" aria-label="#">#</button><button type="button" data-k="{" aria-label="{">{</button><button type="button" data-k="[" aria-label="[">[</button><button type="button" data-k="|" aria-label="|">|</button><button type="button" data-k="@" aria-label="@">@</button><button type="button" data-k="]" aria-label="]">]</button><button type="button" data-k="}" aria-label="}">}</button><button type="button" data-k="¤" aria-label="¤">¤</button><button type="button" data-k="%" aria-label="%">%</button><button type="button" class="ok" id="pwGo">OK</button></div>
+    <div class="kpcam" id="kpCam" hidden><video playsinline muted></video><button type="button" class="kpsw" id="kpSw" aria-label="Changer de caméra" title="Changer de caméra"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.7M20 4v4.7h-4.7M20 12a8 8 0 0 1-13.7 5.6L4 15.3M4 20v-4.7h4.7"/></svg></button><div class="kpmsg" id="kpMsg"></div></div>
+    <button type="button" class="kpcarte" id="kpCarte">SCANNER MA CARTE</button>
   </div>
 </div>
 
@@ -616,6 +627,7 @@ async function call(action, extra) {
     if (o.liste) { setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })); return o; }   // recherche de copies
     const perime = lecture ? (MODIFS_EN_COURS > 0 || seq < DERNIERE_MODIF) : seq < DERNIERE_MODIF;
     if (!perime) { (o.classes || []).forEach(c => triEleves(c.eleves)); S = o; render(); }
+    if (action === 'admin' && !window.__appInscrit) { window.__appInscrit = 1; setTimeout(inscrireAppareil, 0); }   // mot de passe mémorisé : l'appareil est aussi inscrit
     setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     return o;
   } catch (e) {
@@ -643,7 +655,7 @@ try { setFlou(localStorage.getItem('tdb_flou') === '1'); } catch (e) {}
 // Clavier à symboles, sans zone d'affichage : rien ne montre ce qui est tapé (ni texte, ni points, ni touche qui s'allume)
 let saisie = '';
 function askLogin(msg) {
-  saisie = ''; $('ovLogin').hidden = false;
+  saisie = ''; $('ovLogin').hidden = false; if (KP_CAM) kpCamStop();
   if (msg) { const w = document.querySelector('.kpwin'); w.classList.remove('non'); void w.offsetWidth; w.classList.add('non'); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) {} }
 }
 async function login() {
@@ -651,7 +663,7 @@ async function login() {
   mdp = v; $('pwGo').disabled = true;
   const o = await call('admin');
   $('pwGo').disabled = false;
-  if (o) { try { localStorage.setItem(PW_KEY, v); } catch (e) {} $('ovLogin').hidden = true; }
+  if (o) { try { localStorage.setItem(PW_KEY, v); } catch (e) {} $('ovLogin').hidden = true; inscrireAppareil(); }
 }
 $('kp').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { saisie += b.dataset.k; b.blur(); } });
 $('pwGo').onclick = login;
@@ -662,6 +674,62 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'Backspace') { e.preventDefault(); saisie = saisie.slice(0, -1); }
   else if (e.key.length === 1) { e.preventDefault(); saisie += e.key; }
 });
+// ---------- Connexion par la carte d'AGENT INSTRUCTEUR (QR secret du verso), seulement sur un appareil déjà connu ----------
+const CARTE_PREFIXE = 'DTB-INSTRUCTEUR:';
+function appareilId() {
+  let id = ''; try { id = localStorage.getItem('tdb_appareil') || ''; } catch (e) {}
+  if (!/^[A-Za-z0-9]{20,64}$/.test(id)) {
+    const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', r = crypto.getRandomValues(new Uint8Array(32));
+    id = Array.from(r, x => a[x % 62]).join(''); try { localStorage.setItem('tdb_appareil', id); } catch (e) {}
+  }
+  return id;
+}
+async function inscrireAppareil() {   // après une connexion par le code : cet appareil devient « de confiance »
+  try { if (localStorage.getItem('tdb_appareil_ok') === '1') return; } catch (e) {}
+  const o = await call('appareil', { appareil: appareilId(), nomApp: navigator.userAgent });
+  if (o) try { localStorage.setItem('tdb_appareil_ok', '1'); } catch (e) {}
+}
+let KP_CAM = null, KP_FACE = (() => { try { return localStorage.getItem('tdb_login_cam') || 'environment'; } catch (e) { return 'environment'; } })(), KP_BUSY = false;
+const kpMsg = t => $('kpMsg').textContent = t || '';
+function kpCamStop() { if (KP_CAM) { KP_CAM.getTracks().forEach(t => t.stop()); KP_CAM = null; } $('kpCam').hidden = true; $('kp').hidden = false; $('kpCarte').textContent = 'SCANNER MA CARTE'; kpMsg(''); }
+async function kpCamStart() {
+  const v = $('kpCam').querySelector('video');
+  if (KP_CAM) { KP_CAM.getTracks().forEach(t => t.stop()); KP_CAM = null; }
+  $('kp').hidden = true; $('kpCam').hidden = false; $('kpCarte').textContent = 'CLAVIER'; kpMsg('');
+  const essais = [{ facingMode: { exact: KP_FACE } }, { facingMode: KP_FACE }, true];
+  for (const video of essais) { try { KP_CAM = await navigator.mediaDevices.getUserMedia({ video, audio: false }); break; } catch (e) {} }
+  if (!KP_CAM) { kpMsg('Caméra indisponible'); return; }
+  v.srcObject = KP_CAM; v.classList.toggle('dos', KP_FACE === 'environment'); try { await v.play(); } catch (e) {}
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d', { willReadFrequently: true });
+  const boucle = async () => {
+    if (!KP_CAM || $('kpCam').hidden) return;
+    if (!KP_BUSY && v.videoWidth) {
+      const k = Math.min(1, 640 / v.videoWidth); cv.width = v.videoWidth * k; cv.height = v.videoHeight * k; ctx.drawImage(v, 0, 0, cv.width, cv.height);
+      let t = ''; try { const q = window.jsQR && jsQR(ctx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'attemptBoth' }); t = q && q.data; } catch (e) {}
+      if (t) await kpCarteLue(String(t).trim());
+    }
+    requestAnimationFrame(boucle);
+  };
+  requestAnimationFrame(boucle);
+}
+async function kpCarteLue(t) {
+  if (!t.startsWith(CARTE_PREFIXE)) { kpMsg(/^\d{6}$/.test(t) ? 'Présentez le verso de votre carte' : 'Ce n’est pas votre carte'); return; }
+  KP_BUSY = true; sonOk(); kpMsg('Vérification…');
+  let o = null;
+  try { o = await (await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'carte', jeton: t.slice(CARTE_PREFIXE.length), appareil: appareilId() }), redirect: 'follow' })).json(); } catch (e) {}
+  if (o && o.ok && o.mdp) {
+    kpCamStop(); mdp = o.mdp; try { localStorage.setItem(PW_KEY, mdp); } catch (e) {}
+    const r = await call('admin'); KP_BUSY = false;
+    if (r) $('ovLogin').hidden = true; else askLogin('');
+    return;
+  }
+  sonKo();
+  if (o && o.err === 'appareil') { try { localStorage.removeItem('tdb_appareil_ok'); } catch (e) {} kpMsg('Appareil inconnu : entrez le code une fois'); }
+  else kpMsg(o ? 'Carte refusée' : 'Pas de connexion');
+  setTimeout(() => { KP_BUSY = false; }, 2000);
+}
+$('kpCarte').onclick = () => { if ($('kpCam').hidden) kpCamStart(); else kpCamStop(); };
+$('kpSw').onclick = () => { KP_FACE = KP_FACE === 'environment' ? 'user' : 'environment'; try { localStorage.setItem('tdb_login_cam', KP_FACE); } catch (e) {} kpCamStart(); };
 $('btnLock').onclick = () => { try { localStorage.removeItem(PW_KEY); } catch (e) {} mdp = ''; S = null; render(); setSync('', 'Déconnecté'); askLogin(''); };
 
 // ---------- Affichage ----------
@@ -846,7 +914,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 09h10';
+const VERSION_PAGE = '22/11/2026 - 18h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -2126,6 +2194,7 @@ function bigNote(r, alerte) {
   popT = setTimeout(ferme, 3500);
 }
 function addPayload(txt) {
+  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { window.tdbMontre && window.tdbMontre('ok', '✓ Agent instructeur'); return; }
   if (/^\d{6}$/.test(String(txt).trim()) && window.tdbCarte) { window.tdbCarte(String(txt).trim()); return; }   // carte d'agent (badge)
   const r = parsePayload(txt);
   if (!r) { montre('ko', 'QR code inconnu'); return; }
