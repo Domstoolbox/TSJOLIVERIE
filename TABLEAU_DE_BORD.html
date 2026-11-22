@@ -799,7 +799,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 07h50';
+const VERSION_PAGE = '22/11/2026 - 07h55';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1288,7 +1288,11 @@ function appelLu(t) {
   }
   const el = c.eleves[i], k = cleNom(el.nom, el.prenom);
   if (!APPEL.concernes.has(k)) { appelInfo(el.prenom + ' : groupe ' + (el.groupe === 'B' ? 'B' : 'A'), 'ko'); sonKo(); return; }
-  if (APPEL.presents.has(k)) { appelInfo(el.prenom + ' : déjà là', 'deja'); return; }
+  if (APPEL.presents.has(k)) {   // déjà compté présent aujourd'hui : s'il est en rouge (remis en rouge entre-temps), on le repasse en vert
+    if (!el.ok) { el.ok = true; render(); renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk(); }
+    else appelInfo(el.prenom + ' : déjà là', 'deja');
+    return;
+  }
   APPEL.presents.add(k); el.ok = true; render(); renderClass();
   const b = $('students').querySelector(`[data-i="${i}"]`); if (b) b.classList.add('flash');   // pas de défilement : la caméra reste à l'écran
   appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk();
@@ -1307,7 +1311,11 @@ window.tdbCarte = function (code) {
   const nomH = `<b>${esc(String(el.nom).toUpperCase())} ${esc(el.prenom)}</b>${esc(c.nom)}`, k = cleNom(el.nom, el.prenom);
   const aj = S.appelJour && S.appelJour[c.nom];
   if (!aj || !aj[k]) { M('ok', '🪪' + nomH); sonOk(); return; }           // pas d'appel aujourd'hui pour lui (sa classe ou son groupe)
-  if (aj[k] && aj[k] !== 'NON') { M('warn', 'Déjà là' + nomH); return; }
+  if (aj[k] && aj[k] !== 'NON') {
+    if (!el.ok) { el.ok = true; render(); if (!$('ovClass').hidden) renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); M('ok', '✓' + nomH); sonOk(); }
+    else M('warn', 'Déjà là' + nomH);
+    return;
+  }
   const h = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   aj[k] = 'RETARD ' + h; el.ok = true; render(); if (!$('ovClass').hidden) renderClass();
   M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); sonOk();
