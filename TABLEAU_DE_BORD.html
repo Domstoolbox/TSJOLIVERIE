@@ -102,6 +102,10 @@ tr.nonverif td{background:#fffbeb}
 .pi:hover .pt,.pi:focus-within .pt{opacity:1}
 .pi .pt button{width:24px;height:24px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:rgba(255,255,255,.55);padding:0;font-size:13px;line-height:1;cursor:pointer}
 .pi .pt .pc{background:conic-gradient(#fef08a 0 20%,#fbcfe8 0 40%,#bbf7d0 0 60%,#bfdbfe 0 80%,#fed7aa 0)}
+.pi.prochain{background:#fff;border:2px solid #1e3a8a;color:#1e3a8a;font:600 14px/1.35 var(--f);padding:8px 10px}
+.pi.prochain[hidden]{display:none}
+.pi.prochain small{display:block;font:800 11.5px var(--f);letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:2px}
+.pi.prochain b{font-size:16px}.pi.prochain .nw{white-space:nowrap}
 .pi .pt .pd.armed{background:#dc2626;color:#fff;border-color:#dc2626}
 
 /* ----- Tuile scanner (webcam) ----- */
@@ -459,7 +463,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
     </div>
     <div class="card post">
       <h2>Post-it <span class="grow"></span><button type="button" class="mini" id="postAdd" title="Nouveau post-it" aria-label="Nouveau post-it"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></h2>
-      <div class="posts" id="posts"></div>
+      <div class="posts" id="posts"><div class="pi prochain" id="nextCours" hidden></div></div>
     </div>
   </section>
 
@@ -740,8 +744,8 @@ const enEdition = () => $('posts').contains(document.activeElement);
 function renderPosts() {
   if (enEdition()) return;                                   // ne jamais effacer ce que l'on est en train d'écrire
   POSTS = S && S.postits ? S.postits.map(p => Object.assign({}, p)) : [];
-  $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
-  $('posts').querySelectorAll('textarea').forEach(auto);
+  const nx = $('nextCours'); $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
+  $('posts').prepend(nx); $('posts').querySelectorAll('textarea').forEach(auto);
 }
 function auto(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function savePosts(now) { clearTimeout(postT); postT = setTimeout(() => call('postits', { postits: POSTS }), now ? 0 : 1200); }
@@ -842,7 +846,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 09h00';
+const VERSION_PAGE = '22/11/2026 - 09h10';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1521,8 +1525,31 @@ function edtVeille() {
     prog(k + 'f' + x.e, x.e * 60 - 60, true, 'Fin du cours dans 1 minute', x);
   });
 }
-edtCharger().then(edtVeille);
+edtCharger().then(() => { edtVeille(); nextCoursRender(); });
 setInterval(() => { edtCharger().then(edtVeille); }, 5000);
+
+// Post-it « Prochain cours » (toujours en tête, non modifiable) : dès qu'un cours a commencé, c'est le suivant qui s'affiche
+const JOURS_FR = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+function prochainCours() {
+  const now = new Date(), m = now.getHours() * 60 + now.getMinutes();
+  for (let j = 0; j < 30; j++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + j, 12);
+    const x = edtMesCours(d).find(c => j > 0 || c.s > m);
+    if (x) return { x, d, j };
+  }
+  return null;
+}
+function nextCoursRender() {
+  const el = $('nextCours'); if (!el) return;
+  const r = S && EDT ? prochainCours() : null;
+  if (!r) { el.hidden = true; el._k = ''; return; }
+  const { x, d, j } = r, cl = edtClasse(x.c);
+  const jour = j === 0 ? 'Aujourd’hui' : j === 1 ? 'Demain' : JOURS_FR[d.getDay()].replace(/^./, c => c.toUpperCase()) + ' ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  const h = `<small>Prochain cours</small><b>${jour}</b> · <b class="nw">${edtH(x.s)} – ${edtH(x.e)}</b><br><span class="nw">${esc(cl.i >= 0 ? S.classes[cl.i].nom : x.c)}</span> · <span class="nw">${cl.groupe ? 'Groupe ' + cl.groupe : 'Classe entière'}</span>${x.r ? ' · <span class="nw">' + esc(x.r) + '</span>' : ''}`;
+  if (el._k !== h) { el.innerHTML = h; el._k = h; }
+  el.hidden = false;
+}
+setInterval(nextCoursRender, 5000);
 
 // ---------- Post-it de l'appel : date, cours, absents, puis retards (avec le retard en minutes) ----------
 // 📋 Appel du 24/11/2026 — 1STI2D-2 · Groupe A
