@@ -80,7 +80,9 @@ tr.nonverif td{background:#fffbeb}
 .lv>div{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .lv b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .lv b span{font-weight:500}
 .lv small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lv em{flex:none;font-size:12.5px}
+.lv em{flex:none;font-size:12.5px;margin-left:auto}
+.lvx{flex:none;align-self:center;width:24px;height:24px;margin:-3px -4px -3px 0;border:0;border-radius:7px;background:transparent;color:#94a3b8;font:700 14px/1 var(--f);cursor:pointer}
+.lvx:hover{background:rgba(0,0,0,.07);color:#475569}
 #liveTag{display:inline-flex;gap:4px;background:none;padding:0}
 #liveTag .nb{font:700 12px var(--f);border-radius:999px;padding:2px 8px}
 #liveTag .nb.b{background:#dbeafe;color:#1d4ed8} #liveTag .nb.g{background:var(--green-bg);color:var(--green-ink)}
@@ -811,9 +813,19 @@ function renderLive() {
   l.sort((a, b) => ordre(a) - ordre(b) || String(b.heure || b.fin || '').localeCompare(String(a.heure || a.fin || '')));
   const nb = k => l.filter(a => a.etat === k).length;
   $('liveTag').innerHTML = S ? `<span class="nb b" title="En cours">⏳ ${nb('encours') + nb('alarme')}</span><span class="nb g" title="Finis">✓ ${nb('fini')}</span>` : '';
-  $('live').innerHTML = l.map(a => `<div class="lv ${etatCls(a)}"><div><b>${esc(a.nom)} <span>${esc(a.prenom)}</span></b><em>${etatTxt(a)}</em></div><small>${esc(a.classe)} · ${esc(a.test)}</small></div>`).join('')
+  LIVE = l;
+  $('live').innerHTML = l.map((a, i) => `<div class="lv ${etatCls(a)}"><div><b>${esc(a.nom)} <span>${esc(a.prenom)}</span></b><em>${etatTxt(a)}</em><button type="button" class="lvx" data-lx="${i}" title="Retirer" aria-label="Retirer">✕</button></div><small>${esc(a.classe)} · ${esc(a.test)}</small></div>`).join('')
     || (S ? '<div class="empty">Aucun élève en test aujourd’hui.</div>' : '');
 }
+
+// Croix : la ligne disparaît tout de suite, et pour tous les appareils (elle revient si l'élève relance ce test)
+let LIVE = [];
+$('live').addEventListener('click', e => {
+  const b = e.target.closest('[data-lx]'); if (!b || !S) return;
+  const a = LIVE[+b.dataset.lx]; if (!a) return;
+  S.activite = (S.activite || []).filter(x => x !== a); renderLive();
+  call('retirer', { test: a.test, classe: a.classe, nom: a.nom, prenom: a.prenom });
+});
 
 // ---------- Post-it ----------
 const COULEURS = ['jaune', 'rose', 'vert', 'bleu', 'orange'];
@@ -924,7 +936,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 19h00';
+const VERSION_PAGE = '22/11/2026 - 19h15';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
