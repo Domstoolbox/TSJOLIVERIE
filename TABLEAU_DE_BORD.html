@@ -197,6 +197,9 @@ body.proj .code{height:52px;font-size:24px;padding:0 18px}
 .apbar{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:stretch;margin-bottom:14px}
 .apcam{position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#0f172a}
 .apcam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.apcam video.dos{transform:none}
+.apsw{position:absolute;right:8px;bottom:8px;z-index:2;width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.88);color:#0f172a;display:grid;place-items:center;cursor:pointer}
+.apsw svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .apcam .viseur{position:absolute;inset:18%;border:3px solid rgba(255,255,255,.85);border-radius:14px}
 .apinfo{display:flex;flex-direction:column;gap:10px;justify-content:center}
 .apcnt{font:700 30px var(--fh)}
@@ -448,7 +451,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
     <div class="whead" id="clHead"><h3 id="clT"></h3><button type="button" class="wact" id="clAppel" title="Faire l’appel avec les cartes"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg><span>Appel</span></button><button type="button" class="wact" id="clExport" title="Exporter les notes (meilleure note sur 20)"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
     <div class="wbody">
       <div class="apchoix" id="apChoix" hidden></div>
-      <div class="apbar" id="apBar" hidden><div class="apcam"><video id="apVideo" playsinline muted></video><div class="viseur" aria-hidden="true"></div></div><div class="apinfo"><div class="apcnt" id="apCnt"></div><div class="apmsg" id="apMsg"></div><button type="button" class="btn pri" id="apFin">Terminer l’appel</button></div></div>
+      <div class="apbar" id="apBar" hidden><div class="apcam"><video id="apVideo" playsinline muted></video><button type="button" class="apsw" id="apSwitch" title="Changer de caméra" aria-label="Changer de caméra"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><path d="M9.5 13.5a2.8 2.8 0 0 1 5-1.6M14.5 13.5a2.8 2.8 0 0 1-5 1.6"/><path d="M14.8 10.6v1.6h-1.6M9.2 16.4v-1.6h1.6"/></svg></button><div class="viseur" aria-hidden="true"></div></div><div class="apinfo"><div class="apcnt" id="apCnt"></div><div class="apmsg" id="apMsg"></div><button type="button" class="btn pri" id="apFin">Terminer l’appel</button></div></div>
       <div class="students" id="students"></div>
     </div>
   </div>
@@ -795,7 +798,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 07h30';
+const VERSION_PAGE = '22/11/2026 - 07h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1225,12 +1228,31 @@ async function appelDebut(groupe) {
   render(); renderClass();
   $('apBar').hidden = false; $('clAppel').classList.add('on'); appelInfo('', '');
   if (!reprise) await call('classes', { classes: S.classes });   // le groupe en rouge AVANT de lire les cartes
-  try {
-    APPEL.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-    const v = $('apVideo'); v.srcObject = APPEL.stream; await v.play();
-  } catch (e) { appelInfo('Webcam inaccessible', 'ko'); return; }
+  if (!(await appelCamera(APPEL_FACE))) { appelInfo('Webcam inaccessible', 'ko'); return; }
   appelBoucle();
 }
+// Caméra de l'appel : la caméra arrière du téléphone par défaut (tu vois ton écran pendant que tu scannes les cartes) ;
+// sur un ordinateur, la webcam. Le bouton ⟲ passe à l'autre caméra (choix gardé sur cet appareil)
+var APPEL_FACE = (() => { try { return localStorage.getItem('tdb_appel_cam2') || 'environment'; } catch (e) { return 'environment'; } })();
+async function appelCamera(face) {
+  if (!APPEL) return false;
+  if (APPEL.stream) { APPEL.stream.getTracks().forEach(t => t.stop()); APPEL.stream = null; }
+  const essais = [{ facingMode: { exact: face } }, { facingMode: face }, true];   // « exact » : sinon certains téléphones prennent la caméra arrière
+  for (const video of essais) {
+    try { APPEL.stream = await navigator.mediaDevices.getUserMedia({ video, audio: false }); break; } catch (e) {}
+  }
+  if (!APPEL.stream) return false;
+  const v = $('apVideo'); v.srcObject = APPEL.stream;
+  const st = APPEL.stream.getVideoTracks()[0].getSettings ? APPEL.stream.getVideoTracks()[0].getSettings() : {};
+  v.classList.toggle('dos', st.facingMode === 'environment');   // caméra arrière : pas de miroir
+  try { await v.play(); } catch (e) {}
+  return true;
+}
+$('apSwitch').onclick = async () => {
+  APPEL_FACE = APPEL_FACE === 'user' ? 'environment' : 'user';
+  try { localStorage.setItem('tdb_appel_cam2', APPEL_FACE); } catch (e) {}
+  if (APPEL) await appelCamera(APPEL_FACE);
+};
 function appelInfo(t, cls) {
   const n = APPEL.concernes.size;
   $('apCnt').innerHTML = `${APPEL.presents.size} / ${n}<small>présents${APPEL.groupe ? ' · groupe ' + APPEL.groupe : ''}</small>`;
