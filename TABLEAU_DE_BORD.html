@@ -833,7 +833,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 08h40';
+const VERSION_PAGE = '22/11/2026 - 08h50';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1257,7 +1257,8 @@ async function appelDebut(groupe) {
   // appel déjà fait aujourd'hui pour ce groupe : on reprend (seuls les absents badgent, comme retardataires)
   const reprise = L.length > 0 && L.every(e => aj[cleNom(e.nom, e.prenom)]);
   const concernes = reprise ? L : L.filter(e => !aj[cleNom(e.nom, e.prenom)]);
-  APPEL = { cls: curCls, nom: c.nom, groupe, concernes: new Set(concernes.map(e => cleNom(e.nom, e.prenom))), presents: new Set(), stream: null, raf: 0, last: '', lastT: 0, reprise };
+  const xc = typeof edtMaintenant === 'function' ? edtMaintenant() : null, cours = xc && edtClasse(xc.c).i === curCls ? xc : null;   // cours de l'agenda (pour le post-it)
+  APPEL = { cls: curCls, nom: c.nom, groupe, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: new Set(concernes.map(e => cleNom(e.nom, e.prenom))), presents: new Set(), stream: null, raf: 0, last: '', lastT: 0, reprise };
   if (reprise) concernes.forEach(x => { const st = aj[cleNom(x.nom, x.prenom)]; if (st && st !== 'NON') APPEL.presents.add(cleNom(x.nom, x.prenom)); });
   else concernes.forEach(x => x.ok = false);   // seul le groupe appelé passe en rouge
   render(); renderClass();
@@ -1330,7 +1331,7 @@ function appelLu(t) {
   APPEL.presents.add(k); el.ok = true; render(); renderClass();
   const b = $('students').querySelector(`[data-i="${i}"]`); if (b) b.classList.add('flash');   // pas de défilement : la caméra reste à l'écran
   appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk();
-  if (APPEL.reprise) { const aj = S.appelJour[c.nom]; if (aj) aj[k] = 'RETARD'; call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom }); }
+  if (APPEL.reprise) { const aj = S.appelJour[c.nom]; if (aj) aj[k] = 'RETARD'; postitRetard(c.nom, el); call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom }); }
   else call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true });
   if (APPEL.presents.size >= APPEL.concernes.size) { const A = APPEL; setTimeout(() => { if (APPEL === A) { appelInfo('Tout le monde est là ✓', 'ok'); setTimeout(() => { if (APPEL === A) appelFin(); }, 1200); } }, 900); }
 }
@@ -1352,7 +1353,7 @@ window.tdbCarte = function (code) {
   }
   const h = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   aj[k] = 'RETARD ' + h; el.ok = true; render(); if (!$('ovClass').hidden) renderClass();
-  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); sonOk();
+  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); sonOk(); postitRetard(c.nom, el);
   call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom });
 };
 async function appelFin() {
@@ -1364,6 +1365,7 @@ async function appelFin() {
   if (A.reprise) return;   // reprise : chaque retardataire a déjà été enregistré
   const presents = [], absents = [];
   c.eleves.filter(x => A.concernes.has(cleNom(x.nom, x.prenom))).forEach(x => (A.presents.has(cleNom(x.nom, x.prenom)) || x.ok ? presents : absents).push({ nom: x.nom, prenom: x.prenom }));   // vert à la main = présent ; l'autre groupe n'est pas noté
+  postitAppel(A, c.nom, absents);
   const o = await call('appel', { classe: c.nom, presents, absents });
   if (o) toast(`Appel enregistré : ${presents.length} présent${presents.length > 1 ? 's' : ''}, ${absents.length} absent${absents.length > 1 ? 's' : ''}`);
 }
@@ -1492,6 +1494,42 @@ function edtVeille() {
 }
 edtCharger().then(edtVeille);
 setInterval(() => { edtCharger().then(edtVeille); }, 5000);
+
+// ---------- Post-it de l'appel : date, cours, absents, puis retards (avec le retard en minutes) ----------
+// 📋 Appel du 24/11/2026 — 1STI2D-2 · Groupe A
+// Cours 8h00 – 8h55 · A 101            (sans cours dans l'agenda : « Appel à 8h03 »)
+// Absents (2) : DUPONT Jean, MARTIN Léa
+// Retards (1) : DURAND Paul (8h12, +12 min)
+const PA_ABS = 'Absents', PA_RET = 'Retards';
+const paJour = () => new Date().toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' });
+const paNom = e => String(e.nom || '').toUpperCase() + ' ' + (e.prenom || '');
+const paListe = (t, L) => `${t}${L.length ? ' (' + L.length + ') : ' + L.join(', ') : ' : aucun'}`;
+function paEcrire(fn) {   // modifie les post-it et les enregistre tout de suite
+  if (!S) return;
+  const L = (S.postits || []).map(p => Object.assign({}, p)); if (fn(L) === false) return;
+  S.postits = L.slice(0, 60); POSTS = S.postits.map(p => Object.assign({}, p)); renderPosts(); savePosts(true);
+}
+function postitAppel(A, classe, absents) {
+  const tete = `📋 Appel du ${paJour()} — ${classe} · ${A.groupe ? 'Groupe ' + A.groupe : 'Classe entière'}`;
+  const ligne2 = A.cours ? `Cours ${edtH(A.cours.s)} – ${edtH(A.cours.e)}${A.cours.r ? ' · ' + A.cours.r : ''}` : `Appel à ${edtH(A.debutMin)}`;
+  const texte = [tete, ligne2, paListe(PA_ABS, absents.map(paNom)), paListe(PA_RET, [])].join('\n');
+  paEcrire(L => { const i = L.findIndex(p => String(p.texte).split('\n')[0] === tete); if (i >= 0) L.splice(i, 1); L.unshift({ texte, couleur: 'bleu' }); });   // appel refait : le post-it est remplacé
+}
+function postitRetard(classe, el) {
+  const debut = `📋 Appel du ${paJour()} — ${classe} ·`, nom = paNom(el), d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+  paEcrire(L => {
+    const p = L.find(p => { const t = String(p.texte); return t.startsWith(debut) && t.split('\n').some(l => l.startsWith(PA_ABS) && l.split(/ : |, /).slice(1).includes(nom)); });
+    if (!p) return false;
+    const lignes = String(p.texte).split('\n'), ref = /(?:Cours|Appel à) (\d{1,2})h(\d{2})/.exec(lignes[1] || ''), dep = ref ? +ref[1] * 60 + +ref[2] : null;
+    const iA = lignes.findIndex(l => l.startsWith(PA_ABS)); let iR = lignes.findIndex(l => l.startsWith(PA_RET));
+    const abs = lignes[iA].split(/ : /).slice(1).join(' : ').split(', ').filter(x => x && x !== 'aucun' && x !== nom);
+    lignes[iA] = paListe(PA_ABS, abs);
+    if (iR < 0) { lignes.push(paListe(PA_RET, [])); iR = lignes.length - 1; }
+    const ret = lignes[iR].split(/ : /).slice(1).join(' : ').split(/, (?=[^()]*(?:\(|$))/).filter(x => x && x !== 'aucun');
+    ret.push(`${nom} (${edtH(m)}${dep != null && m > dep ? ', +' + (m - dep) + ' min' : ''})`);
+    lignes[iR] = paListe(PA_RET, ret); p.texte = lignes.join('\n');
+  });
+}
 
 // ---------- Fiche élève : appui long sur un élève (le clic court le passe vert / rouge) ----------
 let appuiLong = false;
