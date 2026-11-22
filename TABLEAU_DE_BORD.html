@@ -216,11 +216,9 @@ body.proj .code{height:52px;font-size:24px;padding:0 18px}
 .cours-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:90;background:#1e3a8a;color:#fff;border-radius:14px;padding:12px 20px;font:700 17px var(--f);box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;max-width:calc(100vw - 24px)}
 .cours-toast small{display:block;font-weight:600;font-size:14px;opacity:.85}
 .cours-toast[hidden]{display:none}
-.bruit{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;text-align:center;background:#dc2626;color:#fff;cursor:pointer;animation:bruitFond .5s steps(1) infinite}
+.bruit{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;text-align:center;background:#6d28d9;color:#fff;cursor:pointer}
 .bruit[hidden]{display:none}
-.bruit div{font:900 clamp(44px,9.5vw,170px)/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 6px 0 rgba(0,0,0,.25);animation:bruitTexte .5s ease-in-out infinite alternate}
-@keyframes bruitFond{0%{background:#dc2626}50%{background:#7f1d1d}}
-@keyframes bruitTexte{from{transform:scale(.94) rotate(-1.5deg)}to{transform:scale(1.04) rotate(1.5deg)}}
+.bruit div{font:900 clamp(44px,9.5vw,170px)/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 6px 0 rgba(0,0,0,.2)}
 .verrou{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(11,16,32,.82);animation:verrouIn 1.3s ease forwards;pointer-events:none}
 .verrou[hidden]{display:none}
 .verrou svg{width:min(40vw,320px);height:auto;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:verrouPop .5s cubic-bezier(.3,1.6,.5,1)}
@@ -926,7 +924,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 18h45';
+const VERSION_PAGE = '22/11/2026 - 19h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1632,32 +1630,27 @@ function nextCoursRender() {
 setInterval(nextCoursRender, 5000);
 
 // ---------- Carte d'AGENT INSTRUCTEUR devant le Scanner ----------
-// Verso (QR secret) : verrouille le tableau de bord (comme le cadenas) ; Recto (badge 866738) : alerte « Merci de travailler en silence ! » 10 s
+// Verso (QR secret) : verrouille le tableau de bord (comme le cadenas) ; Recto (badge 866738) : « Merci de travailler en silence ! » 10 s, sans son
 let BRUIT_T = 0, BRUIT_SON = null;
 function bruitFin() {
   clearTimeout(BRUIT_T); $('bruit').hidden = true;
-  if (BRUIT_SON) { try { BRUIT_SON.g.gain.cancelScheduledValues(0); BRUIT_SON.g.gain.setValueAtTime(0, BRUIT_SON.c.currentTime); BRUIT_SON.o.stop(BRUIT_SON.c.currentTime + .05); } catch (e) {} BRUIT_SON = null; }
+  if (BRUIT_SON) { try { const { c, M } = BRUIT_SON; M.gain.cancelScheduledValues(0); M.gain.setValueAtTime(M.gain.value, c.currentTime); M.gain.linearRampToValueAtTime(0, c.currentTime + .3); setTimeout(() => { try { M.disconnect(); } catch (e) {} }, 400); } catch (e) {} BRUIT_SON = null; }
 }
+// son joué seulement quand le contexte audio tourne vraiment (sinon il partait muet)
+function sonPret(f) { try { const c = getAC(); if (c.state === 'running') f(c); else c.resume().then(() => f(c)).catch(() => {}); } catch (e) {} }
 window.tdbBruit = () => {
   if (!$('bruit').hidden) return;   // déjà affiché : la carte restée devant la caméra ne relance rien
   $('bruit').hidden = false;
-  try {   // sirène montante et descendante, 10 s
-    const c = getAC(), t = c.currentTime + .02, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-    o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 2400;
-    for (let i = 0; i < 10; i++) { o.frequency.setValueAtTime(620, t + i); o.frequency.linearRampToValueAtTime(1250, t + i + .5); o.frequency.linearRampToValueAtTime(620, t + i + 1); }
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + .08); g.gain.setValueAtTime(.22, t + 9.8); g.gain.linearRampToValueAtTime(0, t + 10);
-    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + 10.05); BRUIT_SON = { c, o, g };
-  } catch (e) {}
   BRUIT_T = setTimeout(bruitFin, 10000);
 };
 $('bruit').onclick = bruitFin;   // un clic l'arrête avant la fin
 window.tdbVerrou = () => {
   if (!S) return;   // déjà verrouillé
   bruitFin();
-  try {   // « clac » de verrou
-    const c = getAC(), t = c.currentTime + .02;
+  sonPret(c => {   // « clac » de verrou
+    const t = c.currentTime + .02;
     [[1400, 0], [700, .09]].forEach(([fq, d]) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = fq; g.gain.setValueAtTime(.3, t + d); g.gain.exponentialRampToValueAtTime(.001, t + d + .08); o.connect(g).connect(c.destination); o.start(t + d); o.stop(t + d + .09); });
-  } catch (e) {}
+  });
   const v = $('verrou'); v.hidden = true; void v.offsetWidth; v.hidden = false; setTimeout(() => v.hidden = true, 1300);
   $('btnLock').click();
 };
@@ -2237,8 +2230,8 @@ function bigNote(r, alerte) {
   popT = setTimeout(ferme, 3500);
 }
 function addPayload(txt) {
-  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { window.tdbVerrou && window.tdbVerrou(); return; }   // verso de la carte d'instructeur : verrouillage
-  if (String(txt).trim() === '866738' && window.tdbBruit) { window.tdbBruit(); return; }                          // recto (petit QR) : « Merci de travailler en silence ! »
+  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { beep(); setTimeout(() => window.tdbVerrou && window.tdbVerrou(), 200); return; }   // verso de la carte d'instructeur : verrouillage
+  if (String(txt).trim() === '866738' && window.tdbBruit) { if ($('bruit').hidden) { beep(); setTimeout(window.tdbBruit, 250); } return; }                          // recto (petit QR) : « Merci de travailler en silence ! »
   if (/^\d{6}$/.test(String(txt).trim()) && window.tdbCarte) { window.tdbCarte(String(txt).trim()); return; }   // carte d'agent (badge)
   const r = parsePayload(txt);
   if (!r) { montre('ko', 'QR code inconnu'); return; }
