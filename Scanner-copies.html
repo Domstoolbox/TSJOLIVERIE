@@ -517,8 +517,12 @@ async function startCam() {
   }
   stopCam();
   try {
-    const c = devIdx >= 0 && devices[devIdx] ? { deviceId: { exact: devices[devIdx].deviceId } } : { facingMode: 'environment' };
-    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign(c, { width: { ideal: 1280 }, height: { ideal: 720 } }), audio: false });
+    const taille = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    // caméra choisie, sinon la caméra arrière du téléphone (« exact », sinon certains téléphones prennent celle de l'écran)
+    const essais = devIdx >= 0 && devices[devIdx] ? [Object.assign({ deviceId: { exact: devices[devIdx].deviceId } }, taille)]
+      : [Object.assign({ facingMode: { exact: 'environment' } }, taille), Object.assign({ facingMode: 'environment' }, taille), taille];
+    for (const v of essais) { try { stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); break; } catch (e) {} }
+    if (!stream) throw new Error('caméra');
   } catch (e) {
     camMsg('Accès à la caméra refusé ou impossible. Utilise le bouton « Photographier une copie » ou importe les PDF des copies.');
     return;

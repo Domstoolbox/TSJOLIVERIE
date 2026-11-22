@@ -113,6 +113,7 @@ label.mini:has(input:not(:checked)) span{opacity:.3;filter:grayscale(1)}
 #camBtn.on{background:#16a34a;border-color:#16a34a;color:#fff}
 .cam{position:relative;flex:1;min-height:0;border-radius:14px;overflow:hidden;background:#111827}
 .cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:none}
+.cam video.dos{transform:none}
 .cam.on video{display:block}
 .camoff{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b7280;cursor:pointer}
 .camoff svg{width:46px;height:46px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -798,7 +799,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 07h40';
+const VERSION_PAGE = '22/11/2026 - 07h50';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1289,7 +1290,7 @@ function appelLu(t) {
   if (!APPEL.concernes.has(k)) { appelInfo(el.prenom + ' : groupe ' + (el.groupe === 'B' ? 'B' : 'A'), 'ko'); sonKo(); return; }
   if (APPEL.presents.has(k)) { appelInfo(el.prenom + ' : déjà là', 'deja'); return; }
   APPEL.presents.add(k); el.ok = true; render(); renderClass();
-  const b = $('students').querySelector(`[data-i="${i}"]`); if (b) { b.classList.add('flash'); b.scrollIntoView({ block: 'nearest' }); }
+  const b = $('students').querySelector(`[data-i="${i}"]`); if (b) b.classList.add('flash');   // pas de défilement : la caméra reste à l'écran
   appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk();
   if (APPEL.reprise) { const aj = S.appelJour[c.nom]; if (aj) aj[k] = 'RETARD'; call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom }); }
   else call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true });
@@ -1913,10 +1914,15 @@ async function startCam() {
   stopCam(true);
   try {
     devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
-    const c = devIdx >= 0 && devices[devIdx] && devices[devIdx].deviceId ? { deviceId: { exact: devices[devIdx].deviceId } } : {};
-    stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign(c, { width: { ideal: 1280 }, height: { ideal: 720 } }), audio: false });
+    const taille = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    // caméra choisie avec ⟲, sinon la caméra arrière du téléphone (« exact », sinon certains téléphones prennent celle de l'écran) ; sur ordinateur, la webcam
+    const essais = devIdx >= 0 && devices[devIdx] && devices[devIdx].deviceId ? [Object.assign({ deviceId: { exact: devices[devIdx].deviceId } }, taille)]
+      : [Object.assign({ facingMode: { exact: 'environment' } }, taille), Object.assign({ facingMode: 'environment' }, taille), taille];
+    for (const v of essais) { try { stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); break; } catch (e) {} }
+    if (!stream) throw new Error('caméra');
   } catch (e) { montre('ko', 'Caméra refusée'); stopCam(); return; }
   video.srcObject = stream; await video.play().catch(() => {});
+  try { const fm = stream.getVideoTracks()[0].getSettings().facingMode; video.classList.toggle('dos', fm === 'environment'); } catch (e) {}
   box.classList.add('on'); $('camBtn').classList.add('on');
   try {
     devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
