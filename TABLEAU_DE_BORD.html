@@ -216,6 +216,16 @@ body.proj .code{height:52px;font-size:24px;padding:0 18px}
 .cours-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:90;background:#1e3a8a;color:#fff;border-radius:14px;padding:12px 20px;font:700 17px var(--f);box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;max-width:calc(100vw - 24px)}
 .cours-toast small{display:block;font-weight:600;font-size:14px;opacity:.85}
 .cours-toast[hidden]{display:none}
+.bruit{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;text-align:center;background:#dc2626;color:#fff;cursor:pointer;animation:bruitFond .5s steps(1) infinite}
+.bruit[hidden]{display:none}
+.bruit div{font:900 clamp(44px,9.5vw,170px)/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 6px 0 rgba(0,0,0,.25);animation:bruitTexte .5s ease-in-out infinite alternate}
+@keyframes bruitFond{0%{background:#dc2626}50%{background:#7f1d1d}}
+@keyframes bruitTexte{from{transform:scale(.94) rotate(-1.5deg)}to{transform:scale(1.04) rotate(1.5deg)}}
+.verrou{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(11,16,32,.82);animation:verrouIn 1.3s ease forwards;pointer-events:none}
+.verrou[hidden]{display:none}
+.verrou svg{width:min(40vw,320px);height:auto;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:verrouPop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes verrouIn{0%,70%{opacity:1}100%{opacity:0}}
+@keyframes verrouPop{from{transform:scale(.4)}to{transform:scale(1)}}
 .apbar{display:grid;grid-template-columns:260px 1fr;gap:16px;align-items:stretch;margin-bottom:14px}
 .apcam{position:relative;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#0f172a}
 .apcam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
@@ -564,6 +574,8 @@ td.n{font-family:var(--fm);color:var(--muted)}
 </div>
 
 <div class="cours-toast" id="coursToast" hidden></div>
+<div class="bruit" id="bruit" hidden><div>MERCI DE TRAVAILLER<br>EN SILENCE !</div></div>
+<div class="verrou" id="verrou" hidden><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="11" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.4"/></svg></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -914,7 +926,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 18h30';
+const VERSION_PAGE = '22/11/2026 - 18h45';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1619,6 +1631,37 @@ function nextCoursRender() {
 }
 setInterval(nextCoursRender, 5000);
 
+// ---------- Carte d'AGENT INSTRUCTEUR devant le Scanner ----------
+// Verso (QR secret) : verrouille le tableau de bord (comme le cadenas) ; Recto (badge 866738) : alerte « Merci de travailler en silence ! » 10 s
+let BRUIT_T = 0, BRUIT_SON = null;
+function bruitFin() {
+  clearTimeout(BRUIT_T); $('bruit').hidden = true;
+  if (BRUIT_SON) { try { BRUIT_SON.g.gain.cancelScheduledValues(0); BRUIT_SON.g.gain.setValueAtTime(0, BRUIT_SON.c.currentTime); BRUIT_SON.o.stop(BRUIT_SON.c.currentTime + .05); } catch (e) {} BRUIT_SON = null; }
+}
+window.tdbBruit = () => {
+  if (!$('bruit').hidden) return;   // déjà affiché : la carte restée devant la caméra ne relance rien
+  $('bruit').hidden = false;
+  try {   // sirène montante et descendante, 10 s
+    const c = getAC(), t = c.currentTime + .02, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 2400;
+    for (let i = 0; i < 10; i++) { o.frequency.setValueAtTime(620, t + i); o.frequency.linearRampToValueAtTime(1250, t + i + .5); o.frequency.linearRampToValueAtTime(620, t + i + 1); }
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + .08); g.gain.setValueAtTime(.22, t + 9.8); g.gain.linearRampToValueAtTime(0, t + 10);
+    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + 10.05); BRUIT_SON = { c, o, g };
+  } catch (e) {}
+  BRUIT_T = setTimeout(bruitFin, 10000);
+};
+$('bruit').onclick = bruitFin;   // un clic l'arrête avant la fin
+window.tdbVerrou = () => {
+  if (!S) return;   // déjà verrouillé
+  bruitFin();
+  try {   // « clac » de verrou
+    const c = getAC(), t = c.currentTime + .02;
+    [[1400, 0], [700, .09]].forEach(([fq, d]) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = fq; g.gain.setValueAtTime(.3, t + d); g.gain.exponentialRampToValueAtTime(.001, t + d + .08); o.connect(g).connect(c.destination); o.start(t + d); o.stop(t + d + .09); });
+  } catch (e) {}
+  const v = $('verrou'); v.hidden = true; void v.offsetWidth; v.hidden = false; setTimeout(() => v.hidden = true, 1300);
+  $('btnLock').click();
+};
+
 // ---------- Post-it de l'appel : date, cours, absents, puis retards (avec le retard en minutes) ----------
 // 📋 Appel du 24/11/2026 — 1STI2D-2 · Groupe A
 // Cours 8h00 – 8h55 · A 101            (sans cours dans l'agenda : « Appel à 8h03 »)
@@ -2194,7 +2237,8 @@ function bigNote(r, alerte) {
   popT = setTimeout(ferme, 3500);
 }
 function addPayload(txt) {
-  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { window.tdbMontre && window.tdbMontre('ok', '✓ Agent instructeur'); return; }
+  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { window.tdbVerrou && window.tdbVerrou(); return; }   // verso de la carte d'instructeur : verrouillage
+  if (String(txt).trim() === '866738' && window.tdbBruit) { window.tdbBruit(); return; }                          // recto (petit QR) : « Merci de travailler en silence ! »
   if (/^\d{6}$/.test(String(txt).trim()) && window.tdbCarte) { window.tdbCarte(String(txt).trim()); return; }   // carte d'agent (badge)
   const r = parsePayload(txt);
   if (!r) { montre('ko', 'QR code inconnu'); return; }
