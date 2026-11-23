@@ -82,6 +82,10 @@ tr.nonverif td{background:#fffbeb}
 .lv small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lv em{flex:none;font-size:12.5px;margin-left:auto}
 .lvx{flex:none;align-self:center;width:24px;height:24px;margin:-3px -4px -3px 0;border:0;border-radius:7px;background:transparent;color:#94a3b8;font:700 14px/1 var(--f);cursor:pointer}
+.lvr{flex:none;align-self:center;height:24px;min-width:24px;margin:-3px 2px -3px 0;padding:0 4px;border:0;border-radius:7px;background:transparent;color:#b91c1c;font:800 12px var(--f);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.lvr svg{width:13px;height:13px;fill:currentColor}
+.lvr:hover{background:#fee2e2}.lvr.arme{background:#dc2626;color:#fff;padding:0 8px}
+.lv.ramassage{border-left-color:#7c3aed;background:#f5f3ff}.lv.ramassage em{color:#6d28d9}
 .lvx:hover{background:rgba(0,0,0,.07);color:#475569}
 #liveTag{display:inline-flex;gap:4px;background:none;padding:0}
 #liveTag .nb{font:700 12px var(--f);border-radius:999px;padding:2px 8px}
@@ -833,6 +837,7 @@ function etatTxt(a) {
   const n = a.alarmes || 0;
   if (a.etat === 'fini') return a.note ? '✓ <span class="nt">' + esc(String(a.note).replace(/\s/g, '')) + '</span>' : '✓ fini';
   if (a.etat === 'alarme') return '⚠ Alarme' + (n > 1 ? ' ×' + n : '');
+  if (a.etat === 'ramassage') return '⏹ Ramassage…';
   return '⏳ ' + esc(depuis(a.debut)) + (n ? ' · ⚠' + n : '');
 }
 const etatCls = a => a.etat === 'encours' && a.alarmes ? 'encours avert' : a.etat;
@@ -843,13 +848,21 @@ function renderLive() {
   const nb = k => l.filter(a => a.etat === k).length;
   $('liveTag').innerHTML = S ? `<span class="nb b" title="En cours">⏳ ${nb('encours') + nb('alarme')}</span><span class="nb g" title="Finis">✓ ${nb('fini')}</span>` : '';
   LIVE = l;
-  $('live').innerHTML = l.map((a, i) => `<div class="lv ${etatCls(a)}"><div><b>${esc(a.nom)} <span>${esc(a.prenom)}</span></b><em>${etatTxt(a)}</em><button type="button" class="lvx" data-lx="${i}" title="Retirer" aria-label="Retirer">✕</button></div><small>${esc(a.classe)} · ${esc(a.test)}</small></div>`).join('')
+  $('live').innerHTML = l.map((a, i) => `<div class="lv ${etatCls(a)}"><div><b>${esc(a.nom)} <span>${esc(a.prenom)}</span></b><em>${etatTxt(a)}</em>${a.etat === 'encours' || a.etat === 'alarme' ? `<button type="button" class="lvr" data-lr="${i}" title="Ramasser la copie" aria-label="Ramasser la copie"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>` : ''}<button type="button" class="lvx" data-lx="${i}" title="Retirer" aria-label="Retirer">✕</button></div><small>${esc(a.classe)} · ${esc(a.test)}</small></div>`).join('')
     || (S ? '<div class="empty">Aucun élève en test aujourd’hui.</div>' : '');
 }
 
 // Croix : la ligne disparaît tout de suite, et pour tous les appareils (elle revient si l'élève relance ce test)
 let LIVE = [];
 $('live').addEventListener('click', e => {
+  const r = e.target.closest('[data-lr]');
+  if (r && S) {   // 1er clic : « Ramasser ? » (3 s) ; 2e clic : le test de l'élève se valide tel quel dans les 10 s
+    const a = LIVE[+r.dataset.lr]; if (!a) return;
+    if (!r.classList.contains('arme')) { r.classList.add('arme'); r.innerHTML = 'Ramasser ?'; setTimeout(() => renderLive(), 3000); return; }
+    a.etat = 'ramassage'; renderLive();
+    call('ramasser', { test: a.test, classe: a.classe, nom: a.nom, prenom: a.prenom });
+    return;
+  }
   const b = e.target.closest('[data-lx]'); if (!b || !S) return;
   const a = LIVE[+b.dataset.lx]; if (!a) return;
   S.activite = (S.activite || []).filter(x => x !== a); renderLive();
@@ -966,7 +979,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 09h20';
+const VERSION_PAGE = '23/11/2026 - 10h45';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');

@@ -453,7 +453,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 10h00</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 10h45</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -2184,7 +2184,7 @@ document.getElementById('val').onclick = () => {
   testSubmitted = true;
   releaseAwake();   // la veille normale du téléphone revient
   validatedAt = new Date();
-  logIncident("Test soumis et validé par l'élève");
+  logIncident(ramasse ? 'Copie ramassée par le professeur (tableau de bord)' : "Test soumis et validé par l'élève");
   let sc = 0;
   Q.forEach((q, i) => {
     let ok = false, r = document.getElementById('r' + i);
@@ -3135,6 +3135,22 @@ async function idCheckBadge() {
 }
 // Signale au tableau de bord qu'un élève commence le test (« en cours ») ou que l'alarme s'est déclenchée. Sans réponse attendue.
 const ID_TEST = 'TEST 012';
+// Copie ramassée à distance : le professeur clique « Ramasser » sur le tableau de bord ; le test (en ligne) le voit
+// dans les 10 s et se valide tel quel (réponses données envoyées, questions non faites à 0)
+let ramasse = false, idArretBusy = false;
+setInterval(async () => {
+  if (adminMode || testSubmitted || !papChosen || !IDENT.who || !IDENT.code || !navigator.onLine || idArretBusy) return;
+  idArretBusy = true;
+  try {
+    const q = { action: 'arretEtat', code: IDENT.code, test: ID_TEST, nom: IDENT.who.nom, prenom: IDENT.who.prenom, classe: IDENT.who.classe };
+    const o = await idCall(q);
+    if (o && o.ok && o.arret && !testSubmitted) {
+      ramasse = true; document.getElementById('val').onclick();
+      if (testSubmitted) idCall(Object.assign(q, { recu: 1 })).catch(() => {});   // ordre exécuté : effacé côté tableau de bord
+    }
+  } catch (e) {}
+  idArretBusy = false;
+}, 10000);
 function idActivite(etat) {
   if (adminMode || !IDENT.who || !IDENT.code || !navigator.onLine) return;
   try {
