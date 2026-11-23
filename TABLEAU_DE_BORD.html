@@ -923,7 +923,7 @@ function renderClass() {
 $('students').addEventListener('click', async e => {
   const b = e.target.closest('[data-i]'); if (!b) return;
   const c = S.classes[curCls], el = c.eleves[+b.dataset.i];
-  el.ok = !el.ok; render();                              // affichage immédiat
+  el.ok = !el.ok; render(); appelCnt();                  // affichage immédiat (et compteur de l'appel)
   await call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: el.ok });
 });
 
@@ -966,7 +966,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 09h00';
+const VERSION_PAGE = '23/11/2026 - 09h20';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1446,14 +1446,17 @@ async function appelSuivi() {
   appelSuivi.busy = false;
   if (APPEL !== A || !o || !o.ok) return;
   if (!o.appel || o.appel.id !== A.id) { appelFermer(A, 'Appel terminé sur un autre poste'); return; }
-  const avant = A.presents.size; appelSync(o.okClasse || {});
+  const avant = appelNb(A); appelSync(o.okClasse || {});
   render(); if (!$('ovClass').hidden) renderClass();
-  if (A.presents.size !== avant) appelInfo($('apMsg').textContent, $('apMsg').className.replace('apmsg', '').trim());
+  if (appelNb(A) !== avant) appelInfo($('apMsg').textContent, $('apMsg').className.replace('apmsg', '').trim());
   appelComplet();
 }
+// Présents affichés = élèves concernés en VERT à l'écran (ce que l'on voit est ce que l'on compte)
+function appelCnt() { const A = APPEL; if (A) $('apCnt').innerHTML = `${appelNb(A)} / ${A.concernes.size}<small>présents${A.groupe ? ' · groupe ' + A.groupe : ''}${A.reprise ? ' · retardataires' : ''}</small>`; }
+function appelNb(A) { const c = A && S && S.classes.find(x => x.nom === A.nom); return c ? c.eleves.filter(x => x.ok && A.concernes.has(cleNom(x.nom, x.prenom))).length : 0; }
 function appelComplet() {   // tout le groupe a badgé (sur ce poste ou un autre) : fin automatique
   const A = APPEL;
-  if (A && !A.fin && A.presents.size >= A.concernes.size) { A.fin = 1; setTimeout(() => { if (APPEL === A) { appelInfo('Tout le monde est là ✓', 'ok'); setTimeout(() => { if (APPEL === A) appelFin(); }, 1200); } }, 900); }
+  if (A && !A.fin && appelNb(A) >= A.concernes.size) { A.fin = 1; setTimeout(() => { if (APPEL === A) { appelInfo('Tout le monde est là ✓', 'ok'); setTimeout(() => { if (APPEL === A) appelFin(); }, 1200); } }, 900); }
 }
 function appelArret(A) {   // caméra et suivi arrêtés, barre d'appel cachée
   clearTimeout(A.raf); clearInterval(A.poll); if (A.stream) A.stream.getTracks().forEach(t => t.stop());
@@ -1484,7 +1487,7 @@ $('apSwitch').onclick = async () => {
 };
 function appelInfo(t, cls) {
   const n = APPEL.concernes.size;
-  $('apCnt').innerHTML = `${APPEL.presents.size} / ${n}<small>présents${APPEL.groupe ? ' · groupe ' + APPEL.groupe : ''}</small>`;
+  appelCnt();
   const m = $('apMsg'); m.textContent = t; m.className = 'apmsg' + (cls ? ' ' + cls : '');
 }
 function appelBoucle() {
@@ -2046,6 +2049,7 @@ function bipDeja() {
   } catch (e) {}
   try { navigator.vibrate && navigator.vibrate([60, 60, 60]); } catch (e) {}
 }
+window.getAC = getAC;   // le contexte audio sert aussi hors de la tuile Scanner (mélodies des cours, carte d'instructeur)
 window.tdbBeep = beep; window.tdbBipDeja = bipDeja; window.tdbMontre = (k, h) => montre(k, h);   // aussi utilisés par l'appel par badge
 
 const perfect = r => { const m = /^([\d.,]+)\s*\/\s*(\d+)/.exec(r.note || ''); return !!m && num(m[1]) > 0 && num(m[1]) === num(m[2]); };
