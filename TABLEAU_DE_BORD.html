@@ -181,7 +181,9 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .nt th.el,.nt td.el{position:sticky;left:0;z-index:1;background:#fff;text-align:left;padding:0 12px;white-space:nowrap;min-width:220px;width:240px}
 .nt thead th.el{z-index:3;background:#f8fafc}
 .nt td.el b{font-weight:800}
-.nt td.v{text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;min-width:96px;width:120px}
+.nt td.v{text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;width:72px;border-right:1px dashed var(--line)}
+.nt td.dt{text-align:center;font-size:12px;color:#94a3b8;min-width:52px;width:56px;font-variant-numeric:tabular-nums}
+.nt td{-webkit-user-select:none;user-select:none}
 .nt td.v:hover{background:#f1f5f9}
 .nt td.v.bl{background:#dbeafe;color:#1e3a8a}
 .nt td.v.mn{box-shadow:inset 0 0 0 2px #f59e0b}
@@ -1009,7 +1011,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 11h45';
+const VERSION_PAGE = '23/11/2026 - 11h55';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1886,16 +1888,16 @@ function ntCalcul(liste, carnet, c) {
     if (!x || isNaN(v) || ms <= (carnet.suppr[t] || 0)) return;   // copie d'avant la suppression de la colonne : oubliée
     const col = T[t] = T[t] || { t, prem: ms, essais: {} };
     col.prem = Math.min(col.prem, ms);
-    (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms });
+    (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms, d: String(cp.date || '').slice(0, 5) });
   });
   const tests = Object.values(T).sort((a, b) => a.prem - b.prem).map(col => {
     const cells = {};
     eleves.forEach(x => {
       const man = carnet.notes[col.t + '#' + x.k], L = (col.essais[x.k] || []).sort((a, b) => a.ms - b.ms);
-      if (man) { cells[x.k] = { v: man.v, mn: true }; return; }   // note changée à la main : prioritaire
-      if (!L.length) { cells[x.k] = { v: '' }; return; }
-      const best = Math.max(...L.map(e => e.v));
-      cells[x.k] = { v: fmt1(Math.round(best * 10) / 10), bl: L.length > 1 && best > L[0].v };   // refait et meilleure note : fond bleu
+      const best = L.length ? L.reduce((a, e) => e.v > a.v ? e : a) : null;   // meilleure note ; à égalité, la 1re fois
+      if (man) { cells[x.k] = { v: man.v, mn: true, d: best ? best.d : '' }; return; }   // note changée à la main : prioritaire (la date de la copie reste)
+      if (!best) { cells[x.k] = { v: '', d: '' }; return; }
+      cells[x.k] = { v: fmt1(Math.round(best.v * 10) / 10), d: best.d, bl: L.length > 1 && best.v > L[0].v };   // refait et meilleure note : fond bleu
     });
     return { t: col.t, cells };
   });
@@ -1906,8 +1908,8 @@ function ntRender() {
   const N = NT, w = $('ntWrap'); if (!N) return;
   $('ntT').textContent = 'Notes · ' + N.classe;
   if (!N.tests.length) { w.innerHTML = '<div class="ntvide">Aucune note pour cette classe.</div>'; return; }
-  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th><span class="ttl">${esc(T.t)}</span><span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
-    N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
+  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th colspan="2"><span class="ttl">${esc(T.t)}</span><span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
+    N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}</td><td class="dt">${esc(c.d || '')}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
 }
 async function ntOuvrir() {
   const c = S && S.classes[curCls]; if (!c) return;
@@ -1917,6 +1919,36 @@ async function ntOuvrir() {
   NT = ntCalcul(o.liste || [], o.carnet, c); NT.liste = o.liste || []; ntRender();
 }
 $('clNotes').onclick = ntOuvrir;
+// Cliquer-glisser dans une colonne de notes : les notes se surlignent (jamais les dates) ; Ctrl+C les copie pour École Directe
+let NTSEL = null, NTDRAG = null;   // NTSEL = { j, a, b } (lignes a à b de la colonne j)
+function ntSelPeindre() {
+  $('ntWrap').querySelectorAll('td.sel').forEach(x => x.classList.remove('sel'));
+  if (!NTSEL) return;
+  const [a, b] = [Math.min(NTSEL.a, NTSEL.b), Math.max(NTSEL.a, NTSEL.b)];
+  $('ntWrap').querySelectorAll(`td.v[data-j="${NTSEL.j}"]`).forEach(x => { const i = +x.dataset.i; if (i >= a && i <= b) x.classList.add('sel'); });
+}
+$('ntWrap').addEventListener('mousedown', e => {
+  const td = e.target.closest('td.v'); if (!td || td.querySelector('input') || e.button !== 0) return;
+  NTDRAG = { j: +td.dataset.j, a: +td.dataset.i, bouge: false };
+});
+$('ntWrap').addEventListener('mouseover', e => {
+  if (!NTDRAG) return;
+  const td = e.target.closest('td.v'); if (!td || +td.dataset.j !== NTDRAG.j) return;
+  if (+td.dataset.i !== NTDRAG.a) NTDRAG.bouge = true;
+  if (NTDRAG.bouge) { NTSEL = { j: NTDRAG.j, a: NTDRAG.a, b: +td.dataset.i }; ntSelPeindre(); }
+});
+document.addEventListener('mouseup', () => { if (NTDRAG && NTDRAG.bouge) NTDRAG.fin = Date.now(); setTimeout(() => { NTDRAG = null; }, 0); });
+async function ntCopier(j, a, b) {
+  const N = NT, T = N.tests[j]; if (!T) return;
+  const txt = N.eleves.slice(a, b + 1).map(x => (T.cells[x.k] || {}).v || '').join('\r\n');
+  let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch (er) {}
+  if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); }
+  toast(ok ? `${b - a + 1} note${b > a ? 's' : ''} copiée${b > a ? 's' : ''} (${T.t}) : collez dans École Directe (Ctrl+V)` : 'Copie impossible');
+}
+document.addEventListener('keydown', e => {
+  if ($('ovNotes').hidden || !NTSEL || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'c' || document.activeElement.tagName === 'INPUT') return;
+  e.preventDefault(); ntCopier(NTSEL.j, Math.min(NTSEL.a, NTSEL.b), Math.max(NTSEL.a, NTSEL.b));
+});
 function ntNorm(v) {   // « 12.25 » → « 12,3 » ; « ABS » → « abs » ; vide = case vide ; sinon null (refusé)
   v = String(v || '').trim();
   if (!v) return '';
@@ -1928,12 +1960,8 @@ $('ntWrap').addEventListener('click', async e => {
   const N = NT; if (!N) return;
   const cp = e.target.closest('[data-cp]');
   if (cp) {   // une note par ligne, dans l'ordre des élèves ; « abs » tel quel ; vide si pas de note
-    const T = N.tests[+cp.dataset.cp], txt = N.eleves.map(x => (T.cells[x.k] || {}).v || '').join('\r\n');
-    let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch (er) {}
-    if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); }
-    $('ntWrap').querySelectorAll('td.sel').forEach(x => x.classList.remove('sel'));
-    $('ntWrap').querySelectorAll(`td.v[data-j="${cp.dataset.cp}"]`).forEach(x => x.classList.add('sel'));
-    toast(ok ? `${T.t} copié : collez dans École Directe (Ctrl+V)` : 'Copie impossible');
+    const j = +cp.dataset.cp; NTSEL = { j, a: 0, b: N.eleves.length - 1 }; ntSelPeindre();
+    ntCopier(j, 0, N.eleves.length - 1);
     return;
   }
   const sp = e.target.closest('[data-sp]');
@@ -1944,6 +1972,8 @@ $('ntWrap').addEventListener('click', async e => {
     return;
   }
   const td = e.target.closest('td.v'); if (!td || td.querySelector('input')) return;
+  if (NTDRAG && NTDRAG.bouge) return;   // fin d'un cliquer-glisser : pas de saisie
+  NTSEL = null; ntSelPeindre();
   const x = N.eleves[+td.dataset.i], T = N.tests[+td.dataset.j], av = (T.cells[x.k] || {}).v || '';
   td.innerHTML = `<input value="${esc(av)}" aria-label="Note de ${esc(x.prenom)} ${esc(x.nom)}">`;
   const inp = td.querySelector('input'); inp.focus(); inp.select();
@@ -1954,7 +1984,7 @@ $('ntWrap').addEventListener('click', async e => {
     if (garder && v === null) { inp.classList.add('bad'); inp.focus(); return; }   // ni nombre de 0 à 20, ni « abs », ni vide
     fini = true;
     if (!garder || v === av) { ntRender(); return; }
-    T.cells[x.k] = { v, mn: true }; ntRender();
+    T.cells[x.k] = { v, mn: true, d: (T.cells[x.k] || {}).d || '' }; ntRender();   // la date de la copie reste
     const o = await call('carnetNote', { classe: N.classe, test: T.t, nom: x.nom, prenom: x.prenom, valeur: v }); if (o && o.carnet) N.carnet = o.carnet;
   };
   inp.addEventListener('keydown', ev => {
