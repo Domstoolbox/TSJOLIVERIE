@@ -424,7 +424,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 17/11/2026 - 11h55</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 10h01</small></div>
 
   <div id="papwarning" hidden>
     <h2 id="papTitle">Si vous avez un PAP, souhaitez‑vous un test plus court ?</h2>
@@ -697,10 +697,13 @@ function showCodeMsg(text, ok) {
   m.hidden = false;
 }
 
-// Lancement sans code du 17/11/2026 au 22/11/2026 inclus : le bouton équivaut au code 170110MNAW
+// Lancement sans code du 17/11/2026 au 22/05/2027 inclus : le bouton équivaut au code 170110MNAW
 // (code du jour du 17/11 + A = 10 questions + W = réseau non exigé)
 const FREE_CODE = '170110MNAW';
-const FREE_START = new Date(2026, 10, 17, 0, 0, 0), FREE_END = new Date(2026, 10, 22, 23, 59, 59);
+const FREE_START = new Date(2026, 10, 17, 0, 0, 0), FREE_END = new Date(2027, 4, 22, 23, 59, 59);   // prolongé de 6 mois : jusqu'au 22/05/2027 inclus
+// Écran du grand QR code supprimé du 17/11/2026 au 22/05/2027 inclus (même période que le lancement sans code)
+const NOQR_START = new Date(2026, 10, 17, 0, 0, 0), NOQR_END = new Date(2027, 4, 22, 23, 59, 59);
+function noQrWindowOpen(now) { now = now || new Date(); return now >= NOQR_START && now <= NOQR_END; }
 function freeWindowOpen(now) { now = now || new Date(); return now >= FREE_START && now <= FREE_END; }
 (function () {
   const box = document.getElementById('freeStartBox');
@@ -742,7 +745,7 @@ document.getElementById('accessCodeBtn').onclick = () => {
   } else if (day && day.n) {
     n = day.n; exempt = !!day.w;                // exempt : réseau non exigé
   } else if (entered === FREE_CODE && freeWindowOpen()) {
-    n = 10; exempt = true;                      // bouton « Lancer le test » (17 au 22/11/2026) : équivalent au code 170110MNAW
+    n = 10; exempt = true;                      // bouton « Lancer le test » (17/11/2026 au 22/05/2027) : équivalent au code 170110MNAW
   } else if (entered === '' && new Date() <= DEV_END) {
     n = 10; exempt = true;                      // aucun code saisi pendant la période de développement : 10 questions, réseau non exigé
   }
@@ -2423,7 +2426,7 @@ document.getElementById('val').onclick = () => {
     const svg = makeQr(buildQrPayload()).createSvgTag({ cellSize: 4, margin: 4, scalable: true });
     document.getElementById('qrbig').innerHTML = svg;
     document.getElementById('qrsmall').innerHTML = svg;
-    if (freeWindowOpen()) { showEndPage(); return; }   // 17 au 22/11/2026 : écran du grand QR code supprimé
+    if (noQrWindowOpen()) { showEndPage(); return; }   // 17/11/2026 au 22/05/2027 : écran du grand QR code supprimé
     const showQr = () => viewEl(document.getElementById('qrstep'));
     showQr();
     requestAnimationFrame(showQr);
