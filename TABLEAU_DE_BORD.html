@@ -218,6 +218,12 @@ body.proj .code{height:52px;font-size:24px;padding:0 18px}
 .cours-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:90;background:#1e3a8a;color:#fff;border-radius:14px;padding:12px 20px;font:700 17px var(--f);box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;max-width:calc(100vw - 24px)}
 .cours-toast small{display:block;font-weight:600;font-size:14px;opacity:.85}
 .cours-toast[hidden]{display:none}
+.apgeant{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:rgba(22,163,74,.88);color:#fff;text-align:center;pointer-events:none;animation:geant 1.5s ease forwards}
+.apgeant[hidden]{display:none}
+.apgeant div{display:flex;flex-direction:column;align-items:center;gap:.1em;padding:0 4vw;max-width:100%}
+.apgeant span{font:800 clamp(34px,7vw,110px)/1.05 var(--fh)}
+.apgeant b{font:900 clamp(44px,10vw,170px)/1.02 var(--fh);letter-spacing:.01em;overflow-wrap:anywhere}
+@keyframes geant{0%{opacity:0;transform:scale(.92)}8%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0}}
 .bruit{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;text-align:center;background:#6d28d9;color:#fff;cursor:pointer}
 .bruit[hidden]{display:none}
 .bruit div{font:900 clamp(44px,9.5vw,170px)/1.05 var(--fh);letter-spacing:.01em;text-shadow:0 6px 0 rgba(0,0,0,.2)}
@@ -596,6 +602,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
 </div>
 
 <div class="cours-toast" id="coursToast" hidden></div>
+<div class="apgeant" id="apGeant" hidden></div>
 <div class="bruit" id="bruit" hidden><div>MERCI DE TRAVAILLER<br>EN SILENCE !</div></div>
 <div class="verrou" id="verrou" hidden><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="11" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.4"/></svg></div>
 <div class="toast" id="toast" hidden></div>
@@ -748,7 +755,7 @@ async function kpCamStart() {
 }
 async function kpCarteLue(t) {
   if (!t.startsWith(CARTE_PREFIXE)) { kpMsg(/^\d{6}$/.test(t) ? 'Présentez le verso de votre carte' : 'Ce n’est pas votre carte'); return; }
-  KP_BUSY = true; sonOk(); kpMsg('Vérification…');
+  KP_BUSY = true; window.tdbBipInstr && window.tdbBipInstr(); kpMsg('Vérification…');
   let o = null;
   try { o = await (await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'carte', jeton: t.slice(CARTE_PREFIXE.length), appareil: appareilId() }), redirect: 'follow' })).json(); } catch (e) {}
   if (o && o.ok && o.mdp) {
@@ -959,7 +966,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 08h45';
+const VERSION_PAGE = '23/11/2026 - 09h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1419,6 +1426,14 @@ async function appelDebut(groupe) {
   if (!(await appelCamera(APPEL_FACE))) { appelInfo('Webcam inaccessible', 'ko'); return; }
   appelBoucle();
 }
+// Nom de l'élève en géant par-dessus l'écran, 1,5 s ; la caméra continue de lire derrière (le suivant peut déjà scanner)
+let GEANT_T = 0;
+function appelGeant(el) {
+  const g = $('apGeant');
+  g.innerHTML = `<div><span>${esc(el.prenom)}</span><b>${esc(String(el.nom).toUpperCase())}</b></div>`;
+  g.hidden = true; void g.offsetWidth; g.hidden = false;   // relance l'animation si un autre élève scanne tout de suite
+  clearTimeout(GEANT_T); GEANT_T = setTimeout(() => g.hidden = true, 1500);
+}
 // Appel partagé : les élèves verts des autres postes, et la fin de l'appel décidée ailleurs
 function appelSync(ok) {
   const A = APPEL, c = A && S.classes.find(x => x.nom === A.nom); if (!c) return;
@@ -1502,13 +1517,13 @@ function appelLu(t) {
   const el = c.eleves[i], k = cleNom(el.nom, el.prenom);
   if (!APPEL.concernes.has(k)) { appelInfo(el.prenom + ' : groupe ' + (el.groupe === 'B' ? 'B' : 'A'), 'ko'); sonKo(); return; }
   if (APPEL.presents.has(k)) {   // déjà compté présent aujourd'hui : s'il est en rouge (remis en rouge entre-temps), on le repasse en vert
-    if (!el.ok) { el.ok = true; render(); renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk(); }
+    if (!el.ok) { el.ok = true; render(); renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); appelGeant(el); }
     else appelInfo(el.prenom + ' ' + el.nom + ' : présence déjà enregistrée', 'deja');
     return;
   }
   APPEL.presents.add(k); el.ok = true; render(); renderClass();
   const b = $('students').querySelector(`[data-i="${i}"]`); if (b) b.classList.add('flash');   // pas de défilement : la caméra reste à l'écran
-  appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk();
+  appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); appelGeant(el);   // pas de bip : le nom en géant suffit
   if (APPEL.reprise) { const aj = S.appelJour[c.nom]; if (aj) aj[k] = 'RETARD'; postitRetard(c.nom, el); call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom }); }
   else call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true });
   appelComplet();
@@ -1525,13 +1540,13 @@ window.tdbCarte = function (code) {
   const aj = S.appelJour && S.appelJour[c.nom];
   if (!aj || !aj[k]) { M('ok', '🪪' + nomH); sonOk(); return; }           // pas d'appel aujourd'hui pour lui (sa classe ou son groupe)
   if (aj[k] && aj[k] !== 'NON') {
-    if (!el.ok) { el.ok = true; render(); if (!$('ovClass').hidden) renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); M('ok', '✓' + nomH); sonOk(); }
+    if (!el.ok) { el.ok = true; render(); if (!$('ovClass').hidden) renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); M('ok', '✓' + nomH); appelGeant(el); }
     else M('warn', 'Présence déjà enregistrée' + nomH);
     return;
   }
   const h = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   aj[k] = 'RETARD ' + h; el.ok = true; render(); if (!$('ovClass').hidden) renderClass();
-  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); sonOk(); postitRetard(c.nom, el);
+  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); appelGeant(el); postitRetard(c.nom, el);   // retardataire : le nom en géant, sans bip
   call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom });
 };
 async function appelFin() {
@@ -1708,6 +1723,13 @@ function bruitFin() {
 }
 // son joué seulement quand le contexte audio tourne vraiment (sinon il partait muet)
 function sonPret(f) { try { const c = getAC(); if (c.state === 'running') f(c); else c.resume().then(() => f(c)).catch(() => {}); } catch (e) {} }
+// Carte d'instructeur lue : « bip bip bip » grave et discret
+window.tdbBipInstr = () => sonPret(c => {
+  const t = c.currentTime + .02;
+  [0, .16, .32].forEach(d => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = 330;
+    g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(.16, t + d + .01); g.gain.setValueAtTime(.16, t + d + .08); g.gain.linearRampToValueAtTime(0, t + d + .1);
+    o.connect(g).connect(c.destination); o.start(t + d); o.stop(t + d + .12); });
+});
 window.tdbBruit = () => {
   if (!$('bruit').hidden) return;   // déjà affiché : la carte restée devant la caméra ne relance rien
   $('bruit').hidden = false;
@@ -2300,8 +2322,8 @@ function bigNote(r, alerte) {
   popT = setTimeout(ferme, 3500);
 }
 function addPayload(txt) {
-  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { beep(); setTimeout(() => window.tdbVerrou && window.tdbVerrou(), 200); return; }   // verso de la carte d'instructeur : verrouillage
-  if (String(txt).trim() === '866738' && window.tdbBruit) { if ($('bruit').hidden) { beep(); setTimeout(window.tdbBruit, 250); } return; }                          // recto (petit QR) : « Merci de travailler en silence ! »
+  if (String(txt).trim().startsWith('DTB-INSTRUCTEUR:')) { window.tdbBipInstr && window.tdbBipInstr(); setTimeout(() => window.tdbVerrou && window.tdbVerrou(), 200); return; }   // verso de la carte d'instructeur : verrouillage
+  if (String(txt).trim() === '866738' && window.tdbBruit) { if ($('bruit').hidden) { window.tdbBipInstr && window.tdbBipInstr(); setTimeout(window.tdbBruit, 250); } return; }                          // recto (petit QR) : « Merci de travailler en silence ! »
   if (/^\d{6}$/.test(String(txt).trim()) && window.tdbCarte) { window.tdbCarte(String(txt).trim()); return; }   // carte d'agent (badge)
   const r = parsePayload(txt);
   if (!r) { montre('ko', 'QR code inconnu'); return; }
