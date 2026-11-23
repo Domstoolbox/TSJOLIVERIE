@@ -959,7 +959,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 08h00';
+const VERSION_PAGE = '23/11/2026 - 08h45';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1404,15 +1404,47 @@ async function appelDebut(groupe) {
   const reprise = L.length > 0 && L.every(e => aj[cleNom(e.nom, e.prenom)]);
   const concernes = reprise ? L : L.filter(e => !aj[cleNom(e.nom, e.prenom)]);
   const xc = typeof edtMaintenant === 'function' ? edtMaintenant() : null, cours = xc && edtClasse(xc.c).i === curCls ? xc : null;   // cours de l'agenda (pour le post-it)
-  APPEL = { cls: curCls, nom: c.nom, groupe, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: new Set(concernes.map(e => cleNom(e.nom, e.prenom))), presents: new Set(), stream: null, raf: 0, last: '', lastT: 0, reprise };
-  if (reprise) concernes.forEach(x => { const st = aj[cleNom(x.nom, x.prenom)]; if (st && st !== 'NON') APPEL.presents.add(cleNom(x.nom, x.prenom)); });
-  else concernes.forEach(x => x.ok = false);   // seul le groupe appelé passe en rouge
+  // Appel partagé : le script démarre l'appel, ou renvoie celui déjà lancé sur un autre poste (on le rejoint)
+  const o = await call('appelDebut', { classe: c.nom, groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) });
+  const a = o && o.appel ? o.appel : { id: '', groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) };
+  const rejoint = !!(o && o.rejoint);
+  APPEL = { id: a.id, partage: !!a.id, cls: curCls, nom: c.nom, groupe: a.groupe, cours: a.cours, debutMin: a.debutMin, concernes: new Set(a.concernes), presents: new Set(), stream: null, raf: 0, poll: 0, last: '', lastT: 0, reprise: !!a.reprise };
+  if (APPEL.reprise) c.eleves.forEach(x => { const k = cleNom(x.nom, x.prenom), st = aj[k]; if (APPEL.concernes.has(k) && st && st !== 'NON') APPEL.presents.add(k); });
+  else if (!rejoint) c.eleves.forEach(x => { if (APPEL.concernes.has(cleNom(x.nom, x.prenom))) x.ok = false; });   // seul le groupe appelé passe en rouge
+  if (o && o.okClasse) appelSync(o.okClasse);
   render(); renderClass();
-  $('apBar').hidden = false; $('clAppel').classList.add('on'); appelInfo('', '');
-  if (!reprise) await call('classes', { classes: S.classes });   // le groupe en rouge AVANT de lire les cartes
+  $('apBar').hidden = false; $('clAppel').classList.add('on'); appelInfo(rejoint ? 'Appel en cours rejoint' : '', rejoint ? 'ok' : '');
+  if (!APPEL.partage && !APPEL.reprise) await call('classes', { classes: S.classes });   // script ancien : le groupe en rouge AVANT de lire les cartes
+  if (APPEL.partage) APPEL.poll = setInterval(appelSuivi, 3000);
   if (!(await appelCamera(APPEL_FACE))) { appelInfo('Webcam inaccessible', 'ko'); return; }
   appelBoucle();
 }
+// Appel partagé : les élèves verts des autres postes, et la fin de l'appel décidée ailleurs
+function appelSync(ok) {
+  const A = APPEL, c = A && S.classes.find(x => x.nom === A.nom); if (!c) return;
+  c.eleves.forEach(x => { const k = cleNom(x.nom, x.prenom); if (k in ok) { x.ok = ok[k]; if (x.ok && A.concernes.has(k)) A.presents.add(k); } });
+}
+async function appelSuivi() {
+  const A = APPEL; if (!A || !A.partage || appelSuivi.busy) return;
+  appelSuivi.busy = true; let o = null;
+  try { o = await (await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'appelEtat', mdp, classe: A.nom }), redirect: 'follow' })).json(); } catch (e) {}
+  appelSuivi.busy = false;
+  if (APPEL !== A || !o || !o.ok) return;
+  if (!o.appel || o.appel.id !== A.id) { appelFermer(A, 'Appel terminé sur un autre poste'); return; }
+  const avant = A.presents.size; appelSync(o.okClasse || {});
+  render(); if (!$('ovClass').hidden) renderClass();
+  if (A.presents.size !== avant) appelInfo($('apMsg').textContent, $('apMsg').className.replace('apmsg', '').trim());
+  appelComplet();
+}
+function appelComplet() {   // tout le groupe a badgé (sur ce poste ou un autre) : fin automatique
+  const A = APPEL;
+  if (A && !A.fin && A.presents.size >= A.concernes.size) { A.fin = 1; setTimeout(() => { if (APPEL === A) { appelInfo('Tout le monde est là ✓', 'ok'); setTimeout(() => { if (APPEL === A) appelFin(); }, 1200); } }, 900); }
+}
+function appelArret(A) {   // caméra et suivi arrêtés, barre d'appel cachée
+  clearTimeout(A.raf); clearInterval(A.poll); if (A.stream) A.stream.getTracks().forEach(t => t.stop());
+  $('apVideo').srcObject = null; $('apBar').hidden = true; $('clAppel').classList.remove('on');
+}
+function appelFermer(A, msg) { if (APPEL !== A) return; APPEL = null; appelArret(A); toast(msg); refresh(); }
 // Caméra de l'appel : la caméra arrière du téléphone par défaut (tu vois ton écran pendant que tu scannes les cartes) ;
 // sur un ordinateur, la webcam. Le bouton ⟲ passe à l'autre caméra (choix gardé sur cet appareil)
 var APPEL_FACE = (() => { try { return localStorage.getItem('tdb_appel_cam2') || 'environment'; } catch (e) { return 'environment'; } })();
@@ -1479,7 +1511,7 @@ function appelLu(t) {
   appelInfo('✓ ' + el.prenom + ' ' + el.nom, 'ok'); sonOk();
   if (APPEL.reprise) { const aj = S.appelJour[c.nom]; if (aj) aj[k] = 'RETARD'; postitRetard(c.nom, el); call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom }); }
   else call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true });
-  if (APPEL.presents.size >= APPEL.concernes.size) { const A = APPEL; setTimeout(() => { if (APPEL === A) { appelInfo('Tout le monde est là ✓', 'ok'); setTimeout(() => { if (APPEL === A) appelFin(); }, 1200); } }, 900); }
+  appelComplet();
 }
 // Carte présentée au Scanner du tableau de bord (hors fenêtre d'appel) : retardataire, ou simple identification
 window.tdbCarte = function (code) {
@@ -1505,14 +1537,17 @@ window.tdbCarte = function (code) {
 async function appelFin() {
   if (!APPEL) return;
   const A = APPEL; APPEL = null;
-  clearTimeout(A.raf); if (A.stream) A.stream.getTracks().forEach(t => t.stop());
-  $('apVideo').srcObject = null; $('apBar').hidden = true; $('clAppel').classList.remove('on');
+  appelArret(A);
   const c = S.classes.find(x => x.nom === A.nom); if (!c) return;
-  if (A.reprise) return;   // reprise : chaque retardataire a déjà été enregistré
+  if (A.reprise) { if (A.partage) call('appelFin', { id: A.id, classe: A.nom }); return; }   // reprise : chaque retardataire a déjà été enregistré
   const presents = [], absents = [];
   c.eleves.filter(x => A.concernes.has(cleNom(x.nom, x.prenom))).forEach(x => (A.presents.has(cleNom(x.nom, x.prenom)) || x.ok ? presents : absents).push({ nom: x.nom, prenom: x.prenom }));   // vert à la main = présent ; l'autre groupe n'est pas noté
-  postitAppel(A, c.nom, absents);
-  const o = await call('appel', { classe: c.nom, presents, absents });
+  let o;
+  if (A.partage) {   // terminé ici = terminé partout ; si un autre poste l'a déjà terminé, rien n'est enregistré une 2e fois
+    o = await call('appelFin', { id: A.id, classe: c.nom, presents, absents });
+    if (o && o.deja) { toast('Appel déjà terminé sur un autre poste'); return; }
+    if (o) postitAppel(A, c.nom, absents);
+  } else { postitAppel(A, c.nom, absents); o = await call('appel', { classe: c.nom, presents, absents }); }
   if (o) toast(`Appel enregistré : ${presents.length} présent${presents.length > 1 ? 's' : ''}, ${absents.length} absent${absents.length > 1 ? 's' : ''}`);
 }
 function appelChoix(pre) {   // pre = { groupe, txt } : cours trouvé dans l'agenda (groupe présélectionné)
