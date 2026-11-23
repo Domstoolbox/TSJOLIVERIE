@@ -389,6 +389,26 @@ td.n{font-family:var(--fm);color:var(--muted)}
 .wfoot{display:flex;gap:10px;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
 .wfoot .grow{flex:1;font-size:13px;color:var(--muted)}
 #btnRaz.arme{background:var(--red);color:#fff}
+/* Écrans moyens (PC de salle, 1100 à 1450 px) : tout tient sur une ligne, en plus compact */
+.code,.switch,.ib{flex:none}
+@media (min-width:1101px) and (max-width:1450px){
+  .top{gap:6px}
+  .code{font-size:18px;padding:0 9px;letter-spacing:.03em}
+  .switch{min-width:0;padding:0 10px 0 6px;gap:7px}.switch .knob{width:40px}.switch.on .knob::after{left:17px}
+  .switch b{font-size:16px}.switch.autre b{font-size:13px}
+  .sync{width:74px;padding:0 10px;gap:6px}
+  .ib{width:38px;height:38px}.ib svg{width:19px;height:19px}
+  .mid{grid-template-columns:230px 240px repeat(3,minmax(0,1fr));gap:10px}
+  .card h2{font-size:16px;gap:6px;white-space:nowrap}
+  .pi.prochain .nw{white-space:normal}
+  .sync{width:84px}
+  .cls{padding:14px 72px 14px 14px;min-height:72px}.cls b{font-size:19px;white-space:nowrap}
+  .ctog{right:10px;width:54px;height:30px}.ctog::after{width:20px;height:20px}.ctog.on::after{left:27px}.ctog.mix::after{left:15px}
+}
+@media (min-width:1101px) and (max-width:1300px){
+  .mid{grid-template-columns:215px 215px repeat(3,minmax(0,1fr))}
+  .top h1{font-size:17px}.top .sub{font-size:10.5px}
+}
 @media (max-width:1100px){.app{height:auto;min-height:100vh}.mid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(320px,auto)}}
 /* ----- Téléphone ----- */
 @media (max-width:760px){
@@ -936,7 +956,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '22/11/2026 - 19h15';
+const VERSION_PAGE = '23/11/2026 - 07h45';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
