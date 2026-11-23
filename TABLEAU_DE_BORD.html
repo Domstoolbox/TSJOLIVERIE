@@ -170,15 +170,19 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .ntbody{flex:1;min-height:0;overflow:auto;padding:0}
 .ntleg{margin-left:auto;margin-right:12px;display:flex;align-items:center;gap:8px;font:600 13px var(--f);color:rgba(255,255,255,.9);white-space:nowrap}
 .ntleg i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-left:8px}.ntleg i.b{background:#dbeafe}.ntleg i.m{background:#fff;box-shadow:inset 0 0 0 2px #f59e0b}
-.nt{border-collapse:separate;border-spacing:0;font-size:14px;width:auto;table-layout:auto}
+.nt{border-collapse:separate;border-spacing:0;font-size:14px;width:max-content!important;min-width:0!important;table-layout:auto}
 .nt th,.nt td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:34px}
-.nt thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#0f172a;text-transform:none;letter-spacing:0;vertical-align:bottom;padding:8px 6px 6px;font:700 12.5px var(--f);min-width:96px;max-width:150px}
+.nt thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#0f172a;text-transform:none;letter-spacing:0;vertical-align:bottom;padding:8px 6px 6px;font:700 12.5px var(--f);width:140px;max-width:160px}
 .nt .ttl{display:block;white-space:normal;line-height:1.2;text-align:center;margin-bottom:6px}
 .nt .acts{display:flex;gap:4px;justify-content:center}
+.ntfait{display:flex;align-items:center;justify-content:center;gap:5px;margin:0 auto 6px;width:max-content;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;font:700 12px var(--f);color:var(--muted);cursor:pointer}
+.ntfait input{width:15px;height:15px;margin:0;accent-color:#16a34a;cursor:pointer}
+.ntfait.on{background:#dcfce7;border-color:#86efac;color:#166534}
+.ntfait.revoir{background:#ffedd5;border-color:#fdba74;color:#9a3412}
 .nt .acts button{height:28px;min-width:32px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;color:var(--ink);font:700 12px var(--f);display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px}
 .nt .acts button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nt .acts button.arme{background:#dc2626;border-color:#dc2626;color:#fff}
-.nt th.el,.nt td.el{position:sticky;left:0;z-index:1;background:#fff;text-align:left;padding:0 12px;white-space:nowrap;min-width:220px;width:240px}
+.nt th.el,.nt td.el{position:sticky;left:0;z-index:1;background:#fff;text-align:left;padding:0 12px;white-space:nowrap;min-width:220px;width:240px;max-width:280px}
 .nt thead th.el{z-index:3;background:#f8fafc}
 .nt td.el b{font-weight:800}
 .nt td.v{text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;width:72px;border-right:1px dashed var(--line)}
@@ -1011,7 +1015,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 11h55';
+const VERSION_PAGE = '23/11/2026 - 12h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1887,7 +1891,7 @@ function ntCalcul(liste, carnet, c) {
     const x = parK[cleNom(cp.nom, cp.prenom)], v = sur20(cp), t = ntBase(cp.test), ms = ntMs(cp);
     if (!x || isNaN(v) || ms <= (carnet.suppr[t] || 0)) return;   // copie d'avant la suppression de la colonne : oubliée
     const col = T[t] = T[t] || { t, prem: ms, essais: {} };
-    col.prem = Math.min(col.prem, ms);
+    col.prem = Math.min(col.prem, ms); col.dern = Math.max(col.dern || 0, ms);
     (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms, d: String(cp.date || '').slice(0, 5) });
   });
   const tests = Object.values(T).sort((a, b) => a.prem - b.prem).map(col => {
@@ -1899,16 +1903,22 @@ function ntCalcul(liste, carnet, c) {
       if (!best) { cells[x.k] = { v: '', d: '' }; return; }
       cells[x.k] = { v: fmt1(Math.round(best.v * 10) / 10), d: best.d, bl: L.length > 1 && best.v > L[0].v };   // refait et meilleure note : fond bleu
     });
-    return { t: col.t, cells };
+    const man = Object.keys(carnet.notes).filter(k => k.indexOf(col.t + '#') === 0).map(k => carnet.notes[k].h);
+    return { t: col.t, cells, dern: Math.max(col.dern || 0, ...man) };   // dernier changement de la colonne (copie ou note à la main)
   });
   return { classe: c.nom, eleves, tests, carnet };
 }
 const ntIco = { copy: '<svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg>', del: '<svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg>' };
+// Case « recopié sur École Directe » : verte quand cochée ; « à revoir » si une note a changé depuis
+function ntFaitHtml(T, j) {
+  const h = NT.carnet.fait && NT.carnet.fait[T.t], revoir = h && T.dern > h;
+  return `<label class="ntfait${h ? ' on' : ''}${revoir ? ' revoir' : ''}" title="${revoir ? 'Une note a changé depuis que vous avez coché' : 'Notes recopiées sur École Directe'}"><input type="checkbox" data-fait="${j}"${h ? ' checked' : ''}> ${revoir ? 'à revoir' : 'Recopié'}</label>`;
+}
 function ntRender() {
   const N = NT, w = $('ntWrap'); if (!N) return;
   $('ntT').textContent = 'Notes · ' + N.classe;
   if (!N.tests.length) { w.innerHTML = '<div class="ntvide">Aucune note pour cette classe.</div>'; return; }
-  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th colspan="2"><span class="ttl">${esc(T.t)}</span><span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
+  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th colspan="2"><span class="ttl">${esc(T.t)}</span>${ntFaitHtml(T, j)}<span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
     N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}</td><td class="dt">${esc(c.d || '')}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
 }
 async function ntOuvrir() {
@@ -1916,6 +1926,7 @@ async function ntOuvrir() {
   $('ntT').textContent = 'Notes · ' + c.nom; $('ntWrap').innerHTML = '<div class="ntvide">Chargement…</div>'; $('ovNotes').hidden = false;
   const o = await call('carnet', { classe: c.nom });
   if (!o || !o.carnet) { $('ntWrap').innerHTML = '<div class="ntvide">Carnet indisponible : le script du tableau de bord doit être redéployé.</div>'; return; }
+  o.carnet.fait = o.carnet.fait || {};
   NT = ntCalcul(o.liste || [], o.carnet, c); NT.liste = o.liste || []; ntRender();
 }
 $('clNotes').onclick = ntOuvrir;
@@ -1956,6 +1967,13 @@ function ntNorm(v) {   // « 12.25 » → « 12,3 » ; « ABS » → « abs » ;
   const n = parseFloat(v.replace(',', '.'));
   return /^\d{1,2}([.,]\d+)?$/.test(v) && n >= 0 && n <= 20 ? fmt1(Math.round(n * 10) / 10) : null;
 }
+$('ntWrap').addEventListener('change', async e => {
+  const c = e.target.closest('[data-fait]'); if (!c || !NT) return;
+  const T = NT.tests[+c.dataset.fait];
+  if (c.checked) NT.carnet.fait[T.t] = Date.now(); else delete NT.carnet.fait[T.t];
+  ntRender();
+  const o = await call('carnetFait', { classe: NT.classe, test: T.t, valeur: c.checked ? '1' : '' }); if (o && o.carnet) { NT.carnet = o.carnet; ntRender(); }
+});
 $('ntWrap').addEventListener('click', async e => {
   const N = NT; if (!N) return;
   const cp = e.target.closest('[data-cp]');
