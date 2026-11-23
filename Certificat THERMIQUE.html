@@ -666,7 +666,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
   </div>
 
-  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 22/11/2026 - 09h00</span></footer>
+  <footer class="foot"><span>Faire du camping avec un professeur de physique-chimie, c'est bien pratique !</span><span>Domstoolbox · Version du 23/11/2026 - 09h30</span></footer>
 </div>
 
 <script>
@@ -3213,7 +3213,7 @@ function idEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({
 function idGrad(c) { const i = IDENT.classes.indexOf(c), k = ID_COULEURS[(i < 0 ? 0 : i) % ID_COULEURS.length]; return `linear-gradient(135deg,${k[0]},${k[1]})`; }
 async function idCall(o) {
   const ctl = 'AbortController' in window ? new AbortController() : null;
-  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 9000);
+  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 20000);   // Google peut mettre plusieurs secondes à se réveiller
   try {
     const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o), redirect: 'follow', signal: ctl ? ctl.signal : undefined });
     return await r.json();
@@ -3229,7 +3229,7 @@ window.certIdentStart = async function (code) {
   idShow('load', '<div class="idload" aria-label="Chargement"></div>');
   if (!navigator.onLine) { idManuel(); return; }
   try {
-    const o = await idCall({ action: 'debut', code });
+    let o; try { o = await idCall({ action: 'debut', code }); } catch (e) { await new Promise(r => setTimeout(r, 800)); o = await idCall({ action: 'debut', code }); }   // 2e essai avant de passer à la saisie du nom
     if (!o || !o.ok) { idManuel(); return; }
     if (!o.ouvert) { idStop(ID_REFUS); return; }
     IDENT.classes = o.classes || []; IDENT.fermees = o.fermees || []; IDENT.autre = !!o.autre;

@@ -75,6 +75,8 @@ label.opt input{margin-right:8px}
 .calcbtn.on{background:var(--pri);color:var(--bg)}
 #calc{position:fixed;top:16px;right:16px;width:340px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);z-index:50;display:flex;flex-direction:column;overflow:hidden;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.3);user-select:none;touch-action:manipulation;outline:none}
 #calc[hidden]{display:none}
+#calc,#calc *{touch-action:manipulation}   /* Safari : pas de zoom au double-tap sur les touches (le zoom décale les touches) */
+html.ios-calc-abs #calc{position:absolute!important;bottom:auto!important;max-height:none!important}   /* iPhone/iPad dans Google Sites : panneau posé dans la page (Safari se trompe de touche avec un panneau fixe dans un cadre) */
 body.online-blocked #calc,body.need-fs #calc,body.need-split #calc,body.fraud-detected #calc{display:none}
 #calc .ch{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:700}
 #calc .ch .ttl{flex:1}
@@ -458,7 +460,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 08h20</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 10h00</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -1986,6 +1988,11 @@ function openCalc(i, btn) {
     requestAnimationFrame(calcQCheck);
   }
   el.hidden = false;
+  if (IOS_FRAME) {   // iPhone/iPad dans Google Sites : posé dans la page, juste sous l'icône de la calculatrice de la question
+    document.documentElement.classList.add('ios-calc-abs');
+    const r = btn.getBoundingClientRect();
+    el.style.top = Math.max(0, r.bottom + window.scrollY + 8) + 'px';
+  }
   document.body.classList.add('calc-open');
   document.body.style.setProperty('--calc-h', el.offsetHeight + 'px');
   calcRender();
@@ -3036,7 +3043,7 @@ function idEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({
 function idGrad(c) { const i = IDENT.classes.indexOf(c), k = ID_COULEURS[(i < 0 ? 0 : i) % ID_COULEURS.length]; return `linear-gradient(135deg,${k[0]},${k[1]})`; }
 async function idCall(o) {
   const ctl = 'AbortController' in window ? new AbortController() : null;
-  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 9000);
+  const t = setTimeout(() => { if (ctl) ctl.abort(); }, 20000);   // Google peut mettre plusieurs secondes à se réveiller
   try {
     const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o), redirect: 'follow', signal: ctl ? ctl.signal : undefined });
     return await r.json();
@@ -3052,7 +3059,7 @@ async function identStart(code) {
   checkNetworkState();
   if (!navigator.onLine) { idManuel(); return; }
   try {
-    const o = await idCall({ action: 'debut', code });
+    let o; try { o = await idCall({ action: 'debut', code }); } catch (e) { await new Promise(r => setTimeout(r, 800)); o = await idCall({ action: 'debut', code }); }   // 2e essai avant de passer à la saisie du nom
     if (!o || !o.ok) { idManuel(); return; }
     if (!o.ouvert) { idFerme(); return; }
     IDENT.classes = o.classes || []; IDENT.fermees = o.fermees || []; IDENT.autre = !!o.autre;
