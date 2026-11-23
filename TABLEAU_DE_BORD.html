@@ -702,6 +702,7 @@ async function call(action, extra) {
     const o = await r.json();
     if (!o.ok) {
       if (o.err === 'mdp') { S = null; render(); askLogin(mdp ? 'Mot de passe refusé.' : ''); setSync('ko', 'Non connecté'); }
+      else if (o.err === 'action') { setSync('ko', 'Script à redéployer'); if (!call.avert) { call.avert = 1; toast('Le script du Google Sheet est trop ancien : redéployez-le (Gérer les déploiements → Nouvelle version)'); } }   // action inconnue du script en ligne
       else setSync('ko', 'Erreur : ' + o.err);
       return null;
     }
@@ -1015,7 +1016,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 12h05';
+const VERSION_PAGE = '23/11/2026 - 12h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
