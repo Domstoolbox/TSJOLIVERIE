@@ -458,7 +458,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 22/11/2026 - 09h00</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 23/11/2026 - 08h20</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3125,7 +3125,7 @@ async function idCheckScan(b) {
   if (!o.trouve) { IDENT.essais++; if (IDENT.essais >= 5) { idStop(ID_REFUS); return; } idScan('Carte inconnue'); return; }
   if (IDENT.fermees.includes(o.classe) || !o.autorise) { idStop(ID_REFUS); return; }
   IDENT.classe = o.classe; IDENT.parScan = true;
-  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe };
+  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe, pap: !!o.pap };   // pap : coché dans la roue dentée du tableau de bord
   idConfirm();
 }
 function idClasses() {
@@ -3188,7 +3188,7 @@ async function idCheckBadge() {
     idBadge(true); return;
   }
   if (!o.autorise) { logIncident(`Identité : ${o.nom} ${o.prenom} (${o.classe}) non autorisé`); idStop(ID_REFUS); return; }
-  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe };
+  IDENT.who = { nom: o.nom, prenom: o.prenom, classe: o.classe, pap: !!o.pap };   // pap : coché dans la roue dentée du tableau de bord
   idConfirm();
 }
 // Signale au tableau de bord qu'un élève commence le test (« en cours ») ou que l'alarme s'est déclenchée. Sans réponse attendue.
@@ -3201,11 +3201,13 @@ function idActivite(etat) {
   } catch (e) {}
 }
 function idValide(nom, prenom, classe, mode) {
+  const papEleve = mode === 'badge' && !!(IDENT.who && IDENT.who.pap);   // seuls les élèves notés PAP dans le tableau de bord voient la question PAP
   IDENT.mode = mode; IDENT.who = { nom: nom.toLocaleUpperCase('fr-FR'), prenom, classe };
   IDENT.done = true; IDENT.step = 'done';
   logIncident(`Identité (${mode === 'badge' ? 'badge' : mode === 'autre' ? 'AUTRE' : 'non vérifiée'}) : ${IDENT.who.nom} ${prenom} — ${classe}`);
   document.getElementById('idwarning').hidden = true;
   idActivite('encours');
+  if (mode === 'badge' && !papEleve) { choosePap(false); return; }   // élève identifié sans PAP : la question n'est pas posée (AUTRE et identité saisie à la main : on la pose)
   checkNetworkState();
 }
 // Après le choix PAP (le test est construit) : les champs NOM, PRÉNOM et CLASSE sont remplis et verrouillés

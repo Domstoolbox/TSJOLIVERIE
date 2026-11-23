@@ -375,7 +375,9 @@ td.n{font-family:var(--fm);color:var(--muted)}
 .crow{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
 .crow input{height:40px;border:1px solid #c8ccd8;border-radius:10px;padding:0 12px;font:700 16px var(--fh);flex:1;min-width:160px}
 .erows{display:flex;flex-direction:column;gap:6px}
-.erow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 120px 62px 50px 40px 40px;gap:6px;align-items:center}
+.erow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 120px 62px 62px 50px 40px 40px;gap:6px;align-items:center}
+.erow .pap{width:62px;height:36px;border-radius:8px;border:0;font:800 14px var(--fh);letter-spacing:.04em;color:#fff;background:#b6bcc6;cursor:pointer}
+.erow .pap.on{background:#6f42c1}
 .erow .grp{width:62px;height:36px;border-radius:8px;border:0;font:800 16px var(--fh);color:#fff;cursor:pointer}
 .grp.gA,.stu .gb.gA{background:#0ea5e9}.grp.gB,.stu .gb.gB{background:#f59e0b}
 .erow .crd{width:40px;height:36px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#1e3a8a;display:grid;place-items:center}
@@ -424,11 +426,11 @@ td.n{font-family:var(--fm);color:var(--muted)}
   .cam{flex:none;height:260px}
   .students{grid-template-columns:repeat(2,minmax(0,1fr))}
   .stu{min-height:52px;padding:8px 10px}
-  .erow{grid-template-columns:repeat(12,minmax(0,1fr));gap:5px;padding-bottom:8px;border-bottom:1px solid var(--line)}
-  .erow input.nom{grid-column:span 7;padding:0 8px}
-  .erow input[data-f="prenom"]{grid-column:span 5;padding:0 8px}
+  .erow{grid-template-columns:repeat(14,minmax(0,1fr));gap:5px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .erow input.nom{grid-column:span 8;padding:0 8px}
+  .erow input[data-f="prenom"]{grid-column:span 6;padding:0 8px}
   .erow input[data-f="badge"]{grid-column:span 4;padding:0 6px;text-align:center}
-  .erow .grp,.erow .sw,.erow .crd,.erow .del{grid-column:span 2;width:100%;min-width:0}
+  .erow .grp,.erow .pap,.erow .sw,.erow .crd,.erow .del{grid-column:span 2;width:100%;min-width:0}
   .erow.h{display:none}
   .set .tabs{position:static;flex-direction:row;flex-wrap:wrap}
   .set .tab{flex:1 1 auto;gap:10px}
@@ -930,8 +932,8 @@ function renderSet() {
   const c = draft[curTab];
   if (!c) { $('setPane').innerHTML = '<div class="empty">Aucune classe. Clique sur « Ajouter une classe ».</div>'; return; }
   $('setPane').innerHTML = `<div class="crow"><input id="clsName" value="${esc(c.nom)}" aria-label="Nom de la classe" placeholder="Nom de la classe"><button type="button" class="btn dan" id="delCls">Supprimer la classe</button></div>
-    <div class="erows"><div class="erow h"><span>NOM</span><span>Prénom</span><span>N° de badge</span><span>Groupe</span><span>Statut</span><span></span><span></span></div>` +
-    c.eleves.map((e, i) => `<div class="erow" data-i="${i}"><input class="nom" data-f="nom" value="${esc(e.nom)}" aria-label="NOM"><input data-f="prenom" value="${esc(e.prenom)}" aria-label="Prénom"><input data-f="badge" value="${esc(e.badge || '')}" aria-label="N° de badge" inputmode="numeric" maxlength="6" placeholder="000000" style="font-family:var(--fm)"><button type="button" class="grp g${e.groupe === 'B' ? 'B' : 'A'}" data-grp title="Groupe (clic pour changer)" aria-label="Groupe ${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</button><button type="button" class="sw ${e.ok ? 'ok' : 'no'}" data-sw title="${e.ok ? 'Autorisé' : 'Bloqué'}" aria-label="${e.ok ? 'Autorisé' : 'Bloqué'}"></button><button type="button" class="crd" data-crd title="Fabriquer la carte de l’élève" aria-label="Fabriquer la carte"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button><button type="button" class="del" data-del title="Supprimer cet élève" aria-label="Supprimer">✕</button></div>`).join('') +
+    <div class="erows"><div class="erow h"><span>NOM</span><span>Prénom</span><span>N° de badge</span><span>Groupe</span><span>PAP</span><span>Statut</span><span></span><span></span></div>` +
+    c.eleves.map((e, i) => `<div class="erow" data-i="${i}"><input class="nom" data-f="nom" value="${esc(e.nom)}" aria-label="NOM"><input data-f="prenom" value="${esc(e.prenom)}" aria-label="Prénom"><input data-f="badge" value="${esc(e.badge || '')}" aria-label="N° de badge" inputmode="numeric" maxlength="6" placeholder="000000" style="font-family:var(--fm)"><button type="button" class="grp g${e.groupe === 'B' ? 'B' : 'A'}" data-grp title="Groupe (clic pour changer)" aria-label="Groupe ${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</button><button type="button" class="pap${e.pap ? ' on' : ''}" data-pap title="${e.pap ? 'Bénéficie d’un PAP' : 'Pas de PAP'} (clic pour changer)" aria-label="PAP : ${e.pap ? 'oui' : 'non'}" aria-pressed="${!!e.pap}">PAP</button><button type="button" class="sw ${e.ok ? 'ok' : 'no'}" data-sw title="${e.ok ? 'Autorisé' : 'Bloqué'}" aria-label="${e.ok ? 'Autorisé' : 'Bloqué'}"></button><button type="button" class="crd" data-crd title="Fabriquer la carte de l’élève" aria-label="Fabriquer la carte"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button><button type="button" class="del" data-del title="Supprimer cet élève" aria-label="Supprimer">✕</button></div>`).join('') +
     `</div><div style="margin-top:10px"><button type="button" class="btn sec" id="addStu">＋ Ajouter un élève</button></div>`;
 }
 $('setTabs').addEventListener('click', e => {
@@ -951,12 +953,13 @@ $('setPane').addEventListener('click', e => {
   const i = +r.dataset.i;
   if (e.target.closest('[data-sw]')) { c.eleves[i].ok = !c.eleves[i].ok; renderSet(); }
   if (e.target.closest('[data-grp]')) { c.eleves[i].groupe = c.eleves[i].groupe === 'B' ? 'A' : 'B'; renderSet(); }
+  if (e.target.closest('[data-pap]')) { c.eleves[i].pap = !c.eleves[i].pap; renderSet(); }
   if (e.target.closest('[data-del]')) { c.eleves.splice(i, 1); renderSet(); }
   if (e.target.closest('[data-crd]')) carteOuvrir(curTab, i);
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 07h45';
+const VERSION_PAGE = '23/11/2026 - 08h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
