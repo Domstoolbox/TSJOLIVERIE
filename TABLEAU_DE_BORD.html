@@ -175,8 +175,8 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .nt thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#0f172a;text-transform:none;letter-spacing:0;vertical-align:bottom;padding:8px 6px 6px;font:700 12.5px var(--f);width:140px;max-width:160px}
 .nt .ttl{display:block;white-space:normal;line-height:1.2;text-align:center;margin-bottom:6px}
 .nt .acts{display:flex;gap:4px;justify-content:center}
-.ntfait{display:flex;align-items:center;justify-content:center;gap:5px;margin:0 auto 6px;width:max-content;padding:3px 8px;border-radius:999px;border:1px solid var(--line);background:#fff;font:700 12px var(--f);color:var(--muted);cursor:pointer}
-.ntfait input{width:15px;height:15px;margin:0;accent-color:#16a34a;cursor:pointer}
+.ntfait{display:flex;align-items:center;justify-content:center;gap:4px;margin:0 auto 6px;width:max-content;max-width:100%;padding:2px 7px;border-radius:999px;border:1px solid var(--line);background:#fff;font:600 10.5px var(--f);white-space:normal;line-height:1.15;text-align:left;color:var(--muted);cursor:pointer}
+.ntfait input{flex:none;width:13px;height:13px;margin:0;accent-color:#16a34a;cursor:pointer}
 .ntfait.on{background:#dcfce7;border-color:#86efac;color:#166534}
 .ntfait.revoir{background:#ffedd5;border-color:#fdba74;color:#9a3412}
 .nt .acts button{height:28px;min-width:32px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;color:var(--ink);font:700 12px var(--f);display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px}
@@ -1015,7 +1015,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 12h00';
+const VERSION_PAGE = '23/11/2026 - 12h05';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1912,7 +1912,7 @@ const ntIco = { copy: '<svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11"
 // Case « recopié sur École Directe » : verte quand cochée ; « à revoir » si une note a changé depuis
 function ntFaitHtml(T, j) {
   const h = NT.carnet.fait && NT.carnet.fait[T.t], revoir = h && T.dern > h;
-  return `<label class="ntfait${h ? ' on' : ''}${revoir ? ' revoir' : ''}" title="${revoir ? 'Une note a changé depuis que vous avez coché' : 'Notes recopiées sur École Directe'}"><input type="checkbox" data-fait="${j}"${h ? ' checked' : ''}> ${revoir ? 'à revoir' : 'Recopié'}</label>`;
+  return `<label class="ntfait${h ? ' on' : ''}${revoir ? ' revoir' : ''}" title="${revoir ? 'Une note a changé depuis que vous avez coché' : 'Notes recopiées sur École Directe'}"><input type="checkbox" data-fait="${j}"${h ? ' checked' : ''}> ${revoir ? 'École Directe : à revoir' : 'École Directe'}</label>`;
 }
 function ntRender() {
   const N = NT, w = $('ntWrap'); if (!N) return;
