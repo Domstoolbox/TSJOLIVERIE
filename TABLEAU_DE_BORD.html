@@ -166,6 +166,30 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .findbar svg{width:20px;height:20px;color:var(--muted);flex:none}
 .lotbtn{height:38px;padding:0 14px;white-space:nowrap;font-size:14px}
 .findbar input{flex:1;border:0;outline:none;font:500 17px var(--f);background:transparent;min-width:0}
+.notewin{width:min(1400px,100%);height:min(900px,100%);display:flex;flex-direction:column}
+.ntbody{flex:1;min-height:0;overflow:auto;padding:0}
+.ntleg{margin-left:auto;margin-right:12px;display:flex;align-items:center;gap:8px;font:600 13px var(--f);color:rgba(255,255,255,.9);white-space:nowrap}
+.ntleg i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-left:8px}.ntleg i.b{background:#dbeafe}.ntleg i.m{background:#fff;box-shadow:inset 0 0 0 2px #f59e0b}
+.nt{border-collapse:separate;border-spacing:0;font-size:14px;width:auto;table-layout:auto}
+.nt th,.nt td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;height:34px}
+.nt thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#0f172a;text-transform:none;letter-spacing:0;vertical-align:bottom;padding:8px 6px 6px;font:700 12.5px var(--f);min-width:96px;max-width:150px}
+.nt .ttl{display:block;white-space:normal;line-height:1.2;text-align:center;margin-bottom:6px}
+.nt .acts{display:flex;gap:4px;justify-content:center}
+.nt .acts button{height:28px;min-width:32px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;color:var(--ink);font:700 12px var(--f);display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 6px}
+.nt .acts button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nt .acts button.arme{background:#dc2626;border-color:#dc2626;color:#fff}
+.nt th.el,.nt td.el{position:sticky;left:0;z-index:1;background:#fff;text-align:left;padding:0 12px;white-space:nowrap;min-width:220px;width:240px}
+.nt thead th.el{z-index:3;background:#f8fafc}
+.nt td.el b{font-weight:800}
+.nt td.v{text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;min-width:96px;width:120px}
+.nt td.v:hover{background:#f1f5f9}
+.nt td.v.bl{background:#dbeafe;color:#1e3a8a}
+.nt td.v.mn{box-shadow:inset 0 0 0 2px #f59e0b}
+.nt td.v.abs{color:#b91c1c;font-weight:700}
+.nt td.v.sel{background:#dcfce7!important;color:#14532d}
+.nt td.v input{width:100%;height:32px;border:0;outline:2px solid #6d28d9;text-align:center;font:inherit;background:#fff}
+.nt td.v input.bad{outline-color:#dc2626}
+.ntvide{padding:30px;color:var(--muted)}
 .findfil{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line)}
 .findfil:empty{display:none}
 .findfil .fch{height:34px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font:700 14px var(--f);color:var(--ink);cursor:pointer;white-space:nowrap}
@@ -547,7 +571,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <!-- Liste d'une classe -->
 <div class="ov" id="ovClass" hidden>
   <div class="win" role="dialog" aria-modal="true" aria-labelledby="clT">
-    <div class="whead" id="clHead"><h3 id="clT"></h3><button type="button" class="wact" id="clAppel" title="Faire l’appel avec les cartes"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg><span>Appel</span></button><button type="button" class="wact" id="clExport" title="Exporter les notes (meilleure note sur 20)"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="whead" id="clHead"><h3 id="clT"></h3><button type="button" class="wact" id="clAppel" title="Faire l’appel avec les cartes"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg><span>Appel</span></button><button type="button" class="wact" id="clNotes" title="Carnet de notes"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9h17M9 9v11.5M14.5 9v11.5"/></svg><span>Notes</span></button><button type="button" class="wact" id="clExport" title="Exporter les notes (meilleure note sur 20)"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
     <div class="wbody">
       <div class="apchoix" id="apChoix" hidden></div>
       <div class="apbar" id="apBar" hidden><div class="apcam"><video id="apVideo" playsinline muted></video><button type="button" class="apsw" id="apSwitch" title="Changer de caméra" aria-label="Changer de caméra"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><path d="M9.5 13.5a2.8 2.8 0 0 1 5-1.6M14.5 13.5a2.8 2.8 0 0 1-5 1.6"/><path d="M14.8 10.6v1.6h-1.6M9.2 16.4v-1.6h1.6"/></svg></button><div class="viseur" aria-hidden="true"></div></div><div class="apinfo"><div class="apcnt" id="apCnt"></div><div class="apmsg" id="apMsg"></div><button type="button" class="btn pri" id="apFin">Terminer l’appel</button></div></div>
@@ -589,6 +613,12 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </div>
 </div>
 
+<div class="ov" id="ovNotes" hidden>
+  <div class="win notewin" role="dialog" aria-modal="true" aria-labelledby="ntT">
+    <div class="whead" style="background:linear-gradient(110deg,#4338ca,#6d28d9)"><h3 id="ntT">Notes</h3><span class="ntleg"><i class="b"></i>test refait<i class="m"></i>note changée à la main</span><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="wbody ntbody"><div id="ntWrap"></div></div>
+  </div>
+</div>
 <div class="ov" id="ovFind" hidden>
   <div class="win findwin" role="dialog" aria-modal="true" aria-label="Retrouver une copie">
     <div class="whead" style="background:linear-gradient(110deg,#0f766e,#0e7490)"><h3>Copies</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
@@ -979,7 +1009,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 10h45';
+const VERSION_PAGE = '23/11/2026 - 11h45';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1843,6 +1873,98 @@ function courbe(N) {
 }
 
 // ---------- Export des notes d'une classe : meilleure note sur 20 pour chaque test et certificat ----------
+// ---------- Carnet de notes d'une classe : élèves (ordre de la classe = ordre d'École Directe) × tests, meilleure note sur 20 ----------
+let NT = null;   // { classe, eleves, tests:[{t, cells:{k:{v, bl, mn}}}], carnet }
+const ntBase = t => String(t).replace(/\s*\(.*\)\s*$/, '').trim().toUpperCase();
+const ntMs = c => { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(c.date || ''), h = /(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(c.fin || '') || [0, 0, 0, 0]; return m ? new Date(+m[3], m[1 + 1] - 1, +m[1], +h[1], +h[2], +(h[3] || 0)).getTime() : 0; };
+function ntCalcul(liste, carnet, c) {
+  const eleves = c.eleves.map(e => ({ nom: e.nom, prenom: e.prenom, k: cleNom(e.nom, e.prenom) })), parK = {};
+  eleves.forEach(x => parK[x.k] = x);
+  const T = {};
+  liste.forEach(cp => {
+    const x = parK[cleNom(cp.nom, cp.prenom)], v = sur20(cp), t = ntBase(cp.test), ms = ntMs(cp);
+    if (!x || isNaN(v) || ms <= (carnet.suppr[t] || 0)) return;   // copie d'avant la suppression de la colonne : oubliée
+    const col = T[t] = T[t] || { t, prem: ms, essais: {} };
+    col.prem = Math.min(col.prem, ms);
+    (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms });
+  });
+  const tests = Object.values(T).sort((a, b) => a.prem - b.prem).map(col => {
+    const cells = {};
+    eleves.forEach(x => {
+      const man = carnet.notes[col.t + '#' + x.k], L = (col.essais[x.k] || []).sort((a, b) => a.ms - b.ms);
+      if (man) { cells[x.k] = { v: man.v, mn: true }; return; }   // note changée à la main : prioritaire
+      if (!L.length) { cells[x.k] = { v: '' }; return; }
+      const best = Math.max(...L.map(e => e.v));
+      cells[x.k] = { v: fmt1(Math.round(best * 10) / 10), bl: L.length > 1 && best > L[0].v };   // refait et meilleure note : fond bleu
+    });
+    return { t: col.t, cells };
+  });
+  return { classe: c.nom, eleves, tests, carnet };
+}
+const ntIco = { copy: '<svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg>', del: '<svg viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg>' };
+function ntRender() {
+  const N = NT, w = $('ntWrap'); if (!N) return;
+  $('ntT').textContent = 'Notes · ' + N.classe;
+  if (!N.tests.length) { w.innerHTML = '<div class="ntvide">Aucune note pour cette classe.</div>'; return; }
+  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th><span class="ttl">${esc(T.t)}</span><span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
+    N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
+}
+async function ntOuvrir() {
+  const c = S && S.classes[curCls]; if (!c) return;
+  $('ntT').textContent = 'Notes · ' + c.nom; $('ntWrap').innerHTML = '<div class="ntvide">Chargement…</div>'; $('ovNotes').hidden = false;
+  const o = await call('carnet', { classe: c.nom });
+  if (!o || !o.carnet) { $('ntWrap').innerHTML = '<div class="ntvide">Carnet indisponible : le script du tableau de bord doit être redéployé.</div>'; return; }
+  NT = ntCalcul(o.liste || [], o.carnet, c); NT.liste = o.liste || []; ntRender();
+}
+$('clNotes').onclick = ntOuvrir;
+function ntNorm(v) {   // « 12.25 » → « 12,3 » ; « ABS » → « abs » ; vide = case vide ; sinon null (refusé)
+  v = String(v || '').trim();
+  if (!v) return '';
+  if (/^abs$/i.test(v)) return 'abs';
+  const n = parseFloat(v.replace(',', '.'));
+  return /^\d{1,2}([.,]\d+)?$/.test(v) && n >= 0 && n <= 20 ? fmt1(Math.round(n * 10) / 10) : null;
+}
+$('ntWrap').addEventListener('click', async e => {
+  const N = NT; if (!N) return;
+  const cp = e.target.closest('[data-cp]');
+  if (cp) {   // une note par ligne, dans l'ordre des élèves ; « abs » tel quel ; vide si pas de note
+    const T = N.tests[+cp.dataset.cp], txt = N.eleves.map(x => (T.cells[x.k] || {}).v || '').join('\r\n');
+    let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch (er) {}
+    if (!ok) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (er) {} ta.remove(); }
+    $('ntWrap').querySelectorAll('td.sel').forEach(x => x.classList.remove('sel'));
+    $('ntWrap').querySelectorAll(`td.v[data-j="${cp.dataset.cp}"]`).forEach(x => x.classList.add('sel'));
+    toast(ok ? `${T.t} copié : collez dans École Directe (Ctrl+V)` : 'Copie impossible');
+    return;
+  }
+  const sp = e.target.closest('[data-sp]');
+  if (sp) {   // 1er clic : « Supprimer ? » (3 s) ; 2e clic : la colonne disparaît
+    if (!sp.classList.contains('arme')) { sp.classList.add('arme'); sp.textContent = 'Supprimer ?'; setTimeout(() => ntRender(), 3000); return; }
+    const T = N.tests[+sp.dataset.sp]; N.tests.splice(+sp.dataset.sp, 1); ntRender();
+    const o = await call('carnetSuppr', { classe: N.classe, test: T.t }); if (o && o.carnet) N.carnet = o.carnet;
+    return;
+  }
+  const td = e.target.closest('td.v'); if (!td || td.querySelector('input')) return;
+  const x = N.eleves[+td.dataset.i], T = N.tests[+td.dataset.j], av = (T.cells[x.k] || {}).v || '';
+  td.innerHTML = `<input value="${esc(av)}" aria-label="Note de ${esc(x.prenom)} ${esc(x.nom)}">`;
+  const inp = td.querySelector('input'); inp.focus(); inp.select();
+  let fini = false;
+  const valider = async (garder) => {
+    if (fini) return;
+    const v = ntNorm(inp.value);
+    if (garder && v === null) { inp.classList.add('bad'); inp.focus(); return; }   // ni nombre de 0 à 20, ni « abs », ni vide
+    fini = true;
+    if (!garder || v === av) { ntRender(); return; }
+    T.cells[x.k] = { v, mn: true }; ntRender();
+    const o = await call('carnetNote', { classe: N.classe, test: T.t, nom: x.nom, prenom: x.prenom, valeur: v }); if (o && o.carnet) N.carnet = o.carnet;
+  };
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === 'Tab') { ev.preventDefault(); valider(true).then(() => { if (!fini) return; const nx = $('ntWrap').querySelector(`td.v[data-i="${+td.dataset.i + 1}"][data-j="${td.dataset.j}"]`); if (nx) nx.click(); }); }   // Entrée : note suivante dans la colonne
+    else if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); valider(false); }   // Échap : annule la saisie sans fermer le carnet
+  });
+  inp.addEventListener('input', () => inp.classList.remove('bad'));
+  inp.addEventListener('blur', () => setTimeout(() => valider(ntNorm(inp.value) !== null), 0));   // clic ailleurs : note gardée si elle est valable, sinon annulée
+});
+
 $('clExport').onclick = async () => {
   const c = S && S.classes[curCls]; if (!c) return;
   const o = await call('recherche'); if (!o) { toast('Export impossible'); return; }
