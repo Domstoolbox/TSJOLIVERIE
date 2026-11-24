@@ -478,6 +478,13 @@ td.n{font-family:var(--fm);color:var(--muted)}
   #ovSet .wfoot .btn{padding:0 6px;white-space:nowrap;flex:1 1 auto;min-width:0;font-size:13.5px}
   #ovSet .wfoot .grow{display:none}
   .whead{padding:12px 14px} .wbody{padding:12px 14px}
+  .wbody.ntbody{padding:0}   /* carnet : sans marge, sinon les lignes défilent visibles au-dessus et à gauche des en-têtes figés */
+  #ovNotes .whead{flex-wrap:wrap;row-gap:4px}
+  #ovNotes .whead h3{font-size:20px;white-space:nowrap}
+  #ovNotes .ntleg{order:3;flex:1 1 100%;margin:0;font-size:12px}
+  #ovNotes .ntleg i:first-child{margin-left:0}
+  #ovNotes .whead .x{flex:none}
+  .nt th.el,.nt td.el{min-width:0;width:auto;max-width:150px;white-space:normal;line-height:1.15;padding:4px 8px}
 }
 @media (max-width:760px){.mid{grid-template-columns:1fr}.card.vide{display:none}.livelist,.posts{max-height:320px}.set{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1b1b1f;color:#fff;border-radius:12px;padding:10px 16px;font-weight:600;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -1009,7 +1016,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '23/11/2026 - 15h55';
+const VERSION_PAGE = '24/11/2026 - 05h15';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
