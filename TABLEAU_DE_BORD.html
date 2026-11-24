@@ -1017,7 +1017,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 15h30';
+const VERSION_PAGE = '24/11/2026 - 15h35';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1485,10 +1485,11 @@ function appelSync(ok) {
 }
 async function appelSuivi() {
   const A = APPEL; if (!A || !A.partage || appelSuivi.busy) return;
-  appelSuivi.busy = true; let o = null;
+  appelSuivi.busy = true; let o = null; const seq0 = SEQ;
   try { o = await (await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'appelEtat', mdp, classe: A.nom }), redirect: 'follow' })).json(); } catch (e) {}
   appelSuivi.busy = false;
   if (APPEL !== A || !o || !o.ok) return;
+  if (SEQ !== seq0 || MODIFS_EN_COURS > 0) return;   // une tuile a changé ici pendant la lecture : réponse périmée, ignorée (sinon la tuile repasse un instant en rouge)
   if (!o.appel || o.appel.id !== A.id) { appelFermer(A, 'Appel terminé sur un autre poste'); return; }
   const avant = appelNb(A); appelSync(o.okClasse || {});
   render(); if (!$('ovClass').hidden) renderClass();
