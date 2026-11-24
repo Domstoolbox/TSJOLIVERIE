@@ -455,7 +455,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 24/11/2026 - 11h00</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 24/11/2026 - 18h38</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -2049,7 +2049,7 @@ function startTest(n) {
   RES.length = 0;
   quiz.innerHTML = '';
   Q.forEach((q, i) => {
-    let body = isNumQ(q) ? `<div class="numrow calcin" data-i="${i}"><div class="cdisp" tabindex="0" role="textbox" aria-label="Réponse" onkeydown="numKeydown(event, ${i})"><span class="cval"><span class="ph">Touche les chiffres ci-dessous</span></span>${q.u ? `<span class="cunit">${q.u}</span>` : ''}</div><input type="text" class="numans plain" name="q${i}" data-sig="3" tabindex="-1" aria-hidden="true"><p class="numprev">&nbsp;</p><div class="numpad" onpointerdown="event.preventDefault()">${NUMPAD_KEYS.map(([k, c]) => `<button type="button" class="${c || ''}" onclick="numKey(${i}, '${k}')">${k}</button>`).join('')}</div><p class="numhelp">Exemple : 9,88 × 10<sup>−4</sup> → tape 9.88 puis ×10<sup>−n</sup> puis 4</p></div>` : q.o.map((o, j) => `<div class="optrow"><label class="opt"><input type="${isMultiQ(q) ? 'checkbox' : 'radio'}"${isMultiQ(q) ? ' class="mq"' : ''} name="q${i}" value="${j}" onchange="testStarted=true;markAnswerStart()">${String.fromCharCode(65 + j)} : ${o}</label>${TTS_OK ? `<button type="button" class="tts sm" aria-label="Lire la réponse ${String.fromCharCode(65 + j)}" title="Lire la réponse" onclick="speakOption(this)">${TTS_ICON}</button>` : ''}</div>`).join("");
+    let body = isNumQ(q) ? `<div class="numrow calcin" data-i="${i}"><div class="cdisp" tabindex="0" role="textbox" aria-label="Réponse" onkeydown="numKeydown(event, ${i})"><span class="cval"><span class="ph">Touche les chiffres ci-dessous</span></span>${q.u ? `<span class="cunit">${q.u}</span>` : ''}</div><input type="text" class="numans plain" name="q${i}" data-sig="3" tabindex="-1" aria-hidden="true"><p class="numprev">&nbsp;</p><div class="numpad" onpointerdown="event.preventDefault()">${NUMPAD_KEYS.map(([k, c]) => `<button type="button" class="${c || ''}" onclick="numKey(${i}, '${k}')">${k}</button>`).join('')}</div><p class="numhelp">Exemple : 9,88 × 10<sup>−4</sup> → tape 9.88 puis ×10<sup>−n</sup> puis 4</p></div>` : q.o.map((o, j) => `<div class="optrow"><label class="opt"><input type="${isMultiQ(q) ? 'checkbox' : 'radio'}"${isMultiQ(q) ? ' class="mq"' : ''} name="q${i}" value="${j}" onchange="testStarted=true;markAnswerStart()">${noBreak(String.fromCharCode(65 + j) + ' : ' + o)}</label>${TTS_OK ? `<button type="button" class="tts sm" aria-label="Lire la réponse ${String.fromCharCode(65 + j)}" title="Lire la réponse" onclick="speakOption(this)">${TTS_ICON}</button>` : ''}</div>`).join("");
     quiz.insertAdjacentHTML('beforeend', `<section class="q" data-i="${i}"><h2><span class="n">${String(i + 1).padStart(2, '0')}</span><span>${noBreak(q.t)}${q.img ? `<img class="qimg" src="${q.img}" alt="Graphiques du document" draggable="false">` : ''}</span>${TTS_OK ? `<button type="button" class="tts" aria-label="Lire la question à voix haute" title="Lire la question" onclick="speakQuestion(${i}, this)">${TTS_ICON}</button>` : ''}${q.calc === false ? '' : `<button type="button" class="calcbtn" aria-label="Ouvrir la calculatrice" title="Calculatrice" onclick="openCalc(${i}, this)">${CALC_ICON}</button>`}</h2>${body}<div class="res" id="r${i}" hidden></div></section>`);
   });
   showQ(0);
@@ -2652,6 +2652,16 @@ function noBreak(s) {
   s = s.replace(/ (x|×|\+|−|→|⇒) /g, NB + '$1 ');               // « + », « × », « → » : coupure possible APRÈS le signe seulement
   // valeur + unité (ou nombre + mot suivant)
   s = s.replace(/(\d[²³]?|<\/sup>|<\/sub>) (?=[A-Za-zÀ-ÿµμΩ°%])/g, '$1' + NB);
+  // nombre écrit par groupes de trois chiffres (149 597 871) : jamais coupé
+  s = s.replace(/(\d) (?=\d{3}(?!\d))/g, '$1' + NB).replace(/(\d) (?=\d{3}(?!\d))/g, '$1' + NB);
+  // petit mot (à, la, le, de, un, les, une…) jamais seul en fin de ligne
+  for (let k = 0; k < 2; k++) s = s.replace(/(^|[\s>(«’'])([A-Za-zÀ-ÖØ-öø-ÿ]{1,3}) (?=[^\s<])/g, '$1$2' + NB);
+  // premier mot d’une phrase (« . Quelle », « . La ») : jamais seul en fin de ligne, lié au mot qui suit
+  s = s.replace(/([.!?])(\s+)([^\s<]+) /g, '$1$2$3' + NB);
+  // lettre seule désignant une grandeur (P, S, I, U…) en fin de phrase : jamais seule en début de ligne, liée au mot qui précède
+  s = s.replace(/ ([A-Z](?:<su[bp]>[^<]*<\/su[bp]>)?)(?=\s?[.,;:?!)]|$)/g, NB + '$1');
+  // dernier mot très court (≤ 3 lettres) : jamais seul sur la dernière ligne
+  s = s.replace(/ ([^\s<>]{1,3}[\s.,;:?!)]*)$/, NB + '$1');
   // ponctuation et parenthèses
   s = s.replace(/ ([?!:;»)])/g, NB + '$1').replace(/([«(]) /g, '$1' + NB);
   return s;
