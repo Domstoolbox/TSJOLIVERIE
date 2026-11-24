@@ -238,6 +238,7 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 .apchoix .gA{background:#0ea5e9}.apchoix .gB{background:#f59e0b}.apchoix .gT{background:#475569}
 .apcours{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#eef2ff;color:#1e3a8a;font:700 16px var(--f)}
 .apcours:empty{display:none}.apcours svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.apsuppr{flex:none;border:2px solid #dc2626;background:#fff;color:#dc2626;border-radius:10px;padding:6px 12px;font:800 14px var(--f);cursor:pointer}.apsuppr.sure{background:#dc2626;color:#fff}
 .apcours.vide{background:var(--bg);color:var(--muted);font-weight:600}
 .apchoix.pre button{opacity:.5}.apchoix.pre button.pre{opacity:1;box-shadow:0 0 0 4px #fff,0 0 0 7px #1e3a8a}
 .aplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
@@ -1017,7 +1018,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 15h35';
+const VERSION_PAGE = '24/11/2026 - 15h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1625,6 +1626,22 @@ function appelChoix(pre, montrer) {   // pre = { groupe, txt } : cours trouvé d
   $('apChoix').classList.toggle('pre', !!pre);
   $('apChoix').hidden = pre || montrer ? false : !$('apChoix').hidden;
 }
+// Supprimer l'appel affiché : 1er appui « Confirmer ? », 2e appui = supprimé partout (onglet Appel, post-it), les élèves concernés repassent en vert
+async function appelSupprimer(b) {
+  if (!VUE) return;
+  if (!b.classList.contains('sure')) { b.classList.add('sure'); b.textContent = 'Confirmer la suppression ?'; setTimeout(() => { if (b.isConnected) { b.classList.remove('sure'); b.textContent = '🗑 Supprimer cet appel'; } }, 4000); return; }
+  const V = VUE, c = S.classes[V.cls], ck = edtH(V.cours.s), concernes = Object.keys(V.st || {});
+  b.disabled = true;
+  if (APL_FAITS[c.nom]) delete APL_FAITS[c.nom][ck];
+  if (S.appelsJour && S.appelsJour[c.nom]) delete S.appelsJour[c.nom][ck];
+  c.eleves.forEach(e => { if (concernes.includes(cleNom(e.nom, e.prenom))) e.ok = true; });
+  const o = await call('appelSuppr', { classe: c.nom, cours: ck, concernes });
+  const tete = `📋 Appel du ${paJour()} — ${c.nom} · `;
+  paEcrire(L => { const i = L.findIndex(p => { const l1 = String(p.texte).split('\n')[0]; return l1.startsWith(tete) && l1.endsWith(' · ' + ck); }); if (i < 0) return false; L.splice(i, 1); });
+  VUE = null; $('apChoix').hidden = true; render(); renderClass();
+  toast(o ? 'Appel supprimé' : 'Suppression non enregistrée : réessayez');
+}
+$('apChoix').addEventListener('click', e => { const s = e.target.closest('#apSuppr'); if (s) { appelSupprimer(s); return; } });
 $('apChoix').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; $('apChoix').hidden = true; appelDebut(b.dataset.g); });
 $('clAppel').onclick = () => { if (APPEL) appelFin(); else $('btnAppel').onclick(); };
 $('apFin').onclick = appelFin;
@@ -1727,7 +1744,7 @@ function appelCours(x) {
   ouvrirClasse(cl.i);
   if (!fait) { appelDebut(cl.groupe, x); return; }
   VUE = { cls: cl.i, groupe: cl.groupe, debut: fait.debut, cours: x, st: fait.st };
-  $('apChoix').innerHTML = `<div class="apcours">${EDT_ICO}<span>Appel effectué le ${paJour()} à ${esc(String(fait.debut).replace(':', 'h'))} · ${edtTxt(x, cl)}</span></div>`;
+  $('apChoix').innerHTML = `<div class="apcours">${EDT_ICO}<span style="flex:1">Appel effectué le ${paJour()} à ${esc(String(fait.debut).replace(':', 'h'))} · ${edtTxt(x, cl)}</span><button type="button" class="apsuppr" id="apSuppr">🗑 Supprimer cet appel</button></div>`;
   $('apChoix').classList.remove('pre'); $('apChoix').hidden = false;
   renderClass();
 }
