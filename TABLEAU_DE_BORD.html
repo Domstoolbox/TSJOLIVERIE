@@ -238,7 +238,7 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 .apchoix .gA{background:#0ea5e9}.apchoix .gB{background:#f59e0b}.apchoix .gT{background:#475569}
 .apcours{flex:1 1 100%;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:#eef2ff;color:#1e3a8a;font:700 16px var(--f)}
 .apcours:empty{display:none}.apcours svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.apsuppr{flex:none;border:2px solid #dc2626;background:#fff;color:#dc2626;border-radius:10px;padding:6px 12px;font:800 14px var(--f);cursor:pointer}.apsuppr.sure{background:#dc2626;color:#fff}
+.apchoix .apsuppr{flex:none;min-width:0;border:2px solid #dc2626;background:#fff;color:#dc2626;border-radius:10px;padding:8px 14px;font:800 15px var(--f);text-align:center;cursor:pointer;white-space:nowrap}.apchoix .apsuppr.sure{background:#dc2626;color:#fff}
 .apcours.vide{background:var(--bg);color:var(--muted);font-weight:600}
 .apchoix.pre button{opacity:.5}.apchoix.pre button.pre{opacity:1;box-shadow:0 0 0 4px #fff,0 0 0 7px #1e3a8a}
 .aplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
@@ -1018,7 +1018,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 15h40';
+const VERSION_PAGE = '24/11/2026 - 21h00';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
