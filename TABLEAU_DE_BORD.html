@@ -478,13 +478,6 @@ td.n{font-family:var(--fm);color:var(--muted)}
   #ovSet .wfoot .btn{padding:0 6px;white-space:nowrap;flex:1 1 auto;min-width:0;font-size:13.5px}
   #ovSet .wfoot .grow{display:none}
   .whead{padding:12px 14px} .wbody{padding:12px 14px}
-  .wbody.ntbody{padding:0}   /* carnet : sans marge, sinon les lignes défilent visibles au-dessus et à gauche des en-têtes figés */
-  #ovNotes .whead{flex-wrap:wrap;row-gap:4px}
-  #ovNotes .whead h3{font-size:20px;white-space:nowrap}
-  #ovNotes .ntleg{order:3;flex:1 1 100%;margin:0;font-size:12px}
-  #ovNotes .ntleg i:first-child{margin-left:0}
-  #ovNotes .whead .x{flex:none}
-  .nt th.el,.nt td.el{min-width:0;width:auto;max-width:150px;white-space:normal;line-height:1.15;padding:4px 8px}
 }
 @media (max-width:760px){.mid{grid-template-columns:1fr}.card.vide{display:none}.livelist,.posts{max-height:320px}.set{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1b1b1f;color:#fff;border-radius:12px;padding:10px 16px;font-weight:600;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -566,7 +559,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </div>
 </div>
 
-<!-- Appel : choix de la classe quand l'agenda ne donne pas de cours -->
+<!-- Appel : choix de la classe -->
 <div class="ov" id="ovAppel" hidden>
   <div class="win" role="dialog" aria-modal="true" aria-labelledby="aplT" style="width:min(560px,100%)">
     <div class="whead" style="background:linear-gradient(135deg,#1b1b1f,#3f3f46)"><h3 id="aplT">Appel</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
@@ -1016,7 +1009,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 05h15';
+const VERSION_PAGE = '24/11/2026 - 11h55';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1456,7 +1449,7 @@ async function appelDebut(groupe) {
   // appel déjà fait aujourd'hui pour ce groupe : on reprend (seuls les absents badgent, comme retardataires)
   const reprise = L.length > 0 && L.every(e => aj[cleNom(e.nom, e.prenom)]);
   const concernes = reprise ? L : L.filter(e => !aj[cleNom(e.nom, e.prenom)]);
-  const xc = typeof edtMaintenant === 'function' ? edtMaintenant() : null, cours = xc && edtClasse(xc.c).i === curCls ? xc : null;   // cours de l'agenda (pour le post-it)
+  const cours = null;   // l'agenda n'est plus lu pour l'appel : le post-it indique l'heure de l'appel
   // Appel partagé : le script démarre l'appel, ou renvoie celui déjà lancé sur un autre poste (on le rejoint)
   const o = await call('appelDebut', { classe: c.nom, groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) });
   const a = o && o.appel ? o.appel : { id: '', groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) };
@@ -1614,14 +1607,14 @@ async function appelFin() {
   } else { postitAppel(A, c.nom, absents); o = await call('appel', { classe: c.nom, presents, absents }); }
   if (o) toast(`Appel enregistré : ${presents.length} présent${presents.length > 1 ? 's' : ''}, ${absents.length} absent${absents.length > 1 ? 's' : ''}`);
 }
-function appelChoix(pre) {   // pre = { groupe, txt } : cours trouvé dans l'agenda (groupe présélectionné)
+function appelChoix(pre, montrer) {   // pre = { groupe, txt } : cours trouvé dans l'agenda (groupe présélectionné)
   const c = S && S.classes[curCls]; if (!c) return;
   const n = g => c.eleves.filter(e => !g || (e.groupe === 'B' ? 'B' : 'A') === g).length, aj = (S.appelJour && S.appelJour[c.nom]) || {};
   const fait = g => { const L = c.eleves.filter(e => !g || (e.groupe === 'B' ? 'B' : 'A') === g); return L.length && L.every(e => aj[cleNom(e.nom, e.prenom)]); };
   const b = (g, cls, t) => `<button type="button" class="${cls}${pre && pre.groupe === g ? ' pre' : ''}" data-g="${g}">${t}<small>${n(g)} élève${n(g) > 1 ? 's' : ''}${fait(g) ? ' · appel déjà fait : retardataires' : ''}</small></button>`;
   $('apChoix').innerHTML = (pre ? `<div class="apcours">${EDT_ICO}<span>${pre.txt}</span></div>` : '') + b('A', 'gA', 'Groupe A') + b('B', 'gB', 'Groupe B') + b('', 'gT', 'Classe entière');
   $('apChoix').classList.toggle('pre', !!pre);
-  $('apChoix').hidden = pre ? false : !$('apChoix').hidden;
+  $('apChoix').hidden = pre || montrer ? false : !$('apChoix').hidden;
 }
 $('apChoix').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; $('apChoix').hidden = true; appelDebut(b.dataset.g); });
 $('clAppel').onclick = () => { if (APPEL) appelFin(); else appelChoix(); };
@@ -1689,15 +1682,12 @@ function ouvrirClasse(i) { curCls = i; $('clHead').className = 'whead c' + (i % 
 $('btnAppel').onclick = async () => {
   if (!S) { askLogin(''); return; }
   if (APPEL) { ouvrirClasse(APPEL.cls); return; }
-  const b = $('btnAppel'); b.disabled = true; await edtCharger(); b.disabled = false;
-  const x = edtMaintenant(), cl = x && edtClasse(x.c);
-  if (x && cl.i >= 0) { $('ovAppel').hidden = true; ouvrirClasse(cl.i); appelChoix({ groupe: cl.groupe, txt: edtTxt(x, cl) }); return; }
-  $('aplInfo').className = 'apcours vide';
-  $('aplInfo').innerHTML = EDT_ICO + '<span>' + (!EDT ? 'Agenda injoignable' : x ? esc(x.c) + ' : classe absente du tableau de bord' : 'Pas de cours en ce moment') + '</span>';
+  // choix manuel de la classe (l'agenda n'est plus interrogé pour l'appel)
+  $('aplInfo').hidden = true; $('aplInfo').innerHTML = '';
   $('aplList').innerHTML = S.classes.map((c, i) => `<button type="button" class="c${i % 6}" data-i="${i}">${esc(c.nom)}</button>`).join('');
   $('ovAppel').hidden = false;
 };
-$('aplList').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; $('ovAppel').hidden = true; ouvrirClasse(+b.dataset.i); appelChoix(); });
+$('aplList').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; $('ovAppel').hidden = true; ouvrirClasse(+b.dataset.i); appelChoix(null, true); });
 
 // Mélodies : 1 minute avant le début de chacun de mes cours, et 1 minute avant la fin (tableau de bord ouvert)
 function edtNote(c, f, t0, dur, vol) {
