@@ -273,7 +273,7 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 .apmsg.ok{background:#dcfce7;color:#166534} .apmsg.ko{background:#fee2e2;color:#991b1b} .apmsg.deja{background:#fef9c3;color:#854d0e}
 #apFin{align-self:flex-start}
 .stu.present{box-shadow:inset 0 0 0 3px #fff}
-.stu.horsgrp{opacity:.35}
+.stu.horsgrp{display:none}
 .stu.flash{animation:stuFlash .9s}
 @keyframes stuFlash{0%{transform:scale(1.12)}100%{transform:none}}
 .stu{touch-action:manipulation;-webkit-touch-callout:none;user-select:none}
@@ -967,7 +967,8 @@ function renderClass() {
   const act = {};
   (S.activite || []).forEach(a => { const k = cleEl(a.classe, a.nom, a.prenom); if (!act[k] || a.etat !== 'fini' || act[k].etat === 'fini') act[k] = a; });
   $('students').innerHTML = c.eleves.map((e, i) => { const a = act[cleEl(c.nom, e.nom, e.prenom)];
-    const pr = APPEL && APPEL.cls === curCls ? (APPEL.presents.has(cleNom(e.nom, e.prenom)) ? ' present' : APPEL.concernes.has(cleNom(e.nom, e.prenom)) ? '' : ' horsgrp') : '';
+    const pr = APPEL && APPEL.cls === curCls ? (APPEL.presents.has(cleNom(e.nom, e.prenom)) ? ' present' : APPEL.concernes.has(cleNom(e.nom, e.prenom)) ? '' : ' horsgrp')
+      : VUE && VUE.cls === curCls && !VUE.st[cleNom(e.nom, e.prenom)] ? ' horsgrp' : '';
     return `<button type="button" class="stu ${e.ok ? 'ok' : 'no'}${pr}" data-i="${i}" aria-pressed="${e.ok}"><i class="gb g${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</i><b>${esc(e.nom)}</b><span>${esc(e.prenom)}</span>${a ? `<small class="${etatCls(a)}">${esc(a.test)} · ${etatTxt(a)}</small>` : ''}</button>`; }).join('') || '<div class="empty">Aucun élève dans cette classe.</div>';
 }
 $('students').addEventListener('click', async e => {
@@ -1016,7 +1017,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 11h56';
+const VERSION_PAGE = '24/11/2026 - 15h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1449,14 +1450,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.b
 // ---------- Appel par badge : la classe passe en rouge, chaque carte scannée passe l'élève en vert ----------
 var APPEL = null;   // { cls, nom, presents: Set, stream, raf, last, lastT }
 const normNP = t => sansAccent(String(t || '')).toLowerCase().replace(/\s+/g, ' ').trim(), cleNom = (n, p) => normNP(n) + '|' + normNP(p);   // même clé que le script
-async function appelDebut(groupe) {
+async function appelDebut(groupe, x) {   // x : le cours de l'agenda pour lequel on fait l'appel
   const c = S && S.classes[curCls]; if (!c) return;
-  const aj = (S.appelJour && S.appelJour[c.nom]) || {};
-  const L = c.eleves.filter(e => !groupe || (e.groupe === 'B' ? 'B' : 'A') === groupe);
-  // appel déjà fait aujourd'hui pour ce groupe : on reprend (seuls les absents badgent, comme retardataires)
-  const reprise = L.length > 0 && L.every(e => aj[cleNom(e.nom, e.prenom)]);
-  const concernes = reprise ? L : L.filter(e => !aj[cleNom(e.nom, e.prenom)]);
-  const cours = null;   // l'agenda n'est plus lu pour l'appel : le post-it indique l'heure de l'appel
+  VUE = null;
+  const concernes = c.eleves.filter(e => !groupe || (e.groupe === 'B' ? 'B' : 'A') === groupe), reprise = false;
+  const cours = x ? { s: x.s, e: x.e, r: x.r || '', k: edtH(x.s) } : null;
   // Appel partagé : le script démarre l'appel, ou renvoie celui déjà lancé sur un autre poste (on le rejoint)
   const o = await call('appelDebut', { classe: c.nom, groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) });
   const a = o && o.appel ? o.appel : { id: '', groupe, reprise, cours, debutMin: new Date().getHours() * 60 + new Date().getMinutes(), concernes: concernes.map(e => cleNom(e.nom, e.prenom)) };
@@ -1586,17 +1584,18 @@ window.tdbCarte = function (code) {
   if (!el) { M('ko', 'Carte inconnue'); sonKo(); return; }
   if (APPEL && S.classes[APPEL.cls] === c) { appelLu(code); return; }
   const nomH = `<b>${esc(String(el.nom).toUpperCase())} ${esc(el.prenom)}</b>${esc(c.nom)}`, k = cleNom(el.nom, el.prenom);
-  const aj = S.appelJour && S.appelJour[c.nom];
-  if (!aj || !aj[k]) { M('ok', '🪪' + nomH); sonOk(); return; }           // pas d'appel aujourd'hui pour lui (sa classe ou son groupe)
-  if (aj[k] && aj[k] !== 'NON') {
+  const aps = appelsDe(c.nom), mn = t => edtMin(String(t).replace('h', ':')) || 0;
+  const ck = Object.keys(aps).filter(x => aps[x].st[k]).sort((a, b) => mn(aps[b].debut) - mn(aps[a].debut))[0], aj = ck ? aps[ck].st : null;   // dernier appel du jour qui le concerne
+  if (!aj) { M('ok', '🪪' + nomH); sonOk(); return; }           // pas d'appel aujourd'hui pour lui (sa classe ou son groupe)
+  if (aj[k] !== 'NON') {
     if (!el.ok) { el.ok = true; render(); if (!$('ovClass').hidden) renderClass(); call('eleve', { classe: c.nom, nom: el.nom, prenom: el.prenom, ok: true }); M('ok', '✓' + nomH); appelGeant(el); }
     else M('warn', 'Présence déjà enregistrée' + nomH);
     return;
   }
   const h = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   aj[k] = 'RETARD ' + h; el.ok = true; render(); if (!$('ovClass').hidden) renderClass();
-  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); appelGeant(el); postitRetard(c.nom, el);   // retardataire : le nom en géant, sans bip
-  call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom });
+  M('ok', '✓ Retard ' + h.replace(':', ' h ') + nomH); appelGeant(el); postitRetard(c.nom, el, ck);   // retardataire : le nom en géant, sans bip
+  call('retard', { classe: c.nom, nom: el.nom, prenom: el.prenom, cours: ck });
 };
 async function appelFin() {
   if (!APPEL) return;
@@ -1604,14 +1603,16 @@ async function appelFin() {
   appelArret(A);
   const c = S.classes.find(x => x.nom === A.nom); if (!c) return;
   if (A.reprise) { if (A.partage) call('appelFin', { id: A.id, classe: A.nom }); return; }   // reprise : chaque retardataire a déjà été enregistré
-  const presents = [], absents = [];
-  c.eleves.filter(x => A.concernes.has(cleNom(x.nom, x.prenom))).forEach(x => (A.presents.has(cleNom(x.nom, x.prenom)) || x.ok ? presents : absents).push({ nom: x.nom, prenom: x.prenom }));   // vert à la main = présent ; l'autre groupe n'est pas noté
+  const presents = [], absents = [], st = {};
+  c.eleves.filter(x => A.concernes.has(cleNom(x.nom, x.prenom))).forEach(x => { const p = A.presents.has(cleNom(x.nom, x.prenom)) || x.ok; (p ? presents : absents).push({ nom: x.nom, prenom: x.prenom }); st[cleNom(x.nom, x.prenom)] = p ? 'OUI' : 'NON'; });   // vert à la main = présent ; l'autre groupe n'est pas noté
+  const ck = A.cours ? A.cours.k : edtH(A.debutMin), extra = { cours: ck, debut: edtH(A.debutMin), groupe: A.groupe || '' };
+  (APL_FAITS[c.nom] = APL_FAITS[c.nom] || {})[ck] = { debut: extra.debut, groupe: extra.groupe, st, jour: paJour() };   // connu tout de suite, avant la réponse du script
   let o;
   if (A.partage) {   // terminé ici = terminé partout ; si un autre poste l'a déjà terminé, rien n'est enregistré une 2e fois
-    o = await call('appelFin', { id: A.id, classe: c.nom, presents, absents });
+    o = await call('appelFin', Object.assign({ id: A.id, classe: c.nom, presents, absents }, extra));
     if (o && o.deja) { toast('Appel déjà terminé sur un autre poste'); return; }
     if (o) postitAppel(A, c.nom, absents);
-  } else { postitAppel(A, c.nom, absents); o = await call('appel', { classe: c.nom, presents, absents }); }
+  } else { postitAppel(A, c.nom, absents); o = await call('appel', Object.assign({ classe: c.nom, presents, absents }, extra)); }
   if (o) toast(`Appel enregistré : ${presents.length} présent${presents.length > 1 ? 's' : ''}, ${absents.length} absent${absents.length > 1 ? 's' : ''}`);
 }
 function appelChoix(pre, montrer) {   // pre = { groupe, txt } : cours trouvé dans l'agenda (groupe présélectionné)
@@ -1624,9 +1625,9 @@ function appelChoix(pre, montrer) {   // pre = { groupe, txt } : cours trouvé d
   $('apChoix').hidden = pre || montrer ? false : !$('apChoix').hidden;
 }
 $('apChoix').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; $('apChoix').hidden = true; appelDebut(b.dataset.g); });
-$('clAppel').onclick = () => { if (APPEL) appelFin(); else appelChoix(); };
+$('clAppel').onclick = () => { if (APPEL) appelFin(); else $('btnAppel').onclick(); };
 $('apFin').onclick = appelFin;
-new MutationObserver(() => { if ($('ovClass').hidden) { $('apChoix').hidden = true; if (APPEL) appelFin(); } }).observe($('ovClass'), { attributes: true, attributeFilter: ['hidden'] });
+new MutationObserver(() => { if ($('ovClass').hidden) { $('apChoix').hidden = true; if (VUE) { VUE = null; renderClass(); } if (APPEL) appelFin(); } }).observe($('ovClass'), { attributes: true, attributeFilter: ['hidden'] });
 
 // ---------- Agenda du labo (edt_joliverie.html) : cours en ce moment, présélection de l'appel, mélodies ----------
 // L'emploi du temps est lu directement dans la page de l'agenda (même site GitHub) : une modification de l'agenda est prise en compte ici.
@@ -1689,12 +1690,46 @@ function ouvrirClasse(i) { curCls = i; $('clHead').className = 'whead c' + (i % 
 $('btnAppel').onclick = async () => {
   if (!S) { askLogin(''); return; }
   if (APPEL) { ouvrirClasse(APPEL.cls); return; }
-  // choix manuel de la classe (l'agenda n'est plus interrogé pour l'appel)
-  $('aplInfo').hidden = true; $('aplInfo').innerHTML = '';
-  $('aplList').innerHTML = S.classes.map((c, i) => `<button type="button" class="c${i % 6}" data-i="${i}">${esc(c.nom)}</button>`).join('');
+  const b = $('btnAppel'); b.disabled = true; await edtCharger(true); b.disabled = false;
+  const d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+  APL_COURS = edtMesCours(d);
+  const x = APL_COURS.find(x => Math.abs(m - x.s) <= 15);
+  if (x) { appelCours(x); return; }
+  $('aplInfo').hidden = false; $('aplInfo').className = 'apcours' + (APL_COURS.length ? '' : ' vide');
+  if (!EDT) {   // agenda injoignable : choix de la classe à la main, comme avant
+    $('aplInfo').innerHTML = EDT_ICO + '<span>Agenda injoignable : choisissez la classe</span>';
+    $('aplList').innerHTML = S.classes.map((c, i) => `<button type="button" class="c${i % 6}" data-i="${i}">${esc(c.nom)}</button>`).join('');
+  } else {
+    $('aplInfo').innerHTML = EDT_ICO + '<span>' + (APL_COURS.length ? 'De quel cours s’agit-il ?' : 'Pas de cours aujourd’hui') + '</span>';
+    $('aplList').innerHTML = APL_COURS.map((x, j) => { const cl = edtClasse(x.c); return `<button type="button" class="c${(cl.i < 0 ? j : cl.i) % 6}" data-x="${j}">${edtH(x.s)} – ${edtH(x.e)}<br>${esc(cl.i >= 0 ? S.classes[cl.i].nom : x.c)} · ${cl.groupe ? 'Groupe ' + cl.groupe : 'Classe entière'}</button>`; }).join('');
+  }
   $('ovAppel').hidden = false;
 };
-$('aplList').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (!b) return; $('ovAppel').hidden = true; ouvrirClasse(+b.dataset.i); appelChoix(null, true); });
+$('aplList').addEventListener('click', e => {
+  const b = e.target.closest('[data-i],[data-x]'); if (!b) return; $('ovAppel').hidden = true;
+  if (b.dataset.x != null) { appelCours(APL_COURS[+b.dataset.x]); return; }
+  ouvrirClasse(+b.dataset.i); appelChoix(null, true);
+});
+let APL_COURS = [], VUE = null, APL_FAITS = {};
+// Appels du jour d'une classe, par cours : ceux du script, complétés par ceux terminés ici et pas encore relus
+function appelsDe(nom) {
+  const o = {}, loc = APL_FAITS[nom] || {}, srv = (S && S.appelsJour && S.appelsJour[nom]) || {};
+  Object.keys(loc).forEach(k => { if (loc[k].jour === paJour()) o[k] = loc[k]; });
+  Object.keys(srv).forEach(k => { o[k] = srv[k]; });
+  return o;
+}   // VUE : appel déjà fait, affiché en consultation { cls, groupe, debut, cours }
+// Appel d'un cours : s'il est déjà fait, la fenêtre montre les élèves concernés et l'heure de l'appel ; sinon il commence
+function appelCours(x) {
+  const cl = edtClasse(x.c);
+  if (cl.i < 0) { toast(x.c + ' : classe absente du tableau de bord'); return; }
+  const c = S.classes[cl.i], fait = appelsDe(c.nom)[edtH(x.s)];
+  ouvrirClasse(cl.i);
+  if (!fait) { appelDebut(cl.groupe, x); return; }
+  VUE = { cls: cl.i, groupe: cl.groupe, debut: fait.debut, cours: x, st: fait.st };
+  $('apChoix').innerHTML = `<div class="apcours">${EDT_ICO}<span>Appel effectué le ${paJour()} à ${esc(String(fait.debut).replace(':', 'h'))} · ${edtTxt(x, cl)}</span></div>`;
+  $('apChoix').classList.remove('pre'); $('apChoix').hidden = false;
+  renderClass();
+}
 
 // Mélodies : 1 minute avant le début de chacun de mes cours, et 1 minute avant la fin (tableau de bord ouvert)
 function edtNote(c, f, t0, dur, vol) {
@@ -1808,17 +1843,17 @@ function paEcrire(fn) {   // modifie les post-it et les enregistre tout de suite
   S.postits = L.slice(0, 60); POSTS = S.postits.map(p => Object.assign({}, p)); renderPosts(); savePosts(true);
 }
 function postitAppel(A, classe, absents) {
-  const tete = `📋 Appel du ${paJour()} — ${classe} · ${A.groupe ? 'Groupe ' + A.groupe : 'Classe entière'}`;
-  const ligne2 = A.cours ? `Cours ${edtH(A.cours.s)} – ${edtH(A.cours.e)}${A.cours.r ? ' · ' + A.cours.r : ''}` : `Appel à ${edtH(A.debutMin)}`;
+  const tete = `📋 Appel du ${paJour()} — ${classe} · ${A.groupe ? 'Groupe ' + A.groupe : 'Classe entière'} · ${A.cours ? A.cours.k : edtH(A.debutMin)}`;
+  const ligne2 = (A.cours ? `Cours ${edtH(A.cours.s)} – ${edtH(A.cours.e)}${A.cours.r ? ' · ' + A.cours.r : ''} · ` : '') + `Appel à ${edtH(A.debutMin)}`;
   const texte = [tete, ligne2, paListe(PA_ABS, absents.map(paNom)), paListe(PA_RET, [])].join('\n');
   paEcrire(L => { const i = L.findIndex(p => String(p.texte).split('\n')[0] === tete); if (i >= 0) L.splice(i, 1); L.unshift({ texte, couleur: 'bleu' }); });   // appel refait : le post-it est remplacé
 }
-function postitRetard(classe, el) {
+function postitRetard(classe, el, ck) {
   const debut = `📋 Appel du ${paJour()} — ${classe} ·`, nom = paNom(el), d = new Date(), m = d.getHours() * 60 + d.getMinutes();
   paEcrire(L => {
-    const p = L.find(p => { const t = String(p.texte); return t.startsWith(debut) && t.split('\n').some(l => l.startsWith(PA_ABS) && l.split(/ : |, /).slice(1).includes(nom)); });
+    const p = L.find(p => { const t = String(p.texte), l1 = t.split('\n')[0]; return t.startsWith(debut) && (!ck || l1.endsWith(' · ' + ck)) && t.split('\n').some(l => l.startsWith(PA_ABS) && l.split(/ : |, /).slice(1).includes(nom)); });
     if (!p) return false;
-    const lignes = String(p.texte).split('\n'), ref = /(?:Cours|Appel à) (\d{1,2})h(\d{2})/.exec(lignes[1] || ''), dep = ref ? +ref[1] * 60 + +ref[2] : null;
+    const lignes = String(p.texte).split('\n'), ref = /Appel à (\d{1,2})h(\d{2})/.exec(lignes[1] || '') || /Cours (\d{1,2})h(\d{2})/.exec(lignes[1] || ''), dep = ref ? +ref[1] * 60 + +ref[2] : null;   // retard compté depuis le clic sur « Faire l'appel »
     const iA = lignes.findIndex(l => l.startsWith(PA_ABS)); let iR = lignes.findIndex(l => l.startsWith(PA_RET));
     const abs = lignes[iA].split(/ : /).slice(1).join(' : ').split(', ').filter(x => x && x !== 'aucun' && x !== nom);
     lignes[iA] = paListe(PA_ABS, abs);
