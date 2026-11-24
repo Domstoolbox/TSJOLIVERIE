@@ -276,7 +276,8 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 #ovAp .apt.ret i{display:block;background:#fb923c;animation:none}
 #ovAp .apt em{display:none;font-style:normal;font-size:.75rem;font-weight:800;margin-top:4px}
 #ovAp .apt.ret em,#ovAp .apt.abs em{display:block}
-#ovAp .apt.abs{opacity:.55}
+#ovAp .apt.abs i{display:block;background:#7c3aed;animation:none}
+#ovAp .apt.la.fix i{animation:none}
 @keyframes apclig{50%{opacity:.15}}
 #ovAp .apchx{flex:1;overflow:auto}
 #ovAp .apchx h4{margin:4px 0 10px}
@@ -1062,7 +1063,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 21h50';
+const VERSION_PAGE = '24/11/2026 - 21h35';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -2328,7 +2329,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
     const rec = A.rec, E = eleves(rec), g = $('apG'); if (!g) return;
     g.innerHTML = E.map(e => {
       const k = ck(e), p = rec.presents.includes(k), r = rec.retards[k];
-      const st = r ? ' ret' : p ? ' la' : rec.fini ? ' abs' : '';
+      const st = (r ? ' ret' : p ? ' la' : rec.fini ? ' abs' : '') + (rec.fini ? ' fix' : '');
       return `<button type="button" class="apt ${e.ok ? 'v' : 'r'}${st}" data-k="${esc(k)}"><b>${esc(String(e.nom).toUpperCase())}</b><span>${esc(e.prenom)}</span><em>${r ? 'Retard ' + esc(r) : rec.fini && !p ? 'Absent' : ''}</em><i></i></button>`;
     }).join('');
     $('apN').textContent = `${E.filter(e => rec.presents.includes(ck(e)) || rec.retards[ck(e)]).length} / ${E.length}`;
