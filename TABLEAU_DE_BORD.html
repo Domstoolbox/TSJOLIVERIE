@@ -248,6 +248,43 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 .cours-toast[hidden]{display:none}
 .apgeant{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:rgba(22,163,74,.88);color:#fff;text-align:center;pointer-events:none;animation:geant 1.5s ease forwards}
 .apgeant[hidden]{display:none}
+/* ===== Appel (fenêtre du bouton APPEL) ===== */
+#ovAp .win{width:min(1200px,100%);height:calc(100dvh - 36px)}
+#ovAp .whead{background:linear-gradient(135deg,#1b1b1f,#3f3f46);flex-wrap:wrap;row-gap:6px}
+#ovAp .whead h3{flex:1;min-width:0}
+#ovAp .whead small{display:block;font-weight:600;opacity:.8;font-size:.8rem}
+#ovAp .apcnt{font:800 1.5rem var(--fh);background:#ffffff1f;border-radius:12px;padding:4px 12px;white-space:nowrap}
+#ovAp .wbody{display:flex;gap:14px;flex:1;min-height:0;overflow:hidden}
+#ovAp .apside{flex:none;width:300px;display:flex;flex-direction:column;gap:10px}
+#ovAp .apvid{position:relative;border-radius:14px;overflow:hidden;background:#0b1f3a;aspect-ratio:4/3}
+#ovAp .apvid video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+#ovAp .apvid video.dos{transform:none}
+#ovAp .apvid button{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border-radius:50%;border:0;background:#fff;font-size:1.1rem;cursor:pointer}
+#ovAp .apmsg2{min-height:1.4em;font-weight:700;text-align:center}
+#ovAp .apmsg2.ko{color:#dc2626}
+#ovAp .apbtn{border:0;border-radius:12px;padding:14px;font:800 1.05rem var(--fb, inherit);cursor:pointer}
+#ovAp .apfin{background:#16a34a;color:#fff}
+#ovAp .apsup{background:#fff;color:#b91c1c;border:2px solid #fecaca}
+#ovAp .apgrid{flex:1;min-width:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;align-content:start}
+#ovAp .apt{position:relative;border:0;border-radius:12px;padding:12px 30px 12px 12px;text-align:left;color:#fff;cursor:pointer;line-height:1.2;min-height:58px}
+#ovAp .apt b{display:block;font-size:.95rem;overflow-wrap:anywhere}
+#ovAp .apt span{font-size:.85rem;opacity:.9}
+#ovAp .apt.v{background:#16a34a}
+#ovAp .apt.r{background:#dc2626}
+#ovAp .apt i{position:absolute;top:10px;right:10px;width:16px;height:16px;border-radius:50%;background:#facc15;box-shadow:0 0 0 2px #fff;display:none}
+#ovAp .apt.la i{display:block;animation:apclig 1s ease-in-out infinite}
+#ovAp .apt.ret i{display:block;background:#fb923c;animation:none}
+#ovAp .apt em{display:none;font-style:normal;font-size:.75rem;font-weight:800;margin-top:4px}
+#ovAp .apt.ret em,#ovAp .apt.abs em{display:block}
+#ovAp .apt.abs{opacity:.55}
+@keyframes apclig{50%{opacity:.15}}
+#ovAp .apchx{flex:1;overflow:auto}
+#ovAp .apchx h4{margin:4px 0 10px}
+#ovAp .apchx .l{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+#ovAp .apchx button{border:0;border-radius:14px;padding:18px 22px;font:800 1.1rem var(--fh);color:#fff;background:#334155;cursor:pointer}
+#ovAp .apchx button.on{outline:4px solid #facc15}
+@media (max-width:760px){#ovAp .wbody{flex-direction:column;overflow:auto}#ovAp .apside{width:auto}#ovAp .apvid{max-height:40vh}#ovAp .apgrid{overflow:visible}}
+
 .apgeant div{display:flex;flex-direction:column;align-items:center;gap:.1em;padding:0 4vw;max-width:100%}
 .apgeant span{font:800 clamp(34px,7vw,110px)/1.05 var(--fh)}
 .apgeant b{font:900 clamp(44px,10vw,170px)/1.02 var(--fh);letter-spacing:.01em;overflow-wrap:anywhere}
@@ -643,6 +680,13 @@ td.n{font-family:var(--fm);color:var(--muted)}
 </div>
 
 <div class="cours-toast" id="coursToast" hidden></div>
+<!-- Appel : cours deviné avec l'agenda (ou choisi à la main), une tuile par élève, scan des cartes -->
+<div class="ov" id="ovAp" hidden>
+  <div class="win" role="dialog" aria-modal="true" aria-labelledby="apT">
+    <div class="whead"><h3 id="apT">Appel</h3><span class="apcnt" id="apN"></span><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="wbody" id="apBody"></div>
+  </div>
+</div>
 <div class="apgeant" id="apGeant" hidden></div>
 <div class="bruit" id="bruit" hidden><div>MERCI DE TRAVAILLER<br>EN SILENCE !</div></div>
 <div class="verrou" id="verrou" hidden><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="11" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="16" r="1.4"/></svg></div>
@@ -1018,7 +1062,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 21h00';
+const VERSION_PAGE = '24/11/2026 - 21h50';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1581,6 +1625,7 @@ function appelLu(t) {
 window.tdbCarte = function (code) {
   const M = window.tdbMontre || (() => {});
   if (!S) { M('ko', 'Carte : connecte-toi d’abord'); return; }
+  if (window.apCarte && window.apCarte(code)) return;   // appel (présent) ou retardataire
   let c = null, el = null;
   for (const k of S.classes) { const x = k.eleves.find(e => String(e.badge) === code); if (x) { c = k; el = x; break; } }
   if (!el) { M('ko', 'Carte inconnue'); sonKo(); return; }
@@ -2182,6 +2227,197 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
 }
 
 // ---------- Fenêtres : fermeture ----------
+// ===== APPEL (bouton en haut) : version simple =====
+// Le vert / rouge des élèves = droit de faire les tests et certificats : l'appel n'y touche jamais.
+// Un appel = un cours (deviné avec l'agenda, sinon choisi à la main) : une tuile par élève, rond jaune = présent.
+// « Fin de l'appel » : absents dans un post-it. Ensuite, jusqu'à la fin du cours, une carte passée au Scanner = retard.
+// Les appels du jour sont gardés sur ce poste.
+(function () {
+  const KEY = 'tdb_appels_v3', FACE_KEY = 'tdb_appel_cam2';
+  const lire = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
+  const MEM = lire();
+  const ecrire = () => { try { localStorage.setItem(KEY, JSON.stringify(MEM)); } catch (e) {} };
+  const auj = () => edtYmd(new Date());
+  const minNow = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  Object.keys(MEM).forEach(k => { if (!MEM[k] || MEM[k].jour !== auj()) delete MEM[k]; }); ecrire();   // jours passés oubliés
+  const ck = e => cleNom(e.nom, e.prenom), grp = e => e.groupe === 'B' ? 'B' : 'A';
+  let face = (() => { try { return localStorage.getItem(FACE_KEY) || 'environment'; } catch (e) { return 'environment'; } })();
+  let A = null, CAM = null;   // A : appel affiché { rec, last, lastT } ; CAM : caméra { stream, t }
+
+  const classeDe = rec => S && S.classes.find(c => c.nom === rec.classe);
+  const eleves = rec => { const c = classeDe(rec); return c ? c.eleves.filter(e => !rec.groupe || grp(e) === rec.groupe) : []; };
+  const msg = (t, cls) => { const m = $('apM'); if (m) { m.textContent = t || ''; m.className = 'apmsg2' + (cls ? ' ' + cls : ''); } };
+
+  // Post-it de l'appel : toujours réécrit en entier à partir de l'appel
+  function postit(rec, suppr) {
+    paEcrire(L => {
+      const i = L.findIndex(p => String(p.texte).split('\n')[0] === rec.tete);
+      if (suppr) { if (i < 0) return false; L.splice(i, 1); return; }
+      const E = eleves(rec), nm = k => { const e = E.find(x => ck(x) === k); return e ? paNom(e) : k; };
+      const abs = rec.absents.filter(k => !rec.retards[k]).map(nm), ret = Object.keys(rec.retards).map(k => `${nm(k)} (${rec.retards[k]})`);
+      const l2 = (rec.cours ? `Cours ${edtH(rec.debutCours)} – ${edtH(rec.fin)}${rec.salle ? ' · ' + rec.salle : ''} · ` : '') + `Appel à ${edtH(rec.debut)}`;
+      const texte = [rec.tete, l2, paListe(PA_ABS, abs), paListe(PA_RET, ret)].join('\n');
+      if (i >= 0) L[i] = Object.assign({}, L[i], { texte }); else L.unshift({ texte, couleur: 'bleu' });
+    });
+  }
+
+  // ---------- Ouverture : cours en ce moment d'après l'agenda (4 s au plus), sinon choix à la main ----------
+  async function ouvrir() {
+    if (!S) { askLogin(''); return; }
+    $('ovAp').hidden = false;
+    if (A && MEM[A.rec.id] && (!A.rec.fini || minNow() < A.rec.fin)) { afficher(); return; }   // appel en cours (ou de ce cours) : on y revient
+    $('apT').textContent = 'Appel'; $('apN').textContent = '';
+    $('apBody').onclick = null; $('apBody').innerHTML = '<div class="apchx"><h4>…</h4></div>';
+    let x = null;
+    try { await Promise.race([edtCharger(true), new Promise(r => setTimeout(r, 4000))]); x = edtMaintenant(); } catch (e) { x = null; }
+    if ($('ovAp').hidden) return;
+    const cl = x ? edtClasse(x.c) : null;
+    if (x && cl && cl.i >= 0) demarrer(S.classes[cl.i].nom, cl.groupe, x); else choisir();
+  }
+  function choisir() {
+    let cls = '';
+    const draw = () => {
+      $('apT').textContent = 'Appel'; $('apN').textContent = '';
+      $('apBody').innerHTML = '<div class="apchx"><h4>Classe</h4><div class="l">' +
+        S.classes.map(c => `<button type="button" data-c="${esc(c.nom)}"${c.nom === cls ? ' class="on"' : ''}>${esc(c.nom)}</button>`).join('') + '</div>' +
+        (cls ? '<h4>Élèves</h4><div class="l"><button type="button" data-g="A">Groupe A</button><button type="button" data-g="B">Groupe B</button><button type="button" data-g="">Classe entière</button></div>' : '') + '</div>';
+    };
+    draw();
+    $('apBody').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.c !== undefined) { cls = b.dataset.c; draw(); }
+      else if (b.dataset.g !== undefined && cls) demarrer(cls, b.dataset.g, null);
+    };
+  }
+  function demarrer(classe, groupe, x) {
+    const m = minNow();
+    let rec = Object.values(MEM).find(r => r.jour === auj() && r.classe === classe && r.groupe === groupe && m < r.fin && m >= r.debutCours - 15);   // même cours : on reprend
+    if (!rec) {
+      const id = auj() + '|' + classe + '|' + groupe + '|' + m;
+      rec = MEM[id] = { id, jour: auj(), classe, groupe, debut: m, debutCours: x ? x.s : m, fin: x ? x.e : m + 60, cours: !!x, salle: (x && x.r) || '', presents: [], absents: [], retards: {}, fini: false };
+      rec.tete = `📋 Appel du ${paJour()} — ${classe} · ${groupe ? 'Groupe ' + groupe : 'Classe entière'} · ${edtH(m)}`;
+      ecrire();
+    }
+    A = { rec, last: '', lastT: 0 };
+    afficher();
+  }
+
+  // ---------- Fenêtre de l'appel : caméra + tuiles ----------
+  function afficher() {
+    const rec = A.rec;
+    $('apT').innerHTML = `${esc(rec.classe)} · ${rec.groupe ? 'Groupe ' + rec.groupe : 'Classe entière'}<small>${rec.cours ? 'Cours ' + edtH(rec.debutCours) + ' – ' + edtH(rec.fin) + (rec.salle ? ' · ' + esc(rec.salle) : '') : 'Appel à ' + edtH(rec.debut)}${rec.fini ? ' · appel terminé' : ''}</small>`;
+    $('apBody').innerHTML = '<div class="apside">' + (rec.fini ? '' :
+      '<div class="apvid"><video id="apV" playsinline muted></video><button type="button" id="apSw" title="Changer de caméra" aria-label="Changer de caméra">⟲</button></div><p class="apmsg2" id="apM"></p>' +
+      '<button type="button" class="apbtn apfin" id="apFin2">Fin de l’appel</button>') +
+      '<button type="button" class="apbtn apsup" id="apSup">Supprimer l’appel</button></div><div class="apgrid" id="apG"></div>';
+    tuiles();
+    if (rec.fini) stopCam(); else camera();
+    $('apBody').onclick = e => {
+      const b = e.target.closest('button'); if (!b || !A) return;
+      if (b.id === 'apFin2') { fin(); return; }
+      if (b.id === 'apSup') { supprimer(b); return; }
+      if (b.id === 'apSw') { face = face === 'user' ? 'environment' : 'user'; try { localStorage.setItem(FACE_KEY, face); } catch (x) {} camera(); return; }
+      if (b.dataset.k && !A.rec.fini) {   // toucher une tuile : présent / pas encore là (carte oubliée)
+        const P = A.rec.presents, i = P.indexOf(b.dataset.k);
+        if (i >= 0) P.splice(i, 1); else P.push(b.dataset.k);
+        ecrire(); tuiles();
+      }
+    };
+  }
+  function tuiles() {
+    const rec = A.rec, E = eleves(rec), g = $('apG'); if (!g) return;
+    g.innerHTML = E.map(e => {
+      const k = ck(e), p = rec.presents.includes(k), r = rec.retards[k];
+      const st = r ? ' ret' : p ? ' la' : rec.fini ? ' abs' : '';
+      return `<button type="button" class="apt ${e.ok ? 'v' : 'r'}${st}" data-k="${esc(k)}"><b>${esc(String(e.nom).toUpperCase())}</b><span>${esc(e.prenom)}</span><em>${r ? 'Retard ' + esc(r) : rec.fini && !p ? 'Absent' : ''}</em><i></i></button>`;
+    }).join('');
+    $('apN').textContent = `${E.filter(e => rec.presents.includes(ck(e)) || rec.retards[ck(e)]).length} / ${E.length}`;
+  }
+  function stopCam() { if (CAM) { clearTimeout(CAM.t); if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop()); CAM = null; } }
+  async function camera() {
+    stopCam();
+    const my = CAM = { stream: null, t: 0 };
+    for (const video of [{ facingMode: { exact: face } }, { facingMode: face }, true]) {
+      try { my.stream = await navigator.mediaDevices.getUserMedia({ video, audio: false }); break; } catch (e) {}
+    }
+    if (CAM !== my) { if (my.stream) my.stream.getTracks().forEach(t => t.stop()); return; }
+    const v = $('apV');
+    if (!my.stream || !v) { msg('Caméra inaccessible', 'ko'); return; }
+    v.srcObject = my.stream;
+    try { const s = my.stream.getVideoTracks()[0].getSettings(); v.classList.toggle('dos', s.facingMode === 'environment'); } catch (e) {}
+    try { await v.play(); } catch (e) {}
+    const cv = document.createElement('canvas'), g = cv.getContext('2d', { willReadFrequently: true });
+    const boucle = () => {
+      if (CAM !== my) return;
+      try {
+        if (v.readyState >= 2 && v.videoWidth && window.jsQR) {
+          const k = Math.min(1, 640 / v.videoWidth); cv.width = v.videoWidth * k | 0; cv.height = v.videoHeight * k | 0;
+          g.drawImage(v, 0, 0, cv.width, cv.height);
+          const q = jsQR(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'dontInvert' });
+          if (q && q.data) lu(String(q.data).trim());
+        }
+      } catch (e) {}
+      my.t = setTimeout(boucle, 80);
+    };
+    boucle();
+  }
+  function lu(t) {
+    if (!A || A.rec.fini) return;
+    const now = Date.now();
+    if (t === A.last && now - A.lastT < 3000) return;
+    A.last = t; A.lastT = now;
+    if (!/^\d{6}$/.test(t)) return;                    // autre QR code : ignoré
+    const e = eleves(A.rec).find(x => String(x.badge) === t);
+    if (!e) { msg(S.classes.some(c => c.eleves.some(x => String(x.badge) === t)) ? 'Pas dans ce cours' : 'Carte inconnue', 'ko'); return; }
+    const k = ck(e); if (!A.rec.presents.includes(k)) { A.rec.presents.push(k); ecrire(); }
+    msg(''); appelGeant(e); tuiles();
+  }
+  function fin() {
+    const rec = A.rec, E = eleves(rec);
+    rec.absents = E.map(ck).filter(k => !rec.presents.includes(k));
+    rec.fini = true; ecrire(); stopCam(); postit(rec);
+    toast(`Appel terminé : ${rec.absents.length} absent${rec.absents.length > 1 ? 's' : ''}`);
+    afficher();
+  }
+  let supT = 0;
+  function supprimer(b) {
+    if (!b.classList.contains('conf')) { b.classList.add('conf'); b.textContent = 'Confirmer la suppression'; clearTimeout(supT); supT = setTimeout(() => { b.classList.remove('conf'); b.textContent = 'Supprimer l’appel'; }, 3000); return; }
+    const rec = A.rec; stopCam();
+    delete MEM[rec.id]; ecrire(); postit(rec, true);
+    A = null; $('ovAp').hidden = true; toast('Appel supprimé');
+  }
+
+  // ---------- Carte passée au Scanner (tuile Scanner du tableau de bord) ----------
+  // Appel en cours (fenêtre fermée) : présent. Appel terminé, jusqu'à la fin du cours : absent → retard.
+  window.apCarte = function (code) {
+    if (!S || !/^\d{6}$/.test(String(code))) return false;
+    if (A && !A.rec.fini && !$('ovAp').hidden) { lu(code); return true; }
+    let c = null, e = null;
+    for (const k of S.classes) { const x = k.eleves.find(y => String(y.badge) === code); if (x) { c = k; e = x; break; } }
+    if (!e) return false;
+    const m = minNow(), k = ck(e), M = window.tdbMontre || (() => {});
+    const nomH = `<b>${esc(String(e.nom).toUpperCase())} ${esc(e.prenom)}</b>${esc(c.nom)}`;
+    const de = r => r.jour === auj() && r.classe === c.nom && (!r.groupe || r.groupe === grp(e)) && m < r.fin;
+    const enCours = Object.values(MEM).find(r => de(r) && !r.fini);
+    if (enCours) {
+      if (!enCours.presents.includes(k)) { enCours.presents.push(k); ecrire(); }
+      appelGeant(e); M('ok', '✓' + nomH); if (A && A.rec === enCours) tuiles(); return true;
+    }
+    const r = Object.values(MEM).find(x => de(x) && x.fini && x.absents.includes(k) && !x.retards[k]);
+    if (!r) return false;
+    const ret = m - r.debutCours;
+    r.retards[k] = edtH(m) + (ret > 0 ? ', +' + ret + ' min' : ''); ecrire(); postit(r);
+    appelGeant(e); M('ok', '✓ Retard ' + edtH(m).replace('h', ' h ') + nomH);
+    if (A && A.rec === r && !$('ovAp').hidden) tuiles();
+    return true;
+  };
+
+  new MutationObserver(() => { if ($('ovAp').hidden) stopCam(); }).observe($('ovAp'), { attributes: true, attributeFilter: ['hidden'] });
+  $('btnAppel').onclick = ouvrir;
+  if ($('clAppel')) $('clAppel').style.display = 'none';   // l'ancien appel de la fenêtre d'une classe n'existe plus
+  window.apTest = { MEM, lu: t => lu(t), fin: () => fin(), etat: () => A && A.rec };
+})();
+
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.ov').hidden = true));
 document.querySelectorAll('.ov').forEach(o => o.addEventListener('click', e => { if (e.target === o && o.id !== 'ovLogin') { if (o.id === 'ovCarte') carteFermer(); else o.hidden = true; } }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.ov:not([hidden])').forEach(o => { if (o.id !== 'ovLogin') o.hidden = true; }); });
