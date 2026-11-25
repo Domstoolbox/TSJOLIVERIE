@@ -2400,8 +2400,9 @@ function generatePaperPDF(nBase, pap) {
     y += 24;
 
     font(8, false, C.mut);
-    doc.text(pc(`Coche UNE seule case par question${QS.some(isMultiQ) ? ' (plusieurs si « la ou les bonnes réponses »)' : ''}${QS.some(isNumQ) ? ' (ou écris la valeur demandée)' : ''}.  Barème : +1 point par bonne réponse  ·  -${fmtNote(WRONG_PENALTY)} point par mauvaise réponse  ·  0 point sans réponse.`), M, y + 3);
-    y += 6;
+    doc.text(pc(`Coche UNE seule case par question${QS.some(isMultiQ) ? ' (plusieurs si « la ou les bonnes réponses »)' : ''}${QS.some(isNumQ) ? ' (ou écris la valeur demandée)' : ''}.`), M, y + 3);
+    doc.text(pc(`Barème : +1 point par bonne réponse  ·  -${fmtNote(WRONG_PENALTY)} point par mauvaise réponse  ·  0 point sans réponse.`), M, y + 7);
+    y += 10;
 
     // --- Questions (2 colonnes ; une question à image occupe toute la largeur) ---
     PLAN.forEach(r => {
@@ -2491,7 +2492,7 @@ function generatePaperPDF(nBase, pap) {
       return j < 0 ? [c] : [c, pend[j]];
     };
     const hOf = r => Math.max(...r.map(c => c.h));
-    let y = M + 12 + 24 + 6;       // hauteur de l'en-tête de la 1re page
+    let y = M + 12 + 24 + 10;      // hauteur de l'en-tête de la 1re page
     while (pend.length) {
       let row = rowAt(0), br = false;
       if (y + hOf(row) > BOTTOM) {
