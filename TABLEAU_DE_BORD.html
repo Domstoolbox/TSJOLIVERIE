@@ -279,6 +279,24 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 #ovAp .apt.abs i{display:block;background:#7c3aed;animation:none}
 #ovAp .apt.la.fix i{animation:none}
 @keyframes apclig{50%{opacity:.15}}
+#ovAp .apcnt:empty{display:none}
+#ovAp .apwk{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;overflow:auto}
+#ovAp .apgr{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;align-items:start}
+#ovAp .apj h5{margin:0 0 8px;font:800 .95rem var(--fh);text-align:center;padding:6px;border-radius:10px;background:#f1f5f9}
+#ovAp .apj.auj h5{background:#1b1b1f;color:#fff}
+#ovAp .aps{display:flex;flex-direction:column;gap:2px;width:100%;margin-bottom:8px;border:2px solid #cbd5e1;border-radius:12px;padding:10px;background:#fff;text-align:left;cursor:pointer;font:inherit;color:#1b1b1f}
+#ovAp .aps span{font-weight:700}
+#ovAp .aps small{color:#64748b}
+#ovAp .aps em{font-style:normal;font-weight:800;color:#15803d;font-size:.85rem}
+#ovAp .aps.off{opacity:.45;cursor:default;background:#f8fafc}
+#ovAp .aps.sel{border-color:#16a34a;background:#dcfce7;animation:apsel 1s ease-in-out infinite}
+@keyframes apsel{50%{background:#fff;border-color:#86efac}}
+#ovAp .apv{text-align:center;color:#94a3b8}
+#ovAp .apact{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#ovAp .apact .apfin{min-width:280px}
+#ovAp .apact .apfin:disabled{opacity:.4;cursor:default}
+#ovAp .apaut{background:#f1f5f9;color:#334155}
+@media (max-width:760px){#ovAp .apgr{grid-template-columns:1fr}}
 #ovAp .apchx{flex:1;overflow:auto}
 #ovAp .apchx h4{margin:4px 0 10px}
 #ovAp .apchx .l{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
@@ -1063,7 +1081,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '24/11/2026 - 21h45';
+const VERSION_PAGE = '25/11/2026 - 13h10';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1853,7 +1871,7 @@ function nextCoursRender() {
   const r = S && EDT ? prochainCours() : null;
   if (!r) { el.hidden = true; el._k = ''; return; }
   const { x, d, j } = r, cl = edtClasse(x.c);
-  const jour = j === 0 ? 'Aujourd’hui' : j === 1 ? 'Demain' : JOURS_FR[d.getDay()].replace(/^./, c => c.toUpperCase()) + ' ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+  const jour = (j === 0 ? 'Aujourd’hui' : j === 1 ? 'Demain' : JOURS_FR[d.getDay()].replace(/^./, c => c.toUpperCase())) + ' ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
   const h = `<small>Prochain cours</small><b>${jour}</b> · <b class="nw">${edtH(x.s)} – ${edtH(x.e)}</b><br><span class="nw">${esc(cl.i >= 0 ? S.classes[cl.i].nom : x.c)}</span> · <span class="nw">${cl.groupe ? 'Groupe ' + cl.groupe : 'Classe entière'}</span>${x.r ? ' · <span class="nw">' + esc(x.r) + '</span>' : ''}`;
   if (el._k !== h) { el.innerHTML = h; el._k = h; }
   el.hidden = false;
@@ -2267,14 +2285,42 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   async function ouvrir() {
     if (!S) { askLogin(''); return; }
     $('ovAp').hidden = false;
-    if (A && MEM[A.rec.id] && (!A.rec.fini || minNow() < A.rec.fin)) { afficher(); return; }   // appel en cours (ou de ce cours) : on y revient
+    if (A && MEM[A.rec.id] && !A.rec.fini) { afficher(); return; }   // appel en cours : on y revient
+    A = null; stopCam();
     $('apT').textContent = 'Appel'; $('apN').textContent = '';
     $('apBody').onclick = null; $('apBody').innerHTML = '<div class="apchx"><h4>…</h4></div>';
-    let x = null;
-    try { await Promise.race([edtCharger(true), new Promise(r => setTimeout(r, 4000))]); x = edtMaintenant(); } catch (e) { x = null; }
+    if (!EDT) { try { await Promise.race([edtCharger(), new Promise(r => setTimeout(r, 4000))]); } catch (e) {} }
     if ($('ovAp').hidden) return;
-    const cl = x ? edtClasse(x.c) : null;
-    if (x && cl && cl.i >= 0) demarrer(S.classes[cl.i].nom, cl.groupe, x); else choisir();
+    if (!EDT) { choisir(); return; }
+    semaine(null);
+    edtCharger(true).then(() => { if (!$('ovAp').hidden && !A && $('apWk')) semaine(SEL); }).catch(() => {});   // changements du jour relus sans attendre
+  }
+  // Emploi du temps de la semaine : seules les séances d'aujourd'hui sont cliquables
+  let SEL = null;
+  function semaine(sel) {
+    const now = new Date(), lun = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7), 12), J = [];
+    for (let i = 0; i < 5; i++) J.push(new Date(lun.getFullYear(), lun.getMonth(), lun.getDate() + i, 12));
+    const today = auj(), x0 = edtMaintenant(), S0 = [];
+    if (!sel && x0) sel = x0.st + '|' + x0.c;
+    SEL = sel;
+    const cols = J.map(d => {
+      const k = edtYmd(d), auj0 = k === today, C = edtMesCours(d);
+      return `<div class="apj${auj0 ? ' auj' : ''}"><h5>${JOURS_FR[d.getDay()].replace(/^./, c => c.toUpperCase())} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}</h5>` +
+        (C.length ? C.map(x => {
+          const cl = edtClasse(x.c), ok = auj0 && cl.i >= 0, id = x.st + '|' + x.c;
+          if (ok) S0.push({ id, x, cl });
+          const rec = ok ? Object.values(MEM).find(r => r.jour === today && r.classe === S.classes[cl.i].nom && r.groupe === cl.groupe && r.debutCours === x.s) : null;
+          return `<button type="button" class="aps${ok ? '' : ' off'}${ok && id === sel ? ' sel' : ''}" ${ok ? `data-s="${esc(id)}"` : 'disabled'}><b>${edtH(x.s)} – ${edtH(x.e)}</b><span>${esc(cl.i >= 0 ? S.classes[cl.i].nom : x.c)}${cl.groupe ? ' · Gr ' + cl.groupe : ''}</span>${x.r ? `<small>${esc(x.r)}</small>` : ''}${rec ? `<em>✓ ${rec.fini ? rec.absents.length + ' absent' + (rec.absents.length > 1 ? 's' : '') : 'en cours'}</em>` : ''}</button>`;
+        }).join('') : '<p class="apv">—</p>') + '</div>';
+    }).join('');
+    $('apT').textContent = 'Appel'; $('apN').textContent = '';
+    $('apBody').innerHTML = `<div class="apwk"><div class="apgr" id="apWk">${cols}</div><div class="apact"><button type="button" class="apbtn apfin" id="apGo"${S0.some(o => o.id === sel) ? '' : ' disabled'}>Faire l’appel pour cette séance</button><button type="button" class="apbtn apaut" id="apAut">Autre classe</button></div></div>`;
+    $('apBody').onclick = e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.s) { semaine(b.dataset.s); return; }
+      if (b.id === 'apAut') { choisir(); return; }
+      if (b.id === 'apGo') { const o = S0.find(o => o.id === SEL); if (o) demarrer(S.classes[o.cl.i].nom, o.cl.groupe, o.x); }
+    };
   }
   function choisir() {
     let cls = '';
@@ -2293,7 +2339,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   }
   function demarrer(classe, groupe, x) {
     const m = minNow();
-    let rec = Object.values(MEM).find(r => r.jour === auj() && r.classe === classe && r.groupe === groupe && m < r.fin && m >= r.debutCours - 15);   // même cours : on reprend
+    let rec = Object.values(MEM).find(r => r.jour === auj() && r.classe === classe && r.groupe === groupe && (x ? r.cours && r.debutCours === x.s : !r.cours && m < r.fin));   // même séance : on reprend son appel
     if (!rec) {
       const id = auj() + '|' + classe + '|' + groupe + '|' + m;
       rec = MEM[id] = { id, jour: auj(), classe, groupe, debut: m, debutCours: x ? x.s : m, fin: x ? x.e : m + 60, cours: !!x, salle: (x && x.r) || '', presents: [], absents: [], retards: {}, fini: false };
