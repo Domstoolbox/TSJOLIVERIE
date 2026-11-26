@@ -96,7 +96,7 @@ header>div:last-child{flex-wrap:nowrap!important;flex:none}
 .row .acts button.del{border-color:#dc2626;color:#dc2626}
 .row .acts button.del.sure{background:#dc2626;color:#fff}
 .tagT{display:inline-block;font-size:12px;font-weight:900;border-radius:6px;padding:1px 7px;margin-right:6px;background:#1d1b2e;color:#fff}
-.tagT.annulation{background:#7c3aed}.tagT.salle{background:#0284c7}.tagT.deplacement{background:#ea580c}.tagT.message{background:#f59e0b;color:#1d1b2e}
+.tagT.annulation{background:#7c3aed}.tagT.salle{background:#0284c7}.tagT.deplacement{background:#ea580c}.tagT.special{background:#1d1b2e}.tagT.message{background:#f59e0b;color:#1d1b2e}
 .empty2{color:var(--muted);font-weight:700;padding:12px 4px;border-top:1px solid #e4dfd4}
 .mgFoot{margin-top:14px;text-align:right}
 .linkBtn{font:inherit;font-size:13px;font-weight:700;color:var(--muted);background:none;border:none;text-decoration:underline;cursor:pointer}
@@ -111,6 +111,13 @@ td.cell .lbl.nw{animation:blinkC 1s steps(1) infinite}
 td.cell .lbl.nw{display:inline-block;margin-top:4px;background:#1d1b2e;color:#fff;border-radius:6px;padding:1px 6px;font-size:11px;font-weight:900}
 .slot[data-p],td.cell{cursor:pointer;user-select:none}
 .why{font-size:12px;font-weight:700;font-style:italic;color:#6b6880;margin-top:3px;text-decoration:none;line-height:1.2}
+.absBadge.specB{background:#1d1b2e;color:#fff;letter-spacing:.04em}
+.slot.spec{background:repeating-linear-gradient(135deg,#f4f1ea 0 10px,#ece7dc 10px 20px)}
+td.cell.specC{background:repeating-linear-gradient(135deg,#1d1b2e 0 12px,#2e2b45 12px 24px)!important;color:#fff!important;font-weight:800}
+td.cell.specC .specT{display:inline-block;background:#fff;color:#1d1b2e;border-radius:6px;padding:1px 7px;font-weight:900;font-size:13px;letter-spacing:.04em;margin-bottom:3px}
+.parts{display:flex;flex-wrap:wrap;gap:6px}
+.parts label{flex-direction:row!important;align-items:center;gap:6px!important;background:#fff;border:2px solid #d6d0c2;border-radius:10px;padding:5px 9px;font-weight:700!important;cursor:pointer}
+.parts label:has(input:checked){border-color:#1d1b2e;background:#1d1b2e;color:#fff}
 .absBadge.mvb,td.cell .lbl.mvb{background:#f59e0b!important;color:#1d1b2e!important;animation:blinkC 1s steps(1) infinite}
 .absBadge.cancel,td.cell .lbl.cancel{background:#dc2626!important;color:#fff!important;animation:blinkC 1s steps(1) infinite}
 @keyframes blinkC{50%{opacity:.15}}
@@ -243,7 +250,7 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
   <div id="mgBody" style="display:none">
     <div class="mgForm">
       <div class="mgTitle" id="mgFormTitle">Nouveau changement</div>
-      <div class="seg" id="mgType"><button data-t="absence" class="on">Absence</button><button data-t="annulation">Cours annulé</button><button data-t="salle">Changement de salle</button><button data-t="deplacement">Déplacer un cours</button><button data-t="message">Message</button></div>
+      <div class="seg" id="mgType"><button data-t="absence" class="on">Absence</button><button data-t="annulation">Cours annulé</button><button data-t="salle">Changement de salle</button><button data-t="deplacement">Déplacer un cours</button><button data-t="special">Créneau spécial</button><button data-t="message">Message</button></div>
       <div class="mgGrid">
         <label>Enseignant<select id="mgProf"></select></label>
         <label><span id="mgDuLbl">Date</span><input type="date" id="mgDu"></label>
@@ -252,7 +259,11 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
         <label id="mgDeW">De<select id="mgDe"></select></label>
         <label id="mgAW">À<select id="mgA"></select></label>
         <label id="mgCoursW" class="wide"><span id="mgCoursLbl">Cours à annuler</span><select id="mgCours"></select></label>
+        <label id="mgTitreW">Intitulé<input type="text" id="mgTitre" maxlength="40" value="EXAMEN"></label>
         <label id="mgNewW">Nouvelle date<input type="date" id="mgNew"></label>
+        <label id="mgHsW">Début<input type="time" id="mgHs" step="300"></label>
+        <label id="mgHeW">Fin<input type="time" id="mgHe" step="300"></label>
+        <div id="mgPartW" class="wide"><div style="font-weight:800;font-size:14px;margin-bottom:6px">Professeurs participants</div><div class="parts" id="mgParts"></div></div>
         <label id="mgSalleW"><span id="mgSalleLbl">Nouvelle salle</span><select id="mgSalle"></select></label>
         <label class="wide"><span id="mgTxtLbl">Motif <small>(facultatif)</small></span><input type="text" id="mgTxt" maxlength="200"></label>
       </div>
@@ -311,14 +322,17 @@ function offDay(d){const k=ymd(d);if(FERIES[k])return{label:"Jour férié · "+F
 // ===== V2.0 : changements stockés dans Google Sheets via Apps Script =====
 const API="https://script.google.com/macros/s/AKfycbzvIK4v_MawMQoDljQDo4-F8zE5bYEaCrl4TtwjyuVlnf8hZSO2JeK85VEasxd3FSCr/exec";
 const MSG_DAYS=7;
-let CHG=[],MSGS=[],LIGNES=[],SHIFTS=[];
+let CHG=[],MSGS=[],LIGNES=[],SHIFTS=[],SPECS=[];
+const TECHNICIENS=["BONSIGNE Clarisse","SAAH Adrien"];
 function addDays(k,n){const[y,m,d]=k.split("-");const t=new Date(+y,m-1,+d+n,12);return ymd(t)}
 const t2m=t=>{const m=String(t||"").match(/^(\d{1,2})[:h](\d{2})/);return m?+m[1]*60+ +m[2]:null};
 const isoD=t=>{t=String(t||"").trim();let m=t.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[0];m=t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0"):null};
 function onRows(lignes){
-  LIGNES=lignes||[];const chg=[],msgs=[];SHIFTS=[];
+  LIGNES=lignes||[];const chg=[],msgs=[];SHIFTS=[];SPECS=[];
   for(const l of LIGNES){const p=TEACHERS.includes(l.enseignant)?l.enseignant:null,from=isoD(l.du),to=isoD(l.au)||from;
     if(l.type==="message"){if(!l.texte)continue;const f=from||isoD(l.horodatage)||ymd(new Date());msgs.push({text:l.texte,p:l.enseignant||"",from:f,to:isoD(l.au)||addDays(f,MSG_DAYS)});continue}
+    if(l.type==="special"){const parts=String(l.texte||"").split(" | "),profs=(parts[1]||"").split(",").map(t=>t.trim()).filter(t=>TEACHERS.includes(t));
+      if(from&&l.debut&&l.fin)SPECS.push({id:l.id,author:l.enseignant||"",day:from,s:l.debut,e:l.fin,r:l.jusqua||"",titre:parts[0]||"EXAMEN",profs,rem:parts.slice(2).join(" | ")});continue}
     if(!p||!from)continue;
     if(l.type==="deplacement"){const[ns,ne]=String(l.fin||"").split("-");if(p&&from&&isoD(l.au)&&l.debut&&ns&&ne)SHIFTS.push({id:l.id,p,from,s:l.debut,to:isoD(l.au),ns,ne,room:l.jusqua||"",why:l.texte||""});continue}
     if(l.type==="salle"){if(l.jusqua)chg.push({p,from,to:from,a:t2m(l.debut),b:t2m(l.fin),k:"move",room:l.jusqua,why:l.texte||""});continue}
@@ -335,6 +349,9 @@ function effList(day,skip){const[y,m,d]=day.split("-"),dt=new Date(+y,m-1,+d,12)
   const L=DATA.filter(x=>x.d===dow&&(x.w===""||x.w===wk)).map(x=>{const z=SHIFTS.find(z=>z.id!==skip&&z.p===x.p&&z.from===day&&z.s===x.s);return z?{...x,gone:z}:x});
   for(const z of SHIFTS){if(z.id===skip||z.to!==day)continue;const o=courseAt(z.p,z.from,z.s);if(!o)continue;L.push({...o,d:dow,w:"",s:z.ns,e:z.ne,r:z.room||o.r,came:z})}
   return L.sort((a,b)=>mins(a.s)-mins(b.s))}
+const GSL=SLOTS.filter(Boolean);
+function snap(a,b){const A=mins(a),B=mins(b);let i=GSL.findIndex(x=>mins(x[1])>A);if(i<0)i=GSL.length-1;let j=-1;GSL.forEach((x,k)=>{if(mins(x[0])<B)j=k});if(j<i)j=i;return[GSL[i][0],GSL[j][1]]}
+const specsOf=(day,skip)=>SPECS.filter(z=>z.day===day&&z.id!==skip);
 const shiftTxt=z=>"→ "+fmtD(z.to)+" · "+hm(z.ns)+"–"+hm(z.ne)+(z.room?" · "+z.room:"");
 const cameTxt=z=>"au lieu du "+fmtD(z.from)+" à "+hm(z.s);
 function moveFor(x,day){return CHG.find(c=>c.k==="move"&&c.p===x.p&&day===c.from&&c.a===mins(x.s))||null}
@@ -368,27 +385,31 @@ function render(){
   if(isToday){const L=list.filter(x=>live(x)&&!x.gone&&!absentFor(x,day));
     nowEl.innerHTML=`<div class="now"><b>⏱ En ce moment (${String(real.getHours()).padStart(2,"0")}h${String(real.getMinutes()).padStart(2,"0")}) :</b>`+(L.length?L.map(x=>`<span class="chip" style="background:${COLORS[x.p]};color:${txt(COLORS[x.p])}">${x.p.split(" ")[0]} · ${x.r} · ${x.c}</span>`).join(""):`<span style="opacity:.8;font-weight:700">aucun cours en cours pour ces professeurs</span>`)+`</div>`}
   if(view==="prof"){
-    const present=TEACHERS.filter(t=>list.some(x=>x.p===t));
+    const SP=specsOf(day),spItems=t=>SP.filter(z=>z.profs.includes(t)).map(z=>({p:t,s:z.s,e:z.e,r:z.r,c:z.titre,spec:z}));
+    const present=TEACHERS.filter(t=>list.some(x=>x.p===t)||spItems(t).length);
     const absent=TEACHERS.filter(t=>!present.includes(t));
     if(!present.length){main.innerHTML=`<div class="empty">Aucun de ces professeurs n'a cours ce jour-là.</div>`;return}
     let h=`<div class="grid">`;
-    for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t);
+    for(const t of present){const c=COLORS[t],items=list.filter(x=>x.p===t).concat(spItems(t)).sort((a,b)=>mins(a.s)-mins(b.s));
       const fa=fullDayAbs(t,day);
       h+=`<div class="card"><h2 style="background:${c};color:${txt(c)}"><div class="nm"><b>${t.split(" ")[0].toUpperCase()}</b><i>${t.split(" ").slice(1).join(" ")}</i></div><span>${fa?`<span class="absBadge cancel">${absWord(t)}</span>`:items[0].s.replace(":","h")+" →<br>"+items[items.length-1].e.replace(":","h")}</span></h2>`;
-      for(const x of items){const ab=x.gone?{t:"DÉPLACÉ",why:shiftTxt(x.gone)+(x.gone.why?" · "+x.gone.why:""),mv:1}:absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}" data-p="${x.p}" data-s="${x.s}"${x.gone||x.came?` data-shift="${(x.gone||x.came).id}"`:""} title="Double-cliquer pour modifier ce cours"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room${x.old?" mv":""}">${x.r}</span><span class="cls">${x.c}</span>${x.old?`<div class="why">Salle changée (au lieu de ${x.old})${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?` <span class="absBadge${ab.t==="ANNULÉ"||ab.t.startsWith("ABSENT")?" cancel":""}${ab.mv?" mvb":""}">${ab.t}</span>`:""}${x.came?` <span class="absBadge mvb">COURS DÉPLACÉ</span><div class="why">${cameTxt(x.came)}${x.came.why?" · "+esc(x.came.why):""}</div>`:""}${ab&&ab.why?`<div class="why">${esc(ab.why)}</div>`:""}</div></div>`}
+      for(const x of items){if(x.spec){const z=x.spec,oth=z.profs.filter(q=>q!==t);
+        h+=`<div class="slot spec" data-spec="${z.id}" title="Double-cliquer pour modifier ce créneau"><div class="time">${hm(z.s)}<i>${hm(z.e)}</i></div><div><span class="room">${esc(z.r)}</span><span class="absBadge specB">${esc(z.titre)}</span>${z.rem?`<div class="why">${esc(z.rem)}</div>`:""}${oth.length?`<div class="why">avec ${oth.map(esc).join(", ")}</div>`:""}</div></div>`;continue}
+        const ab=x.gone?{t:"DÉPLACÉ",why:shiftTxt(x.gone)+(x.gone.why?" · "+x.gone.why:""),mv:1}:absentFor(x,day);h+=`<div class="slot${ab?" abs":live(x)?" live":""}" data-p="${x.p}" data-s="${x.s}"${x.gone||x.came?` data-shift="${(x.gone||x.came).id}"`:""} title="Double-cliquer pour modifier ce cours"><div class="time">${hm(x.s)}<i>${hm(x.e)}</i></div><div><span class="room${x.old?" mv":""}">${x.r}</span><span class="cls">${x.c}</span>${x.old?`<div class="why">Salle changée (au lieu de ${x.old})${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${x.w?`<span class="tag">sem. ${x.w} seulement</span>`:""}${ab&&!fa?` <span class="absBadge${ab.t==="ANNULÉ"||ab.t.startsWith("ABSENT")?" cancel":""}${ab.mv?" mvb":""}">${ab.t}</span>`:""}${x.came?` <span class="absBadge mvb">COURS DÉPLACÉ</span><div class="why">${cameTxt(x.came)}${x.came.why?" · "+esc(x.came.why):""}</div>`:""}${ab&&ab.why?`<div class="why">${esc(ab.why)}</div>`:""}</div></div>`}
       h+=`</div>`}
     h+=`</div><div class="absent">Pas de cours ce jour-là AUX LABOS :<br>${absent.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
     main.innerHTML=h;
   }else{
     let h=`<div class="tw"><table><tr><th>Heure</th>${ROOMS.map(r=>`<th>${r}${CAP[r]?`<span class="cap">${CAP[r]} max</span>`:""}</th>`).join("")}</tr>`;
-    const covered={},grid=list.concat(list.filter(x=>x.old).map(x=>({...x,r:x.old,ghost:x.r})));
+    const covered={},grid=list.concat(list.filter(x=>x.old).map(x=>({...x,r:x.old,ghost:x.r}))).concat(specsOf(day).map(z=>{const[a,b]=snap(z.s,z.e);return{p:"",c:z.titre,r:z.r,s:a,e:b,spec:z}}));
     SLOTS.forEach((s,i)=>{
       if(!s){h+=`<tr class="lunch"><td colspan="${ROOMS.length+1}"></td></tr>`;return}
       h+=`<tr data-s="${s[0]}" data-e="${s[1]}"><td class="t">${hm(s[0])}<br>${hm(s[1])}</td>`;
       for(const r of ROOMS){
         if(covered[r+i])continue;
-        const x=grid.find(x=>x.r===r&&x.s===s[0]&&!x.ghost)||grid.find(x=>x.r===r&&x.s===s[0]);
+        const x=grid.find(x=>x.r===r&&x.s===s[0]&&x.spec)||grid.find(x=>x.r===r&&x.s===s[0]&&!x.ghost)||grid.find(x=>x.r===r&&x.s===s[0]);
         if(x){let span=0,j=i;while(j<SLOTS.length){if(SLOTS[j]){span++;covered[r+j]=1;if(SLOTS[j][1]===x.e)break}else{span++;covered[r+j]=1}j++}
+          if(x.spec){const z=x.spec;h+=`<td rowspan="${span}" class="cell specC" data-spec="${z.id}" title="Double-cliquer pour modifier ce créneau"><span class="specT">${esc(z.titre)}</span><div>${hm(z.s)}–${hm(z.e)}</div><div>${z.profs.map(q=>esc(q.split(" ")[0])).join(", ")}</div>${z.rem?`<div class="why" style="color:#fff;opacity:.85">${esc(z.rem)}</div>`:""}</td>`;continue}
           const c=COLORS[x.p],ab=x.ghost?{t:"DÉPLACÉ → "+x.ghost,why:""}:x.gone?{t:"DÉPLACÉ",why:shiftTxt(x.gone),mv:1}:absentFor(x,day);
           h+=`<td rowspan="${span}" data-p="${x.p}" data-s="${x.s}"${x.gone||x.came?` data-shift="${(x.gone||x.came).id}"`:""} title="Double-cliquer pour modifier ce cours" class="cell${ab?" abs":""}" style="background:${c};color:${txt(c)}${live(x)&&!ab?";outline:4px solid #1d1b2e;outline-offset:-4px":""}">${x.c}<div>${x.p}${x.w?" · sem. "+x.w:""}</div><div>${hm(x.s)}–${hm(x.e)}</div>${x.came?`<span class="lbl nw mvb">COURS DÉPLACÉ</span><div class="why" style="color:inherit;opacity:.8">${cameTxt(x.came)}</div>`:""}${x.old&&!x.ghost?`<span class="lbl nw">NOUVELLE SALLE</span><div class="why" style="color:inherit;opacity:.8">au lieu de ${x.old}${x.mwhy?" · "+esc(x.mwhy):""}</div>`:""}${ab?`<span class="lbl${ab.t==="ANNULÉ"||ab.t.startsWith("ABSENT")?" cancel":""}${ab.mv?" mvb":""}">${ab.t}</span>${ab.why?`<div class="why">${esc(ab.why)}</div>`:""}`:""}</td>`}
         else h+=`<td></td>`}
@@ -501,24 +522,29 @@ const STARTS=SLOTS.filter(Boolean).map(s=>s[0]),ENDSL=SLOTS.filter(Boolean).map(
 function coursesOf(p,k){if(!p||!k)return[];const[y,m,d]=k.split("-");const dt=new Date(+y,m-1,+d,12),dow=dt.getDay(),wk=isoWeek(dt)%2===0?"A":"B";
   return DATA.filter(x=>x.p===p&&x.d===dow&&(x.w===""||x.w===wk)).sort((a,b)=>mins(a.s)-mins(b.s))}
 function mgFill(){
-  $("mgProf").innerHTML=(mgT==="message"?`<option value="">— (aucun)</option>`:"")+TEACHERS.map(t=>`<option>${t}</option>`).join("");
+  $("mgProf").innerHTML=(mgT==="message"?`<option value="">— (aucun)</option>`:"")+`<optgroup label="Enseignants">${TEACHERS.map(t=>`<option>${t}</option>`).join("")}</optgroup><optgroup label="Techniciens de Laboratoire">${TECHNICIENS.map(t=>`<option>${t}</option>`).join("")}</optgroup>`;
+  $("mgParts").innerHTML=TEACHERS.map(t=>`<label><input type="checkbox" value="${t}"> ${t}</label>`).join("");
   $("mgSalle").innerHTML=[...new Set(DATA.map(x=>x.r))].sort().map(r=>`<option>${r}</option>`).join("");
   $("mgDe").innerHTML=slotOpts(STARTS,"08:00");$("mgA").innerHTML=slotOpts(ENDSL,"18:00")}
 function mgShow(){
-  document.querySelectorAll("#mgType button").forEach(b=>b.classList.toggle("on",b.dataset.t===mgT));
+  const tech=TECHNICIENS.includes($("mgProf").value);
+  if(tech&&mgT!=="message"&&mgT!=="special")mgT="message";
+  document.querySelectorAll("#mgType button").forEach(b=>{b.classList.toggle("on",b.dataset.t===mgT);b.style.display=tech&&b.dataset.t!=="message"&&b.dataset.t!=="special"?"none":""});
+  const sp=mgT==="special";
+  ["mgTitreW","mgHsW","mgHeW"].forEach(id=>$(id).style.display=sp?"":"none");$("mgPartW").style.display=sp?"":"none";
   const abs=mgT==="absence",dep=mgT==="deplacement",mv=mgT==="salle",can=mgT==="annulation"||mv||dep,msg=mgT==="message";
-  $("mgSalleW").style.display=mv||dep?"":"none";$("mgSalleLbl").textContent=dep?"Salle":"Nouvelle salle";
+  $("mgSalleW").style.display=mv||dep||sp?"":"none";$("mgSalleLbl").textContent=dep||sp?"Salle":"Nouvelle salle";
   $("mgCoursLbl").textContent=dep?"Cours à déplacer":mv?"Cours concerné":"Cours à annuler";
   $("mgNewW").style.display=dep?"":"none";
-  $("mgAuW").style.display=can?"none":"";
+  $("mgAuW").style.display=can||sp?"none":"";
   $("mgAuW").firstChild.textContent=msg?"Afficher jusqu'au ":"Jusqu'au ";
   $("mgDuLbl").textContent=msg?"Afficher à partir du":dep?"Date du cours":can?"Date":"Du";
-  $("mgAllW").style.display=abs?"":"none";
+  $("mgAllW").style.display=abs?"":"none";if(sp)$("mgDuLbl").textContent="Date";
   const part=abs&&!$("mgAll").checked;
   $("mgDeW").style.display=part||dep?"":"none";$("mgAW").style.display=part||dep?"":"none";
   $("mgDeW").firstChild.textContent=dep?"Nouvel horaire : de":"De";
   $("mgCoursW").style.display=can?"":"none";
-  $("mgTxtLbl").innerHTML=msg?"Message":"Motif <small>(facultatif, affiché en petit dans la case)</small>";
+  $("mgTxtLbl").innerHTML=msg?"Message":sp?"Remarque <small>(type d'examen…)</small>":"Motif <small>(facultatif, affiché en petit dans la case)</small>";
   if(can){mgCourses();if(dep&&!mgEdit)depDefaults()}}
 function depDefaults(){const v=$("mgCours").value;if(!v)return;const[a,b]=v.split("-"),c=coursesOf($("mgProf").value,$("mgDu").value).find(x=>x.s===a);
   if(STARTS.includes(a))$("mgDe").value=a;if(ENDSL.includes(b))$("mgA").value=b;if(c)$("mgSalle").value=c.r;if(!$("mgNew").value)$("mgNew").value=$("mgDu").value}
@@ -526,7 +552,7 @@ let mgSelCourse=null;
 function mgCourses(sel=mgSelCourse){const L=coursesOf($("mgProf").value,$("mgDu").value);
   $("mgCours").innerHTML=L.length?L.map(x=>{const v=x.s+"-"+x.e;return`<option value="${v}"${v===sel?" selected":""}>${hm(x.s)}–${hm(x.e)} · ${x.r} · ${x.c}</option>`}).join(""):`<option value="">Aucun cours ce jour-là</option>`}
 function mgReset(){mgEdit=null;mgSelCourse=null;hideConf();$("mgFormTitle").textContent="Nouveau changement";$("mgCancel").style.display="none";
-  const keepT=mgT;mgFill();$("mgDu").value=ymd(cur);$("mgAu").value="";$("mgNew").value="";$("mgAll").checked=true;$("mgTxt").value="";mgT=keepT;mgShow()}
+  const keepT=mgT;mgFill();$("mgDu").value=ymd(cur);$("mgAu").value="";$("mgNew").value="";$("mgTitre").value="EXAMEN";$("mgHs").value="";$("mgHe").value="";$("mgAll").checked=true;$("mgTxt").value="";mgT=keepT;mgShow()}
 function stat(id,t,cls){const e=$(id);e.textContent=t||"";e.className="mgStat"+(cls?" "+cls:"")}
 let mgPreset=null;
 function mgApplyPreset(){const P=mgPreset;mgPreset=null;if(!P)return;
@@ -545,7 +571,15 @@ async function mgLogin(){const c=$("mgCode").value.trim();if(!c)return;stat("mgL
   try{const j=await api({code:c,action:"verifier"});if(j.ok){CODE=c;try{localStorage.setItem("edtCode",c)}catch(e){}stat("mgLogStat","");$("mgCode").value="";onRows(j.lignes);mgOpen()}else stat("mgLogStat",j.erreur||"Code refusé","err")}
   catch(e){stat("mgLogStat","Impossible de joindre Google","err")}$("mgLog").disabled=false}
 function lineFrom(){const p=$("mgProf").value,du=$("mgDu").value,au=$("mgAu").value,tx=$("mgTxt").value.trim();
-  if(mgT!=="message"&&!p)return"Choisissez un enseignant.";if(!du)return"Choisissez une date.";
+  if(mgT!=="message"&&!p)return"Choisissez une personne.";if(!du)return"Choisissez une date.";
+  if(mgT==="special"){const titre=$("mgTitre").value.trim()||"EXAMEN",hs=$("mgHs").value,he=$("mgHe").value,room=$("mgSalle").value,profs=[...document.querySelectorAll("#mgParts input:checked")].map(i=>i.value);
+    if(!hs||!he)return"Indiquez l'heure de début et l'heure de fin.";if(mins(he)<=mins(hs))return"L'heure de fin doit être après l'heure de début.";
+    if(!profs.length)return"Cochez au moins un professeur participant.";
+    const[y3,m3,d3]=du.split("-"),dt3=new Date(+y3,m3-1,+d3,12);if(dt3.getDay()===0||dt3.getDay()===6||offDay(dt3))return"Pas de cours ce jour-là (week-end, vacances ou férié).";
+    const occ=dayCourses(du,mgEdit).filter(x=>mins(x.s)<mins(he)&&mins(x.e)>mins(hs));
+    for(const q of profs){const c=occ.find(x=>x.p===q);if(c)return`${q} a cours de ${hm(c.s)} à ${hm(c.e)} (${c.c}, ${c.r}). Annulez ou déplacez d'abord ce cours.`;
+      const z=occ.find(x=>x.spec&&x.spec.profs.includes(q));if(z)return`${q} participe déjà à « ${z.spec.titre} » de ${hm(z.s)} à ${hm(z.e)}.`}
+    return{type:"special",enseignant:p,du,au:"",debut:hs,fin:he,texte:titre+" | "+profs.join(", ")+(($("mgTxt").value.trim())?" | "+$("mgTxt").value.trim():""),jusqua:room}}
   const l={type:mgT,enseignant:p,du,au:"",debut:"",fin:"",texte:tx,jusqua:""};
   if(mgT==="absence"){if(au&&au<du)return"La date de fin est avant la date de début.";l.au=au&&au!==du?au:"";if(!$("mgAll").checked){l.debut=$("mgDe").value;l.fin=$("mgA").value;if(mins(l.fin)<=mins(l.debut))return"L'heure de fin doit être après l'heure de début."}}
   if(mgT==="deplacement"){const v=$("mgCours").value;if(!v)return"Aucun cours ce jour-là.";const[a]=v.split("-"),nd=$("mgNew").value,ns=$("mgDe").value,ne=$("mgA").value,room=$("mgSalle").value;
@@ -553,9 +587,9 @@ function lineFrom(){const p=$("mgProf").value,du=$("mgDu").value,au=$("mgAu").va
     const[y2,m2,d2]=nd.split("-"),dt2=new Date(+y2,m2-1,+d2,12);if(dt2.getDay()===0||dt2.getDay()===6||offDay(dt2))return"Pas de cours ce jour-là (week-end, vacances ou férié).";
     if(nd===du&&ns===a&&room===(coursesOf(p,du).find(x=>x.s===a)||{}).r)return"Rien ne change : choisissez une autre date, un autre horaire ou une autre salle.";
     const occ=dayCourses(nd,mgEdit).filter(x=>!(x.p===p&&nd===du&&x.s===a)&&mins(x.s)<mins(ne)&&mins(x.e)>mins(ns));
-    const busyRoom=occ.find(x=>x.r===room);if(busyRoom){const rooms=[...new Set(DATA.map(x=>x.r))].sort().filter(r=>!occ.some(x=>x.r===r));
+    const busyRoom=occ.find(x=>x.r===room);if(busyRoom&&busyRoom.spec)return`La salle ${room} est réservée pour « ${busyRoom.spec.titre} » à ce moment-là.`;if(busyRoom){const rooms=[...new Set(DATA.map(x=>x.r))].sort().filter(r=>!occ.some(x=>x.r===r));
       return`La salle ${room} est occupée par ${busyRoom.c} (${busyRoom.p}) à ce moment-là. Salles libres : ${rooms.join(", ")||"aucune"}.`}
-    const busyProf=occ.find(x=>x.p===p);if(busyProf)return`${p} a déjà cours à ce moment-là (${busyProf.c}, ${busyProf.r}).`;
+    const busyProf=occ.find(x=>x.p===p);if(busyProf)return`${p} a déjà cours à ce moment-là (${busyProf.c}, ${busyProf.r}).`;const busySp=occ.find(x=>x.spec&&x.spec.profs.includes(p));if(busySp)return`${p} participe à « ${busySp.spec.titre} » à ce moment-là.`;
     l.debut=a;l.au=nd;l.fin=ns+"-"+ne;l.jusqua=room}
   if(mgT==="annulation"||mgT==="salle"){const v=$("mgCours").value;if(!v)return"Aucun cours ce jour-là.";[l.debut,l.fin]=v.split("-")}
   if(mgT==="salle"){l.jusqua=$("mgSalle").value;const c=coursesOf(p,du).find(x=>x.s===l.debut);if(c&&c.r===l.jusqua)return"C'est déjà la salle de ce cours."}
@@ -565,7 +599,7 @@ function lineFrom(){const p=$("mgProf").value,du=$("mgDu").value,au=$("mgAu").va
 function dayCourses(day,skipId){const[y,m,d]=day.split("-"),dt=new Date(+y,m-1,+d,12),wk=isoWeek(dt)%2===0?"A":"B";
   return effList(day,skipId).filter(x=>!x.gone&&!absentFor(x,day)).map(x=>{if(x.came)return{...x,mvId:null};
     const mv=LIGNES.find(l=>l.type==="salle"&&l.id!==skipId&&l.enseignant===x.p&&isoD(l.du)===day&&l.debut===x.s);
-    return{...x,r:mv?mv.jusqua:x.r,mvId:mv?mv.id:null}})}
+    return{...x,r:mv?mv.jusqua:x.r,mvId:mv?mv.id:null}}).concat(specsOf(day,skipId).map(z=>({p:"",c:z.titre,r:z.r,s:z.s,e:z.e,spec:z})))}
 let mgPending=null;
 function hideConf(){$("mgConf").style.display="none";$("mgMainActs").style.display="";mgPending=null}
 async function send(action,ligne){const j=await api({code:CODE,action,ligne});if(!j.ok){if(/code/i.test(j.erreur||""))forget();throw new Error(j.erreur||"Erreur")}return j}
@@ -574,27 +608,41 @@ async function mgSave(){const l=lineFrom();if(typeof l==="string"){stat("mgStat"
   if(l.type==="salle"){const all=dayCourses(l.du,mgEdit),me=all.find(x=>x.p===l.enseignant&&x.s===l.debut);
     const ov=x=>mins(x.s)<mins(l.fin)&&mins(x.e)>mins(l.debut);
     const other=all.find(x=>x!==me&&x.r===l.jusqua&&ov(x));
+    if(other&&other.spec){stat("mgStat",`La salle ${l.jusqua} est réservée pour « ${other.spec.titre} » de ${hm(other.s)} à ${hm(other.e)}. Choisissez une autre salle.`,"err");return}
     if(other){const rooms=[...new Set(DATA.map(x=>x.r))].sort();
       const busy=r=>all.some(x=>x!==me&&x!==other&&x.r===r&&mins(x.s)<mins(other.e)&&mins(x.e)>mins(other.s));
       const free=rooms.filter(r=>r!==l.jusqua&&!busy(r)),orig=me?me.r:null;
       $("mgConfTxt").innerHTML=`⚠ La salle <b>${esc(l.jusqua)}</b> est déjà occupée de ${hm(other.s)} à ${hm(other.e)} par <b>${esc(other.c)}</b> (${esc(other.p)}).`;
       $("mgConfSalle").innerHTML=free.map(r=>`<option value="${r}"${r===orig?" selected":""}>${r}${r===orig?" (échange de salles)":""}</option>`).join("")||`<option value="">Aucune salle libre</option>`;
-      $("mgConf").style.display="";$("mgMainActs").style.display="none";mgPending={l,other};return}}
+      $("mgConf").style.display="";$("mgMainActs").style.display="none";mgPending={l,others:[other]};return}}
+  if(l.type==="special"){const all=dayCourses(l.du,mgEdit),ov=(x,a,b)=>mins(x.s)<mins(b)&&mins(x.e)>mins(a);
+    const others=all.filter(x=>x.r===l.jusqua&&ov(x,l.debut,l.fin));
+    const sp=others.find(x=>x.spec);if(sp){stat("mgStat",`La salle ${l.jusqua} est déjà réservée pour « ${sp.spec.titre} » de ${hm(sp.s)} à ${hm(sp.e)}. Choisissez une autre salle.`,"err");return}
+    if(others.length){const rooms=[...new Set(DATA.map(x=>x.r))].sort();
+      const free=rooms.filter(r=>r!==l.jusqua&&others.every(o=>!all.some(x=>!others.includes(x)&&x.r===r&&ov(x,o.s,o.e))));
+      $("mgConfTxt").innerHTML=`⚠ La salle <b>${esc(l.jusqua)}</b> est déjà occupée pendant ce créneau par :<br>`+others.map(o=>`• <b>${esc(o.c)}</b> (${esc(o.p)}) de ${hm(o.s)} à ${hm(o.e)}`).join("<br>");
+      $("mgConfSalle").innerHTML=free.map(r=>`<option value="${r}">${r}</option>`).join("")||`<option value="">Aucune salle libre</option>`;
+      $("mgConf").querySelector("label").firstChild.textContent=others.length>1?"Dans quelle salle mettre ces cours ?":"Dans quelle salle mettre ce cours ?";
+      $("mgConfOk").textContent="Confirmer les changements";
+      $("mgConf").style.display="";$("mgMainActs").style.display="none";mgPending={l,others};return}}
   $("mgSave").disabled=true;stat("mgStat","Enregistrement…");
   try{const j=await send(mgEdit?"modifier":"ajouter",l);onRows(j.lignes);mgReset();stat("mgStat","Enregistré ✓","ok")}
   catch(e){stat("mgStat",e.message==="Failed to fetch"?"Impossible de joindre Google":e.message,"err")}$("mgSave").disabled=false}
-async function mgConfirm(){if(!mgPending)return;const{l,other}=mgPending,r2=$("mgConfSalle").value;if(!r2)return;
+async function relocate(o,r2,l){const who=l.type==="special"?(String(l.texte).split(" | ")[0]||"EXAMEN"):String(l.enseignant).split(" ")[0];
+  if(o.came){const ln=LIGNES.find(x=>x.id===o.came.id);return send("modifier",{...ln,jusqua:r2})}
+  const l2={type:"salle",enseignant:o.p,du:l.du,au:"",debut:o.s,fin:o.e,texte:"Salle libérée pour "+who,jusqua:r2};
+  const orig=DATA.find(x=>x.p===o.p&&x.s===o.s&&x.r===r2);
+  if(o.mvId){if(orig)return api({code:CODE,action:"supprimer",id:o.mvId});l2.id=o.mvId;return send("modifier",l2)}
+  if(!orig)return send("ajouter",l2);return null}
+async function mgConfirm(){if(!mgPending)return;const{l,others}=mgPending,r2=$("mgConfSalle").value;if(!r2)return;
   $("mgConfOk").disabled=true;
-  try{await send(l.id?"modifier":"ajouter",l);
-    const l2={type:"salle",enseignant:other.p,du:l.du,au:"",debut:other.s,fin:other.e,texte:"Salle libérée pour "+l.enseignant.split(" ")[0],jusqua:r2};
-    const orig=DATA.find(x=>x.p===other.p&&x.s===other.s&&x.r===r2);
-    let j;if(other.mvId){if(orig)j=await api({code:CODE,action:"supprimer",id:other.mvId});else{l2.id=other.mvId;j=await send("modifier",l2)}}
-    else if(!orig)j=await send("ajouter",l2);
-    else j=await api({code:CODE,action:"verifier"});
-    onRows(j.lignes);hideConf();mgReset();stat("mgStat","Les deux changements sont enregistrés ✓","ok")}
-  catch(e){stat("mgStat",e.message,"err");hideConf()}$("mgConfOk").disabled=false}
+  try{let j=await send(l.id?"modifier":"ajouter",l);
+    for(const o of others){const k=await relocate(o,r2,l);if(k)j=k}
+    onRows(j.lignes);hideConf();mgReset();stat("mgStat","Les changements sont enregistrés ✓","ok")}
+  catch(e){stat("mgStat",e.message,"err");hideConf()}$("mgConfOk").disabled=false;$("mgConfOk").textContent="Confirmer les deux changements";$("mgConf").querySelector("label").firstChild.textContent="Dans quelle salle mettre ce cours ?"}
 function forget(){CODE="";try{localStorage.removeItem("edtCode")}catch(e){}mgOpen();stat("mgLogStat","Code secret à saisir","err")}
-function descr(l){if(l.type==="deplacement"){const[ns,ne]=String(l.fin||"").split("-");return fmtD(isoD(l.du)||"")+" à "+hm(l.debut||"")+" → "+fmtD(isoD(l.au)||"")+" · "+hm(ns||"")+"–"+hm(ne||"")+" · "+(l.jusqua||"")}
+function descr(l){if(l.type==="special"){const z=SPECS.find(z=>z.id===l.id);return z?`${fmtD(z.day)} · ${hm(z.s)}–${hm(z.e)} · ${z.r} · ${z.titre} · ${z.profs.join(", ")}`:""}
+if(l.type==="deplacement"){const[ns,ne]=String(l.fin||"").split("-");return fmtD(isoD(l.du)||"")+" à "+hm(l.debut||"")+" → "+fmtD(isoD(l.au)||"")+" · "+hm(ns||"")+"–"+hm(ne||"")+" · "+(l.jusqua||"")}
 if(l.type==="salle")return fmtD(isoD(l.du)||"")+" · "+hm(l.debut||"")+"–"+hm(l.fin||"")+" · → "+(l.jusqua||"?");
 const du=isoD(l.du),au=isoD(l.au);let d=du?fmtD(du):"";if(au&&au!==du)d=(l.type==="message"?"du ":"du ")+fmtD(du)+" au "+fmtD(au);
   else if(l.type==="message")d="à partir du "+d+" ("+MSG_DAYS+" j)";
@@ -602,12 +650,14 @@ const du=isoD(l.du),au=isoD(l.au);let d=du?fmtD(du):"";if(au&&au!==du)d=(l.type=
 function mgList(){const today=ymd(new Date()),past=$("mgPast").checked;
   const L=LIGNES.filter(l=>l.type!=="presence").map(l=>{const du=isoD(l.du)||"",end=l.type==="deplacement"?[isoD(l.au)||"",du].sort().pop():isoD(l.au)||(l.type==="message"&&du?addDays(du,MSG_DAYS):du);return{l,du,end,old:end&&end<today}})
     .filter(o=>past||!o.old).sort((a,b)=>a.du<b.du?-1:a.du>b.du?1:0);
-  $("mgList").innerHTML=L.length?L.map(({l,old})=>{const c=COLORS[l.enseignant]||"#cfc8b8",lab={absence:"Absence",annulation:"Cours annulé",salle:"Changement de salle",deplacement:"Cours déplacé",message:"Message"}[l.type]||l.type;
-    return`<div class="row${old?" past":""}"><span class="dot" style="background:${c}"></span><div><span class="tagT ${esc(l.type)}">${lab}</span><b>${esc(l.enseignant||"—")}</b><div class="meta">${descr(l)}</div>${l.texte?`<div class="tx">${esc(l.texte)}</div>`:""}</div>
+  $("mgList").innerHTML=L.length?L.map(({l,old})=>{const c=COLORS[l.enseignant]||"#cfc8b8",lab={absence:"Absence",annulation:"Cours annulé",salle:"Changement de salle",deplacement:"Cours déplacé",special:"Créneau spécial",message:"Message"}[l.type]||l.type;
+    return`<div class="row${old?" past":""}"><span class="dot" style="background:${c}"></span><div><span class="tagT ${esc(l.type)}">${lab}</span><b>${esc(l.enseignant||"—")}</b><div class="meta">${descr(l)}</div>${l.texte&&l.type!=="special"?`<div class="tx">${esc(l.texte)}</div>`:""}</div>
     <div class="acts"><button data-ed="${esc(l.id)}">Modifier</button><button class="del" data-del="${esc(l.id)}">Supprimer</button></div></div>`}).join(""):`<div class="empty2">Aucun changement.</div>`}
 function mgEditLine(id){const l=LIGNES.find(x=>x.id===id);if(!l)return;mgEdit=id;mgT=l.type;mgFill();mgShow();
   $("mgProf").value=l.enseignant||"";$("mgDu").value=isoD(l.du)||"";$("mgAu").value=isoD(l.au)||"";$("mgTxt").value=l.texte||"";
   $("mgAll").checked=!(l.debut&&l.fin);if(l.debut)$("mgDe").value=l.debut;if(l.fin)$("mgA").value=l.fin;mgShow();
+  if(l.type==="special"){const z=SPECS.find(z=>z.id===l.id);if(z){$("mgTitre").value=z.titre;$("mgHs").value=z.s;$("mgHe").value=z.e;$("mgSalle").value=z.r;$("mgTxt").value=z.rem;
+    document.querySelectorAll("#mgParts input").forEach(i=>i.checked=z.profs.includes(i.value))}}
   if(l.type==="deplacement"){const o=courseAt(l.enseignant,isoD(l.du)||"",l.debut);mgCourses(l.debut+"-"+(o?o.e:""));const[ns,ne]=String(l.fin||"").split("-");$("mgNew").value=isoD(l.au)||"";$("mgDe").value=ns;$("mgA").value=ne;$("mgSalle").value=l.jusqua||""}
   else if(l.type==="annulation"||l.type==="salle")mgCourses(l.debut+"-"+l.fin);if(l.type==="salle")$("mgSalle").value=l.jusqua||"";
   $("mgFormTitle").textContent="Modifier le changement";$("mgCancel").style.display="";stat("mgStat","");$("mgOv").scrollTop=0}
@@ -616,7 +666,8 @@ async function mgDel(btn){if(!btn.classList.contains("sure")){document.querySele
   try{const j=await api({code:CODE,action:"supprimer",id:btn.dataset.del});if(j.ok){if(mgEdit===btn.dataset.del)mgReset();onRows(j.lignes)}else{if(/code/i.test(j.erreur||"")){forget();return}btn.textContent=j.erreur||"Erreur"}}
   catch(e){btn.textContent="Erreur réseau"}}
 $("mgBtn").onclick=()=>{mgPreset=null;mgOpen()};
-$("main").addEventListener("dblclick",e=>{const el=e.target.closest("[data-p][data-s]");if(!el)return;
+$("main").addEventListener("dblclick",e=>{const el=e.target.closest("[data-p][data-s],[data-spec]");if(!el)return;
+  if(el.dataset.spec){try{getSelection().removeAllRanges()}catch(_){}mgPreset=null;mgOpen();if(CODE)mgEditLine(el.dataset.spec);return}
   if(el.dataset.shift){try{getSelection().removeAllRanges()}catch(_){}mgPreset=null;mgOpen();if(CODE)mgEditLine(el.dataset.shift);return}
   const day=ymd(cur),[y,m,d]=day.split("-"),dt=new Date(+y,m-1,+d,12),wk=isoWeek(dt)%2===0?"A":"B";
   const x=DATA.find(x=>x.p===el.dataset.p&&x.s===el.dataset.s&&x.d===dt.getDay()&&(x.w===""||x.w===wk));if(!x)return;
@@ -625,7 +676,7 @@ $("main").addEventListener("dblclick",e=>{const el=e.target.closest("[data-p][da
 $("mgLog").onclick=mgLogin;$("mgCode").onkeydown=e=>{if(e.key==="Enter")mgLogin()};
 document.querySelectorAll("#mgType button").forEach(b=>b.onclick=()=>{mgT=b.dataset.t;const p=$("mgProf").value;mgFill();if(p)$("mgProf").value=p;mgShow()});
 $("mgAll").onchange=mgShow;const isC=()=>mgT==="annulation"||mgT==="salle"||mgT==="deplacement";
-$("mgProf").onchange=()=>{if(isC()){mgCourses();if(mgT==="deplacement")depDefaults()}};$("mgDu").onchange=()=>{if(isC()){mgCourses();if(mgT==="deplacement")depDefaults()}};
+$("mgProf").onchange=()=>{mgShow();if(isC()){mgCourses();if(mgT==="deplacement")depDefaults()}};$("mgDu").onchange=()=>{if(isC()){mgCourses();if(mgT==="deplacement")depDefaults()}};
 $("mgCours").onchange=()=>{if(mgT==="deplacement")depDefaults()};
 $("mgSave").onclick=mgSave;$("mgConfOk").onclick=mgConfirm;$("mgConfNo").onclick=hideConf;$("mgCancel").onclick=()=>{mgReset();stat("mgStat","")};$("mgPast").onchange=mgList;
 $("mgLogout").onclick=forget;
