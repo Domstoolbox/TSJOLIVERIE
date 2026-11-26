@@ -173,6 +173,14 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 
 .sm{display:none}
 
+.whoQ{font-size:26px;font-weight:900;margin:4px 0 14px}
+.whoGrp{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 8px}
+.whoGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.whoT{font:inherit;cursor:pointer;text-align:left;border:none;border-left:8px solid var(--c);background:#f4f1ea;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;line-height:1.15;transition:transform .1s}
+.whoT:hover{transform:translateY(-2px);background:#ece7dc}
+.whoT b{font-weight:900;font-size:16px}.whoT span{font-weight:700;font-size:14px;color:var(--muted)}
+.whoBar{font-weight:700;color:var(--muted);margin:-4px 0 12px}.whoBar b{color:var(--ink);font-weight:900}
+@media (max-width:700px){.whoGrid{grid-template-columns:1fr 1fr}.whoQ{font-size:22px}}
 /* Tuiles de type de changement */
 #mgType{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;background:none!important;padding:0!important;width:100%}
 #mgType button{--c:#334155;--p:#eef1f5;background:var(--p)!important;color:var(--c)!important;border:2px solid var(--c)!important;border-radius:12px!important;padding:12px 8px!important;font-weight:900!important;font-size:15px!important;line-height:1.2;text-align:center;transition:background .15s,color .15s}
@@ -261,7 +269,13 @@ footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
     <label>Code secret<input type="password" id="mgCode" autocomplete="off"></label>
     <button class="mgBtn" id="mgLog">Valider</button><span class="mgStat" id="mgLogStat"></span>
   </div>
+  <div id="mgWho" style="display:none">
+    <div class="whoQ">Qui êtes-vous ?</div>
+    <div class="whoGrp">Enseignants</div><div class="whoGrid" id="whoT"></div>
+    <div class="whoGrp">Techniciens de Laboratoire</div><div class="whoGrid" id="whoL"></div>
+  </div>
   <div id="mgBody" style="display:none">
+    <div class="whoBar">Vous : <b id="whoName"></b> <button class="linkBtn" id="whoChange">changer</button></div>
     <div class="mgForm">
       <div class="mgTitle" id="mgFormTitle">Nouveau changement</div>
       <div class="seg" id="mgType"><button data-t="absence" class="on">Absence</button><button data-t="annulation">Cours annulé</button><button data-t="salle">Changement de salle</button><button data-t="deplacement">Déplacer un cours</button><button data-t="special">Créneau spécial</button><button data-t="message">Message</button></div>
@@ -566,7 +580,7 @@ let mgSelCourse=null;
 function mgCourses(sel=mgSelCourse){const L=coursesOf($("mgProf").value,$("mgDu").value);
   $("mgCours").innerHTML=L.length?L.map(x=>{const v=x.s+"-"+x.e;return`<option value="${v}"${v===sel?" selected":""}>${hm(x.s)}–${hm(x.e)} · ${x.r} · ${x.c}</option>`}).join(""):`<option value="">Aucun cours ce jour-là</option>`}
 function mgReset(){mgEdit=null;mgSelCourse=null;hideConf();$("mgFormTitle").textContent="Nouveau changement";$("mgCancel").style.display="none";
-  const keepT=mgT;mgFill();$("mgDu").value=ymd(cur);$("mgAu").value="";$("mgNew").value="";$("mgTitre").value="EXAMEN";$("mgHs").value="";$("mgHe").value="";$("mgAll").checked=true;$("mgTxt").value="";mgT=keepT;mgShow()}
+  const keepT=mgT;mgFill();$("mgDu").value=ymd(cur);$("mgAu").value="";$("mgNew").value="";$("mgTitre").value="EXAMEN";$("mgHs").value="";$("mgHe").value="";$("mgAll").checked=true;$("mgTxt").value="";mgT=keepT;if(mgWhoName)$("mgProf").value=mgWhoName;mgShow()}
 function stat(id,t,cls){const e=$(id);e.textContent=t||"";e.className="mgStat"+(cls?" "+cls:"")}
 let mgPreset=null;
 function mgApplyPreset(){const P=mgPreset;mgPreset=null;if(!P)return;
@@ -580,7 +594,14 @@ function mgApplyPreset(){const P=mgPreset;mgPreset=null;if(!P)return;
   if(mgT==="absence"){$("mgAll").checked=false;$("mgDe").value=P.s;$("mgA").value=P.e;mgShow()}
   else{mgShow();mgCourses(P.s+"-"+P.e)}
   $("mgFormTitle").textContent="Cours de "+hm(P.s)+" · "+P.c+" — choisissez le changement"}
-function mgOpen(){$("mgOv").classList.add("show");if(CODE){$("mgLogin").style.display="none";$("mgBody").style.display="";mgReset();mgApplyPreset();mgList()}else{$("mgLogin").style.display="";$("mgBody").style.display="none";setTimeout(()=>$("mgCode").focus(),50)}}
+let mgWhoName="";
+function whoTile(n,c){return`<button class="whoT" data-who="${n}" style="--c:${c}"><b>${n.split(" ")[0].toUpperCase()}</b><span>${n.split(" ").slice(1).join(" ")}</span></button>`}
+function mgWhoShow(){$("mgBody").style.display="none";$("mgWho").style.display="";
+  $("whoT").innerHTML=[...TEACHERS].sort((a,b)=>a.localeCompare(b,"fr")).map(t=>whoTile(t,COLORS[t])).join("");
+  $("whoL").innerHTML=whoTile("BONSIGNE Clarisse",TECHS[0].c)+whoTile("SAAH Adrien",TECHS[1].c)}
+function mgOpen(){$("mgOv").classList.add("show");if(CODE){$("mgLogin").style.display="none";
+    if(!mgPreset){mgWhoShow();return}
+    $("mgWho").style.display="none";$("mgBody").style.display="";mgReset();mgApplyPreset();mgList();$("whoName").textContent=$("mgProf").value||"—"}else{$("mgLogin").style.display="";$("mgBody").style.display="none";setTimeout(()=>$("mgCode").focus(),50)}}
 async function mgLogin(){const c=$("mgCode").value.trim();if(!c)return;stat("mgLogStat","Vérification…");$("mgLog").disabled=true;
   try{const j=await api({code:c,action:"verifier"});if(j.ok){CODE=c;try{localStorage.setItem("edtCode",c)}catch(e){}stat("mgLogStat","");$("mgCode").value="";onRows(j.lignes);mgOpen()}else stat("mgLogStat",j.erreur||"Code refusé","err")}
   catch(e){stat("mgLogStat","Impossible de joindre Google","err")}$("mgLog").disabled=false}
@@ -680,6 +701,10 @@ async function mgDel(btn){if(!btn.classList.contains("sure")){document.querySele
   try{const j=await api({code:CODE,action:"supprimer",id:btn.dataset.del});if(j.ok){if(mgEdit===btn.dataset.del)mgReset();onRows(j.lignes)}else{if(/code/i.test(j.erreur||"")){forget();return}btn.textContent=j.erreur||"Erreur"}}
   catch(e){btn.textContent="Erreur réseau"}}
 $("mgBtn").onclick=()=>{mgPreset=null;mgOpen()};
+$("mgWho").onclick=e=>{const b=e.target.closest("[data-who]");if(!b)return;mgWhoName=b.dataset.who;
+  if(TECHNICIENS.includes(mgWhoName)&&mgT!=="message"&&mgT!=="special")mgT="special";
+  $("mgWho").style.display="none";$("mgBody").style.display="";mgReset();mgList();$("whoName").textContent=mgWhoName};
+$("whoChange").onclick=mgWhoShow;
 $("main").addEventListener("dblclick",e=>{const el=e.target.closest("[data-p][data-s],[data-spec]");if(!el)return;
   if(el.dataset.spec){try{getSelection().removeAllRanges()}catch(_){}mgPreset=null;mgOpen();if(CODE)mgEditLine(el.dataset.spec);return}
   if(el.dataset.shift){try{getSelection().removeAllRanges()}catch(_){}mgPreset=null;mgOpen();if(CODE)mgEditLine(el.dataset.shift);return}
