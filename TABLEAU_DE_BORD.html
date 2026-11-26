@@ -1081,7 +1081,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '25/11/2026 - 13h10';
+const VERSION_PAGE = '26/11/2026 - 05h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1387,6 +1387,7 @@ const sansAccent = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
 function fichierDe(test) {
   const t = String(test || '').replace(/\s*\(.*\)\s*$/, '').trim();
   let m = /^TEST\s+(\d{3})$/i.exec(t); if (m) return 'TEST_' + m[1] + '.html';
+  m = /^DS\s+(.+)$/i.exec(t); if (m) return 'DS ' + sansAccent(m[1]).toUpperCase() + '.html';
   m = /^CERTIFICAT\s+(.+)$/i.exec(t); if (m) return 'Certificat ' + sansAccent(m[1]).toUpperCase().replace(/-/g, '') + '.html';
   return '';
 }
@@ -1420,7 +1421,7 @@ $('findFil').addEventListener('change', e => { if (e.target.id === 'findDate') {
 const filtreOk = c => (!FILTRE.date || c.date === FILTRE.date) && (!FILTRE.cl.size || FILTRE.cl.has(c.classe) || FILTRE.cl.has(c.classe + '|' + groupeDe(c)));
 function actsCopie(c) { return actsCopie0(c) + `<button type="button" class="del" data-eff="${FIND.indexOf(c)}" title="Effacer cette copie partout (comme si l’élève n’avait jamais fait ce test)">🗑</button>`; }
 function actsCopie0(c) {
-  const f = fichierDe(c.test), cert = /^CERTIFICAT/i.test(c.test), i = FIND.indexOf(c);
+  const f = fichierDe(c.test), cert = /^(CERTIFICAT|DS )/i.test(c.test), i = FIND.indexOf(c);   // certificats et DS : refaits avec leurs données
   return cert ? (c.regen && f ? `<button type="button" data-cert="${i}" title="Refaire le certificat (PDF)">📄</button>` : '<span class="na">—</span>')
     : (c.cle ? `<button type="button" data-cle="${i}" title="Copier la clé et ouvrir le test">📋</button>${f ? `<button type="button" data-test="${i}" title="Refaire la copie (PDF)">📄</button>` : ''}` : '<span class="na">—</span>');
 }
@@ -1429,7 +1430,7 @@ function findRender() {
   const mots = sansAccent($('findQ').value).toLowerCase().split(/\s+/).filter(Boolean);
   const L = FIND.filter(c => !c.efface && filtreOk(c)).filter(c => { const t = sansAccent([c.nom, c.prenom, c.classe, c.test, c.date].join(' ')).toLowerCase(); return mots.every(m => t.includes(m)); });
   $('findN').textContent = L.length;
-  FIND_VUE = L; $('findLot').hidden = !L.some(c => !/^CERTIFICAT/i.test(c.test) && fichierDe(c.test) && c.cle);   // impression groupée : tests seulement
+  FIND_VUE = L; $('findLot').hidden = !L.some(c => !/^(CERTIFICAT|DS )/i.test(c.test) && fichierDe(c.test) && c.cle);   // impression groupée : tests seulement
   $('findList').innerHTML = L.slice(0, 300).map((c, i) => {
     const acts = actsCopie(c);
     return `<div class="frow"><div class="who"><b>${esc(c.nom)}</b><span>${esc(c.prenom)}</span></div><div class="tst">${esc(c.test)}</div><div class="cl">${esc(c.classe)}</div><div class="dt">${esc(c.date)}<br>${esc(c.fin)}</div><div class="nte nt">${esc(String(c.note).replace(/\s/g, ''))}</div><div class="acts">${acts}</div></div>`;
@@ -2179,7 +2180,7 @@ $('findLot').onclick = async () => {
   const bt = $('findLot');
   // la meilleure copie (note sur 20) de chaque élève pour chaque test ; à égalité, la plus récente
   const best = {};
-  FIND_VUE.filter(c => !/^CERTIFICAT/i.test(c.test) && fichierDe(c.test) && c.cle).forEach(c => {
+  FIND_VUE.filter(c => !/^(CERTIFICAT|DS )/i.test(c.test) && fichierDe(c.test) && c.cle).forEach(c => {
     const k = cleNom(c.nom, c.prenom) + '#' + c.test.replace(/\s*\(.*\)\s*$/, '').toUpperCase(), v = sur20(c), o = best[k];
     if (!o || (isNaN(sur20(o)) ? 0 : sur20(o)) < (isNaN(v) ? 0 : v) || (sur20(o) === v && dateNum(c) > dateNum(o))) best[k] = c;
   });
