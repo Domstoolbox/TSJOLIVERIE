@@ -505,6 +505,15 @@ body.need-net .sheet{display:none}
 #certOv .dspdf{font-family:var(--f-body);font-weight:700;font-size:1.05rem;border-radius:999px;padding:14px 28px;border:0;cursor:pointer;background:#fff;color:#14263a}
 #certOv .dsqs{width:130px;background:#fff;padding:6px;border-radius:8px}
 #certOv .dsqs svg{display:block;width:100%;height:auto}
+#dsConf{position:fixed;inset:0;z-index:120;background:rgba(10,18,28,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+#dsConf .dsc{width:min(560px,100%);background:#fff;color:#1d2633;border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border-top:8px solid #ea580c}
+#dsConf .dst{font-weight:800;margin:0 0 12px;font-size:clamp(1.3rem,4vw,1.7rem);color:#c2410c}
+#dsConf p{margin:0 0 12px;font-size:1.05rem;line-height:1.45}
+#dsConf .dsv{font-weight:700;color:#b42318;background:#fdecea;border-radius:10px;padding:8px 10px}
+#dsConf .dsv.ok{color:#15803d;background:#e8f6ee}
+#dsConf .dsb{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+#dsConf button{font:700 1rem var(--f-body);border-radius:999px;padding:12px 20px;cursor:pointer;border:2px solid #cbd5e1;background:#fff;color:#1d2633}
+#dsConf .dsok{background:#ea580c;border-color:#ea580c;color:#fff}
 </style>
 </head>
 <body class="no-id need-code">
@@ -564,7 +573,7 @@ body.need-net .sheet{display:none}
     </div>
   </div>
 
-  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 26/11/2026 - 05h30</span></footer>
+  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 26/11/2026 - 19h10</span></footer>
 </div>
 
 <script>
@@ -1722,13 +1731,16 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   // Fin de la 1re partie : aucune correction affichée, la 1re partie est verrouillée et la 2e apparaît
   $('content').addEventListener('click', e => {
     if (!e.target.closest || !e.target.closest('#send1') || window.FICHE_DONE) return;
+    window.dsConfirmer(1, envoi1);
+  });
+  function envoi1() {
     done1 = true;
     const p2 = $('part2');
     $('content').querySelectorAll('input,select,.calcbtn,.tts').forEach(x => { if (!p2.contains(x)) x.disabled = true; });
     $('fuel').disabled = true;
     p2.hidden = false; $('submitAll').hidden = false; $('send1').hidden = true;
     try { p2.scrollIntoView({behavior:'smooth', block:'start'}); } catch (x) {}
-  });
+  }
   // Réponses de l'élève (pour refaire la copie depuis le tableau de bord)
   window.dsReponses = () => { const o = {}; $('content').querySelectorAll('input,select').forEach(x => {
     const k = x.id || (x.type === 'radio' ? 'r:' + x.name + '#' + [...$('content').querySelectorAll('input[type=radio][name="' + x.name + '"]')].indexOf(x) : ''); if (!k) return;
@@ -1746,7 +1758,19 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     return window.dsCopie();
   };
   // Fin de la 2e partie : fin du DS (QR code, note, copie PDF)
-  $('send').addEventListener('click', () => { if (CHECKS.length && done1 && typeof window.dsFinir === 'function') window.dsFinir(); });
+  $('send').addEventListener('click', () => { if (CHECKS.length && done1 && typeof window.dsFinir === 'function') window.dsConfirmer(2, window.dsFinir); });
+  // Cases vides d'une partie : champs, listes, groupes de boutons ronds, questions à cocher sans aucune case cochée
+  window.dsVides = part => {
+    const p2 = $('part2'), dans = x => p2.contains(x) === (part === 2) && !x.disabled && x.id !== 'fuel';
+    let n = 0; const vus = new Set();
+    $('content').querySelectorAll('input,select').forEach(x => {
+      if (!dans(x)) return;
+      if (x.type === 'radio') { if (!vus.has(x.name)) { vus.add(x.name); if (!$('content').querySelector('input[type=radio][name="' + x.name + '"]:checked')) n++; } return; }
+      if (x.type === 'checkbox') { const q = x.closest('.q'); if (q && !vus.has(q)) { vus.add(q); if (!q.querySelector('input[type=checkbox]:checked')) n++; } return; }
+      if (!String(x.value || '').trim()) n++;
+    });
+    return n;
+  };
 
   // Une réponse modifiée perd son marquage
   ['input','change'].forEach(t => $('content').addEventListener(t, e => { const box = e.target.closest('.q'); if (box) clearQ(box); }));
@@ -3114,6 +3138,23 @@ body.cert-open{overflow:hidden}
       const b = e.currentTarget, t = b.textContent; b.textContent = 'Création du PDF…'; b.disabled = true;
       try { await window.dsCopie(); } finally { b.textContent = t; b.disabled = false; }
     });
+  };
+})();
+/* ===== DS : grand encart de confirmation avant d'envoyer une partie ===== */
+(function(){
+  window.dsConfirmer = function (part, suite) {
+    if (window.FICHE_DONE || document.getElementById('dsConf')) return;
+    const n = window.dsVides ? window.dsVides(part) : 0;
+    const ov = document.createElement('div'); ov.id = 'dsConf'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true');
+    ov.innerHTML = `<div class="dsc"><div class="dst">⚠️ Envoyer la partie ${part} ?</div>
+      <p>Une fois envoyée, la partie ${part} sera verrouillée : tu ne pourras plus modifier ces réponses${part === 2 ? ' et ton DS sera terminé' : ''}.</p>
+      <p class="dsv${n ? '' : ' ok'}">${n ? `Il te reste <b>${n} case${n > 1 ? 's' : ''} vide${n > 1 ? 's' : ''}</b> dans la partie ${part}.` : 'Toutes les cases de la partie ' + part + ' sont remplies.'}</p>
+      <div class="dsb"><button type="button" class="dsno">Revenir à la partie ${part}</button><button type="button" class="dsok">${part === 1 ? 'Envoyer et passer à la partie 2' : 'Terminer le DS'}</button></div></div>`;
+    document.body.appendChild(ov);
+    const fermer = () => ov.remove();
+    ov.querySelector('.dsno').addEventListener('click', fermer);
+    ov.querySelector('.dsok').addEventListener('click', () => { fermer(); suite(); });
+    try { ov.querySelector('.dsno').focus(); } catch (e) {}
   };
 })();
 </script>
