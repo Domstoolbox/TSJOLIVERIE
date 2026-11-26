@@ -172,6 +172,20 @@ td.cell{border-radius:10px;padding:6px 8px;font-size:13px;font-weight:800;line-h
 footer{margin-top:26px;color:var(--muted);font-size:13px;font-weight:600}
 
 .sm{display:none}
+
+/* Tuiles de type de changement */
+#mgType{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px;background:none!important;padding:0!important;width:100%}
+#mgType button{--c:#334155;--p:#eef1f5;background:var(--p)!important;color:var(--c)!important;border:2px solid var(--c)!important;border-radius:12px!important;padding:12px 8px!important;font-weight:900!important;font-size:15px!important;line-height:1.2;text-align:center;transition:background .15s,color .15s}
+#mgType button:hover{filter:brightness(.96)}
+#mgType button.on{background:var(--c)!important;color:#fff!important;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+#mgType button[data-t=absence]{--c:#dc2626;--p:#fde8e8}
+#mgType button[data-t=annulation]{--c:#7c3aed;--p:#efe7fd}
+#mgType button[data-t=salle]{--c:#0284c7;--p:#e0f2fe}
+#mgType button[data-t=deplacement]{--c:#ea580c;--p:#ffedd5}
+#mgType button[data-t=special]{--c:#334155;--p:#e8ecf1}
+#mgType button[data-t=message]{--c:#b45309;--p:#fef3c7}
+.tagT.absence{background:#dc2626}.tagT.annulation{background:#7c3aed}.tagT.salle{background:#0284c7}.tagT.deplacement{background:#ea580c}.tagT.special{background:#334155}.tagT.message{background:#b45309;color:#fff}
+@media (max-width:700px){#mgType{grid-template-columns:repeat(2,1fr)}#mgType button{font-size:14px!important;padding:10px 6px!important}}
 /* ===== Téléphone ===== */
 @media (max-width:700px){
   .wrap{padding:12px 12px 30px}
