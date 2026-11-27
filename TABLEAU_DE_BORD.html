@@ -558,6 +558,15 @@ td.n{font-family:var(--fm);color:var(--muted)}
 @media (max-width:760px){.mid{grid-template-columns:1fr}.card.vide{display:none}.livelist,.posts{max-height:320px}.set{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1b1b1f;color:#fff;border-radius:12px;padding:10px 16px;font-weight:600;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .toast[hidden]{display:none}
+#ovClass.fs{padding:0}
+#ovClass.fs .win{width:100%;height:100%;max-height:none;border-radius:0}
+#ovClass.fs .wbody{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+#ovClass.fs .students{flex:1;min-height:0;gap:6px;align-content:stretch}
+#ovClass.fs .stu{font-size:calc(13px * var(--z,1));min-height:0;overflow:hidden;padding:.5em .7em}
+#ovClass.fs .stu b{font-size:1.05em}#ovClass.fs .stu span{font-size:1em}
+#ovClass.fs .stu small{font-size:.88em;margin-top:.25em}#ovClass.fs .stu .stap{font-size:.8em}
+#ovClass.fs .stu .gb{width:1.7em;height:1.7em;font-size:1em;line-height:1.7em}#ovClass.fs .stu b{padding-right:2em}
+#ovClass.fs .stu small.plus{background:rgba(255,255,255,.75);color:#334155}
 </style>
 </head>
 <body>
@@ -646,7 +655,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <!-- Liste d'une classe -->
 <div class="ov" id="ovClass" hidden>
   <div class="win" role="dialog" aria-modal="true" aria-labelledby="clT">
-    <div class="whead" id="clHead"><h3 id="clT"></h3><button type="button" class="wact" id="clAppel" title="Faire l’appel avec les cartes"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg><span>Appel</span></button><button type="button" class="wact" id="clNotes" title="Carnet de notes"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9h17M9 9v11.5M14.5 9v11.5"/></svg><span>Notes</span></button><button type="button" class="wact" id="clExport" title="Exporter les notes (meilleure note sur 20)"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="whead" id="clHead"><h3 id="clT"></h3><button type="button" class="wact" id="clAppel" title="Faire l’appel avec les cartes"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg><span>Appel</span></button><button type="button" class="wact" id="clNotes" title="Carnet de notes"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9h17M9 9v11.5M14.5 9v11.5"/></svg><span>Notes</span></button><button type="button" class="wact" id="clExport" title="Exporter les notes (meilleure note sur 20)"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></button><button type="button" class="wact" id="clFs" title="Plein écran : toutes les tuiles visibles" aria-label="Plein écran"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
     <div class="wbody">
       <div class="apchoix" id="apChoix" hidden></div>
       <div class="apbar" id="apBar" hidden><div class="apcam"><video id="apVideo" playsinline muted></video><button type="button" class="apsw" id="apSwitch" title="Changer de caméra" aria-label="Changer de caméra"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><path d="M9.5 13.5a2.8 2.8 0 0 1 5-1.6M14.5 13.5a2.8 2.8 0 0 1-5 1.6"/><path d="M14.8 10.6v1.6h-1.6M9.2 16.4v-1.6h1.6"/></svg></button><div class="viseur" aria-hidden="true"></div></div><div class="apinfo"><div class="apcnt" id="apCnt"></div><div class="apmsg" id="apMsg"></div><button type="button" class="btn pri" id="apFin">Terminer l’appel</button></div></div>
@@ -1105,7 +1114,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 15h10';
+const VERSION_PAGE = '27/11/2026 - 15h25';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -2542,6 +2551,40 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   window.apTest = { MEM, lu: t => lu(t), fin: () => fin(), etat: () => A && A.rec };
 })();
 
+// ---------- Plein écran de la fenêtre d'une classe : toutes les tuiles visibles sans défiler ----------
+(() => {
+  const ov = $('ovClass'), G = $('students');
+  function fit() {
+    if (!ov.classList.contains('fs')) return;
+    const T = [...G.children], n = T.length; if (!n) return;
+    G.style.gridTemplateColumns = ''; G.style.gridAutoRows = '';
+    const W = G.clientWidth, H = G.clientHeight, gap = 6;
+    let best = null;
+    for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c), w = (W - gap * (c - 1)) / c, h = (H - gap * (r - 1)) / r, sc = Math.min(w / 1.7, h); if (!best || sc > best.sc) best = { c, r, h, sc }; }
+    G.style.gridTemplateColumns = `repeat(${best.c},minmax(0,1fr))`; G.style.gridAutoRows = Math.floor(best.h) + 'px';
+    T.forEach(t => t.querySelectorAll('small').forEach(x => { x.style.display = ''; if (x.classList.contains('plus')) x.remove(); }));
+    const trop = () => T.some(t => t.querySelectorAll('small').length <= 3 && t.scrollHeight > t.clientHeight + 1);   // une tuile très chargée ne fait pas rapetisser toute la classe : elle aura « +n »
+    let z = Math.max(1, Math.min(2.4, best.h / 62)); G.style.setProperty('--z', z);
+    while (z > 1 && trop()) { z -= 0.05; G.style.setProperty('--z', z); }
+    T.forEach(t => {                                         // encore trop : on garde les derniers tests et on affiche « +n »
+      const L = [...t.querySelectorAll('small')]; let k = 0;
+      while (t.scrollHeight > t.clientHeight + 1 && k < L.length) { L[k++].style.display = 'none';
+        let p = t.querySelector('small.plus'); if (!p) { p = document.createElement('small'); p.className = 'plus'; t.insertBefore(p, L[k] || null); }
+        p.textContent = '+' + k + ' test' + (k > 1 ? 's' : ''); }
+    });
+  }
+  function on() { ov.classList.add('fs'); const r = ov.requestFullscreen && ov.requestFullscreen(); if (r && r.catch) r.catch(() => {}); setTimeout(fit, 60); }
+  function off() { ov.classList.remove('fs'); G.style.gridTemplateColumns = G.style.gridAutoRows = ''; G.style.removeProperty('--z');
+    G.querySelectorAll('small').forEach(x => { x.style.display = ''; if (x.classList.contains('plus')) x.remove(); });
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  $('clFs').onclick = () => ov.classList.contains('fs') ? off() : on();
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && ov.classList.contains('fs')) off(); else setTimeout(fit, 60); });
+  ov.querySelector('[data-close]').addEventListener('click', off);
+  addEventListener('resize', () => setTimeout(fit, 60));
+  new MutationObserver(() => { if (!ov.classList.contains('fs')) return; if (ov.hidden) off(); }).observe(ov, { attributes: true, attributeFilter: ['hidden'] });
+  new MutationObserver(m => { if (m.some(x => x.type === 'childList' && x.target === G)) fit(); }).observe(G, { childList: true });
+  window.clFit = fit;
+})();
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.ov').hidden = true));
 document.querySelectorAll('.ov').forEach(o => o.addEventListener('click', e => { if (e.target === o && o.id !== 'ovLogin') { if (o.id === 'ovCarte') carteFermer(); else o.hidden = true; } }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.ov:not([hidden])').forEach(o => { if (o.id !== 'ovLogin') o.hidden = true; }); });
