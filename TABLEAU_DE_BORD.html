@@ -191,6 +191,17 @@ body.flou .nt{filter:blur(7px);user-select:none}
 .nt td.v:hover{background:#f1f5f9}
 .nt td.v.bl{background:#dbeafe;color:#1e3a8a}
 .nt td.v.mn{box-shadow:inset 0 0 0 2px #f59e0b}
+.nt td.v.ch{box-shadow:inset 0 0 0 2px #7c3aed}
+.nt td.v .ntx{font-size:10px;font-weight:800;color:#7c3aed;margin-left:2px}
+.nt .ntrg{display:block;margin:0 auto 6px;max-width:100%;font:600 11px var(--f);padding:1px 4px;border:1px solid var(--line);border-radius:999px;background:#fff;color:#334155;cursor:pointer}
+.ntpop{position:fixed;z-index:300;min-width:220px;max-width:300px;background:#fff;border:1px solid #dfe3ec;border-radius:14px;box-shadow:0 12px 34px rgba(16,24,40,.22);padding:8px;display:flex;flex-direction:column;gap:4px;font:500 13px var(--f)}
+.ntpop .nph{display:flex;flex-direction:column;padding:4px 6px 6px;border-bottom:1px solid #eef1f6;margin-bottom:2px}
+.ntpop .nph span{color:#64748b;font-size:12px}
+.ntpop button{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid transparent;background:#f8fafc;border-radius:9px;padding:7px 9px;font:inherit;color:#0f172a;cursor:pointer;text-align:left}
+.ntpop button:hover{border-color:#cbd5e1}
+.ntpop .npe.on{background:#ede9fe;border-color:#7c3aed}
+.ntpop .npe b{font-size:14px}
+.ntpop .npr,.ntpop .npm{background:#fff;color:#334155;justify-content:center;border-color:#e2e8f0}
 .nt td.v.abs{color:#b91c1c;font-weight:700}
 .nt td.v.sel{background:#dcfce7!important;color:#14532d}
 .nt td.v input{width:100%;height:32px;border:0;outline:2px solid #6d28d9;text-align:center;font:inherit;background:#fff}
@@ -606,7 +617,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
   </section>
 
   <section class="card copies">
-    <h2>Dernières copies <span class="tag" id="nbCopies"></span><span class="grow"></span><button type="button" class="ib find" id="btnFind" title="Retrouver une copie" aria-label="Retrouver une copie" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button></h2>
+    <h2>Historique <span class="tag" id="nbCopies"></span><span class="grow"></span><button type="button" class="ib find" id="btnFind" title="Retrouver une copie" aria-label="Retrouver une copie" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button></h2>
     <div class="tbox" id="tbox">
       <table><thead><tr><th>N°</th><th>Source</th><th>Test</th><th>Nom</th><th>Prénom</th><th>Classe</th><th>Note</th><th>Ramenée (PAP)</th><th>Sur 20</th><th>Date</th><th>Début</th><th>Fin</th><th>Durée</th><th>Code</th><th>Identité</th></tr></thead>
       <tbody id="tbody"></tbody></table>
@@ -773,6 +784,7 @@ async function call(action, extra) {
     if (o.liste) { setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })); return o; }   // recherche de copies
     const perime = lecture ? (MODIFS_EN_COURS > 0 || seq < DERNIERE_MODIF) : seq < DERNIERE_MODIF;
     if (!perime) { (o.classes || []).forEach(c => triEleves(c.eleves)); S = o; render(); }
+    if (!perime && !window._gfLu) { window._gfLu = true; setTimeout(() => call('importGF').then(r => { if (r && r.ajouts) refresh(); }).catch(() => {}), 2500); }   // tests Google : nouvelles réponses lues à l'ouverture
     if (action === 'admin' && !window.__appInscrit) { window.__appInscrit = 1; setTimeout(inscrireAppareil, 0); }   // mot de passe mémorisé : l'appareil est aussi inscrit
     setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     return o;
@@ -1081,7 +1093,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '26/11/2026 - 05h30';
+const VERSION_PAGE = '27/11/2026 - 08h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1422,7 +1434,7 @@ const filtreOk = c => (!FILTRE.date || c.date === FILTRE.date) && (!FILTRE.cl.si
 function actsCopie(c) { return actsCopie0(c) + `<button type="button" class="del" data-eff="${FIND.indexOf(c)}" title="Effacer cette copie partout (comme si l’élève n’avait jamais fait ce test)">🗑</button>`; }
 function actsCopie0(c) {
   const f = fichierDe(c.test), cert = /^(CERTIFICAT|DS )/i.test(c.test), i = FIND.indexOf(c);   // certificats et DS : refaits avec leurs données
-  return cert ? (c.regen && f ? `<button type="button" data-cert="${i}" title="Refaire le certificat (PDF)">📄</button>` : '<span class="na">—</span>')
+  return cert ? (c.regen && f ? `<button type="button" data-cert="${i}" title="${/^DS /i.test(c.test) ? 'Refaire la copie (PDF)' : 'Refaire le certificat (PDF)'}">📄</button>` : '<span class="na">—</span>')
     : (c.cle ? `<button type="button" data-cle="${i}" title="Copier la clé et ouvrir le test">📋</button>${f ? `<button type="button" data-test="${i}" title="Refaire la copie (PDF)">📄</button>` : ''}` : '<span class="na">—</span>');
 }
 function findRender() {
@@ -2005,19 +2017,26 @@ function ntCalcul(liste, carnet, c) {
     if (!x || isNaN(v) || ms <= (carnet.suppr[t] || 0)) return;   // copie d'avant la suppression de la colonne : oubliée
     const col = T[t] = T[t] || { t, prem: ms, essais: {} };
     col.prem = Math.min(col.prem, ms); col.dern = Math.max(col.dern || 0, ms);
-    (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms, d: String(cp.date || '').slice(0, 5) });
+    (col.essais[x.k] = col.essais[x.k] || []).push({ v, ms, d: String(cp.date || '').slice(0, 5), dt: String(cp.date || '') + ' ' + String(cp.fin || '').slice(0, 5) });
   });
   const tests = Object.values(T).sort((a, b) => a.prem - b.prem).map(col => {
-    const cells = {};
+    const cells = {}, regle = (carnet.regles || {})[col.t] || 'meilleure';
     eleves.forEach(x => {
       const man = carnet.notes[col.t + '#' + x.k], L = (col.essais[x.k] || []).sort((a, b) => a.ms - b.ms);
-      const best = L.length ? L.reduce((a, e) => e.v > a.v ? e : a) : null;   // meilleure note ; à égalité, la 1re fois
-      if (man) { cells[x.k] = { v: man.v, mn: true, d: best ? best.d : '' }; return; }   // note changée à la main : prioritaire (la date de la copie reste)
-      if (!best) { cells[x.k] = { v: '', d: '' }; return; }
-      cells[x.k] = { v: fmt1(Math.round(best.v * 10) / 10), d: best.d, bl: L.length > 1 && best.v > L[0].v };   // refait et meilleure note : fond bleu
+      let ret = null, ch = false;
+      if (L.length) {
+        if (regle === 'derniere') ret = L[L.length - 1];
+        else if (regle === 'premiere') ret = L[0];
+        else if (regle === 'moyenne') ret = { v: L.reduce((t, e) => t + e.v, 0) / L.length, d: L[L.length - 1].d, ms: -1 };
+        else ret = L.reduce((a, e) => e.v > a.v ? e : a);   // meilleure note ; à égalité, la 1re fois
+      }
+      if (man && /^@\d+$/.test(man.v)) { const e = L.find(y => y.ms === +man.v.slice(1)); if (e) { ret = e; ch = true; } }   // passage choisi à la main
+      if (man && !/^[@#]/.test(man.v)) { cells[x.k] = { v: man.v, mn: true, d: ret ? ret.d : '', L, n: L.length }; return; }   // note changée à la main : prioritaire
+      if (!ret) { cells[x.k] = { v: '', d: '', L, n: 0 }; return; }
+      cells[x.k] = { v: fmt1(Math.round(ret.v * 10) / 10), d: ret.d, bl: L.length > 1 && ret.v > L[0].v, ch, L, n: L.length, ms: ret.ms };   // refait et meilleure note : fond bleu
     });
     const man = Object.keys(carnet.notes).filter(k => k.indexOf(col.t + '#') === 0).map(k => carnet.notes[k].h);
-    return { t: col.t, cells, dern: Math.max(col.dern || 0, ...man) };   // dernier changement de la colonne (copie ou note à la main)
+    return { t: col.t, cells, regle, dern: Math.max(col.dern || 0, ...man) };   // dernier changement de la colonne (copie ou note à la main)
   });
   return { classe: c.nom, eleves, tests, carnet };
 }
@@ -2031,8 +2050,8 @@ function ntRender() {
   const N = NT, w = $('ntWrap'); if (!N) return;
   $('ntT').textContent = 'Notes · ' + N.classe;
   if (!N.tests.length) { w.innerHTML = '<div class="ntvide">Aucune note pour cette classe.</div>'; return; }
-  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th colspan="2"><span class="ttl">${esc(T.t)}</span>${ntFaitHtml(T, j)}<span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
-    N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}</td><td class="dt">${esc(c.d || '')}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
+  w.innerHTML = `<table class="nt"><thead><tr><th class="el">Élève</th>${N.tests.map((T, j) => `<th colspan="2"><span class="ttl">${esc(T.t)}</span>${ntFaitHtml(T, j)}<select class="ntrg" data-rg="${j}" title="Note retenue quand l’élève a fait le test plusieurs fois" aria-label="Note retenue">${[['meilleure', 'Meilleure'], ['derniere', 'Dernière'], ['premiere', 'Première'], ['moyenne', 'Moyenne']].map(([v, t]) => `<option value="${v}"${T.regle === v ? ' selected' : ''}>${t}</option>`).join('')}</select><span class="acts"><button type="button" data-cp="${j}" title="Copier la colonne pour École Directe" aria-label="Copier la colonne">${ntIco.copy}</button><button type="button" data-sp="${j}" title="Supprimer la colonne" aria-label="Supprimer la colonne">${ntIco.del}</button></span></th>`).join('')}</tr></thead><tbody>` +
+    N.eleves.map((x, i) => `<tr><td class="el"><b>${esc(String(x.nom).toUpperCase())}</b> ${esc(x.prenom)}</td>${N.tests.map((T, j) => { const c = T.cells[x.k] || { v: '' }; return `<td class="v${c.bl ? ' bl' : ''}${c.mn ? ' mn' : ''}${c.ch ? ' ch' : ''}${/^abs$/i.test(c.v) ? ' abs' : ''}" data-i="${i}" data-j="${j}">${esc(c.v)}${c.n > 1 ? `<sup class="ntx">×${c.n}</sup>` : ''}</td><td class="dt">${esc(c.d || '')}</td>`; }).join('')}</tr>`).join('') + '</tbody></table>';
 }
 async function ntOuvrir() {
   const c = S && S.classes[curCls]; if (!c) return;
@@ -2080,6 +2099,40 @@ function ntNorm(v) {   // « 12.25 » → « 12,3 » ; « ABS » → « abs » ;
   const n = parseFloat(v.replace(',', '.'));
   return /^\d{1,2}([.,]\d+)?$/.test(v) && n >= 0 && n <= 20 ? fmt1(Math.round(n * 10) / 10) : null;
 }
+// Recalcul du carnet après un changement (règle d'une colonne, passage choisi)
+function ntRecalcul() { const c = S && S.classes.find(k => k.nom === NT.classe); if (!c) return; const j = NT; NT = ntCalcul(j.liste, j.carnet, c); NT.liste = j.liste; ntRender(); }
+$('ntWrap').addEventListener('change', async e => {
+  const r = e.target.closest('[data-rg]'); if (!r || !NT) return;
+  const T = NT.tests[+r.dataset.rg]; NT.carnet.regles = NT.carnet.regles || {}; NT.carnet.regles[T.t] = r.value; ntRecalcul();
+  const o = await call('carnetRegle', { classe: NT.classe, test: T.t, valeur: r.value }); if (o && o.carnet) { NT.carnet = o.carnet; ntRecalcul(); }
+});
+// Bulle d'une case : tous les passages de l'élève ; choisir celui qui compte, revenir à la règle, ou saisir une note à la main
+let NTPOP = null;
+function ntPopFermer() { if (NTPOP) { NTPOP.remove(); NTPOP = null; } }
+function ntPop(td) {
+  ntPopFermer();
+  const N = NT, x = N.eleves[+td.dataset.i], T = N.tests[+td.dataset.j], c = T.cells[x.k] || {}, RG = { meilleure: 'meilleure', derniere: 'dernière', premiere: 'première', moyenne: 'moyenne' }[T.regle] || 'meilleure';
+  const p = NTPOP = document.createElement('div'); p.className = 'ntpop';
+  p.innerHTML = `<div class="nph"><b>${esc(String(x.nom).toUpperCase())} ${esc(x.prenom)}</b><span>${esc(T.t)}</span></div>` +
+    c.L.map(e2 => `<button type="button" class="npe${!c.mn && e2.ms === c.ms ? ' on' : ''}" data-pk="${e2.ms}"><span>${esc(e2.dt)}</span><b>${fmt1(Math.round(e2.v * 10) / 10)}</b></button>`).join('') +
+    (c.ch || c.mn ? `<button type="button" class="npr" data-rgl="1">Revenir à la règle (${RG})</button>` : '') +
+    `<button type="button" class="npm" data-main="1">${c.mn ? 'Modifier la note à la main (' + esc(c.v || 'vide') + ')' : 'Saisir une note à la main'}</button>`;
+  document.body.appendChild(p);
+  const r = td.getBoundingClientRect(), w = p.offsetWidth, h = p.offsetHeight;
+  p.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+  p.style.top = (r.bottom + h + 8 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+  p.addEventListener('click', async ev => {
+    const b = ev.target.closest('button'); if (!b) return;
+    ntPopFermer();
+    if (b.dataset.main) { const me = new MouseEvent('click', { bubbles: true }); me.ntMain = true; const t2 = $('ntWrap').querySelector(`td.v[data-i="${td.dataset.i}"][data-j="${td.dataset.j}"]`); if (t2) t2.dispatchEvent(me); return; }
+    const valeur = b.dataset.rgl ? '#' : '@' + b.dataset.pk;
+    NT.carnet.notes[T.t + '#' + x.k] = { v: valeur, h: Date.now() }; ntRecalcul();
+    const o = await call('carnetNote', { classe: NT.classe, test: T.t, nom: x.nom, prenom: x.prenom, valeur }); if (o && o.carnet) { NT.carnet = o.carnet; ntRecalcul(); }
+  });
+}
+document.addEventListener('mousedown', e => { if (NTPOP && !NTPOP.contains(e.target)) ntPopFermer(); }, true);
+document.addEventListener('keydown', e => { if (NTPOP && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); ntPopFermer(); } }, true);
+$('ntWrap').addEventListener('scroll', ntPopFermer, true);
 $('ntWrap').addEventListener('change', async e => {
   const c = e.target.closest('[data-fait]'); if (!c || !NT) return;
   const T = NT.tests[+c.dataset.fait];
@@ -2104,6 +2157,7 @@ $('ntWrap').addEventListener('click', async e => {
   }
   const td = e.target.closest('td.v'); if (!td || td.querySelector('input')) return;
   if (NTDRAG && NTDRAG.bouge) return;   // fin d'un cliquer-glisser : pas de saisie
+  { const c0 = N.tests[+td.dataset.j].cells[N.eleves[+td.dataset.i].k] || {}; if (c0.n && !e.ntMain) { ntPop(td); return; } }   // au moins un passage : bulle avec tous les passages
   NTSEL = null; ntSelPeindre();
   const x = N.eleves[+td.dataset.i], T = N.tests[+td.dataset.j], av = (T.cells[x.k] || {}).v || '';
   td.innerHTML = `<input value="${esc(av)}" aria-label="Note de ${esc(x.prenom)} ${esc(x.nom)}">`;
