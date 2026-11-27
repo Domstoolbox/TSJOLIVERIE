@@ -794,6 +794,7 @@ async function call(action, extra) {
     if (o.liste) { setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })); return o; }   // recherche de copies
     const perime = lecture ? (MODIFS_EN_COURS > 0 || seq < DERNIERE_MODIF) : seq < DERNIERE_MODIF;
     if (!perime) { (o.classes || []).forEach(c => triEleves(c.eleves)); S = o; render(); }
+    if (window.apFusion && o.appels) window.apFusion(o.appels);   // appels faits sur un autre appareil
     if (!perime && !window._gfLu) { window._gfLu = true; setTimeout(() => call('importGF').then(r => { if (r && r.ajouts) refresh(); }).catch(() => {}), 2500); }   // tests Google : nouvelles réponses lues à l'ouverture
     if (action === 'admin' && !window.__appInscrit) { window.__appInscrit = 1; setTimeout(inscrireAppareil, 0); }   // mot de passe mémorisé : l'appareil est aussi inscrit
     setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -1114,7 +1115,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 15h25';
+const VERSION_PAGE = '27/11/2026 - 18h20';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -2332,7 +2333,44 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   const KEY = 'tdb_appels_v3', FACE_KEY = 'tdb_appel_cam2';
   const lire = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
   const MEM = lire();
-  const ecrire = () => { try { localStorage.setItem(KEY, JSON.stringify(MEM)); } catch (e) {} };
+  // Partage entre appareils : chaque appel modifié part dans le Google Sheet (onglet « Appels (détail) »).
+  // Le script numérote chaque version (v) : on prend la version du Sheet si elle est plus récente et que je n'ai rien en attente.
+  const SYNC = {}, SUPPR = {}, DIRTY = new Set(); let TPUSH = 0;
+  const corps = r => { const c = Object.assign({}, r); delete c.v; delete c.maj; return JSON.stringify(c); };
+  const garder = () => { try { localStorage.setItem(KEY, JSON.stringify(MEM)); } catch (e) {} };
+  Object.values(MEM).forEach(r => { if (r && r.v) SYNC[r.id] = corps(r); });   // déjà dans le Sheet
+  const ecrire = () => {
+    Object.values(MEM).forEach(r => { if (SYNC[r.id] !== corps(r)) DIRTY.add(r.id); });
+    garder(); pousser();
+  };
+  function pousser() {
+    clearTimeout(TPUSH);
+    TPUSH = setTimeout(async () => {
+      if (!mdp || !DIRTY.size) return;
+      const ids = [...DIRTY], recs = ids.map(id => MEM[id] || SUPPR[id]).filter(Boolean), env = {};
+      recs.forEach(r => { env[r.id] = r.suppr ? 'x' : corps(r); });
+      const o = await call('appelSync', { recs }).catch(() => null);
+      if (!o || !o.ok || !Array.isArray(o.appels)) { TPUSH = setTimeout(pousser, 15000); return; }
+      ids.forEach(id => { const l = MEM[id] || SUPPR[id]; if (!l || (l.suppr ? 'x' : corps(l)) === env[id]) DIRTY.delete(id); });   // pas modifié pendant l'envoi
+      fusion(o.appels);
+    }, 700);
+  }
+  function fusion(L) {
+    if (!Array.isArray(L)) return;
+    let ch = false;
+    L.forEach(r => {
+      if (!r || !r.id || r.jour !== auj() || DIRTY.has(r.id)) return;              // en attente d'envoi : le mien passera
+      const l = MEM[r.id] || SUPPR[r.id];
+      if (l && (l.v || 0) >= (r.v || 0)) return;
+      if (r.suppr) { if (MEM[r.id]) { delete MEM[r.id]; ch = true; } SUPPR[r.id] = r; return; }
+      MEM[r.id] = r; SYNC[r.id] = corps(r); ch = true;
+      if (A && A.rec.id === r.id) { const f = A.rec.fini; A.rec = r; if (!$('ovAp').hidden) { if (f !== r.fini) afficher(); else tuiles(); } }
+    });
+    if (A && !MEM[A.rec.id] && SUPPR[A.rec.id]) { A = null; stopCam(); if (!$('ovAp').hidden) semaine(); }
+    if (ch) { garder(); majClasse(); }
+    if (DIRTY.size) pousser();
+  }
+  window.apFusion = fusion;
   const auj = () => edtYmd(new Date());
   const minNow = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
   Object.keys(MEM).forEach(k => { if (!MEM[k] || MEM[k].jour !== auj()) delete MEM[k]; }); ecrire();   // jours passés oubliés
@@ -2507,7 +2545,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   function supprimer(b) {
     if (!b.classList.contains('conf')) { b.classList.add('conf'); b.textContent = 'Confirmer la suppression'; clearTimeout(supT); supT = setTimeout(() => { b.classList.remove('conf'); b.textContent = 'Supprimer l’appel'; }, 3000); return; }
     const rec = A.rec; stopCam();
-    delete MEM[rec.id]; ecrire(); postit(rec, true);
+    SUPPR[rec.id] = { id: rec.id, jour: rec.jour, suppr: true, v: rec.v || 0 }; DIRTY.add(rec.id); delete MEM[rec.id]; ecrire(); postit(rec, true);
     A = null; $('ovAp').hidden = true; toast('Appel supprimé');
   }
 
