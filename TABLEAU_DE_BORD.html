@@ -280,15 +280,16 @@ body.proj #btnProj{background:var(--violet);border-color:var(--violet);color:#ff
 #ovAp .apt{position:relative;border:0;border-radius:12px;padding:12px 30px 12px 12px;text-align:left;color:#fff;cursor:pointer;line-height:1.2;min-height:58px}
 #ovAp .apt b{display:block;font-size:.95rem;overflow-wrap:anywhere}
 #ovAp .apt span{font-size:.85rem;opacity:.9}
-#ovAp .apt.v{background:#16a34a}
-#ovAp .apt.r{background:#dc2626}
-#ovAp .apt i{position:absolute;top:10px;right:10px;width:16px;height:16px;border-radius:50%;background:#facc15;box-shadow:0 0 0 2px #fff;display:none}
-#ovAp .apt.la i{display:block;animation:apclig 1s ease-in-out infinite}
-#ovAp .apt.ret i{display:block;background:#fb923c;animation:none}
-#ovAp .apt em{display:none;font-style:normal;font-size:.75rem;font-weight:800;margin-top:4px}
-#ovAp .apt.ret em,#ovAp .apt.abs em{display:block}
-#ovAp .apt.abs i{display:block;background:#7c3aed;animation:none}
-#ovAp .apt.la.fix i{animation:none}
+/* Appel : couleur = présence seulement (le vert / rouge des tests n'apparaît pas ici) */
+#ovAp .apt,#ovAp .apt.v,#ovAp .apt.r{background:#dc2626;color:#fff;transition:background .25s}   /* appel : rouge = pas là */
+#ovAp .apt.la{background:#16a34a}                                                /* vert = présent */
+#ovAp .apt.ret{background:#7c3aed}                                               /* violet = retard */
+#ovAp .apt i{display:none!important}
+#ovAp .apt em{display:none;font-style:normal;font-size:.75rem;font-weight:800;margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+#ovAp .apt.la em,#ovAp .apt.ret em,#ovAp .apt.abs em{display:block}
+/* Fenêtre d'une classe : absents et retards du dernier appel du jour (la couleur reste celle des tests) */
+.stu .stap{display:block;width:max-content;margin-top:4px;padding:1px 8px;border-radius:999px;background:#fff;font:800 10.5px var(--f);letter-spacing:.04em;font-style:normal}
+.stu .stap.abs{color:#b91c1c}.stu .stap.ret{color:#6d28d9}
 @keyframes apclig{50%{opacity:.15}}
 #ovAp .apcnt:empty{display:none}
 #ovAp .apwk{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;overflow:auto}
@@ -1047,12 +1048,16 @@ $('classes').addEventListener('click', e => { const b = e.target.closest('[data-
 function renderClass() {
   const c = S && S.classes[curCls]; if (!c) { $('ovClass').hidden = true; return; }
   $('clT').textContent = c.nom;
+  // Tests faits PENDANT un cours de cette classe aujourd'hui (agenda) ; sans agenda : tous ceux du jour
+  const cr = EDT ? edtMesCours(new Date()).filter(x => edtClasse(x.c).i === curCls) : null;
+  const mn = h => { const m = /^(\d{1,2})\D(\d{2})/.exec(String(h || '')); return m ? +m[1] * 60 + +m[2] : -1; };
   const act = {};
-  (S.activite || []).forEach(a => { const k = cleEl(a.classe, a.nom, a.prenom); if (!act[k] || a.etat !== 'fini' || act[k].etat === 'fini') act[k] = a; });
-  $('students').innerHTML = c.eleves.map((e, i) => { const a = act[cleEl(c.nom, e.nom, e.prenom)];
+  (S.activite || []).forEach(a => { const t = mn(a.debut || a.heure); if (cr && !cr.some(x => t >= x.s - 5 && t <= x.e)) return;
+    (act[cleEl(a.classe, a.nom, a.prenom)] = act[cleEl(a.classe, a.nom, a.prenom)] || []).push(a); });
+  $('students').innerHTML = c.eleves.map((e, i) => { const L = (act[cleEl(c.nom, e.nom, e.prenom)] || []).sort((x, y) => mn(x.debut || x.heure) - mn(y.debut || y.heure));
     const pr = APPEL && APPEL.cls === curCls ? (APPEL.presents.has(cleNom(e.nom, e.prenom)) ? ' present' : APPEL.concernes.has(cleNom(e.nom, e.prenom)) ? '' : ' horsgrp')
       : VUE && VUE.cls === curCls && !VUE.st[cleNom(e.nom, e.prenom)] ? ' horsgrp' : '';
-    return `<button type="button" class="stu ${e.ok ? 'ok' : 'no'}${pr}" data-i="${i}" aria-pressed="${e.ok}"><i class="gb g${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</i><b>${esc(e.nom)}</b><span>${esc(e.prenom)}</span>${a ? `<small class="${etatCls(a)}">${esc(a.test)} · ${etatTxt(a)}</small>` : ''}</button>`; }).join('') || '<div class="empty">Aucun élève dans cette classe.</div>';
+    return `<button type="button" class="stu ${e.ok ? 'ok' : 'no'}${pr}" data-i="${i}" aria-pressed="${e.ok}"><i class="gb g${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</i><b>${esc(e.nom)}</b><span>${esc(e.prenom)}</span>${window.apStatut ? window.apStatut(c.nom, e) : ''}${L.map(a => `<small class="${etatCls(a)}">${esc(a.test)} · ${etatTxt(a)}</small>`).join('')}</button>`; }).join('') || '<div class="empty">Aucun élève dans cette classe.</div>';
 }
 $('students').addEventListener('click', async e => {
   const b = e.target.closest('[data-i]'); if (!b) return;
@@ -1100,7 +1105,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 10h20';
+const VERSION_PAGE = '27/11/2026 - 15h10';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -2439,7 +2444,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
     g.innerHTML = E.map(e => {
       const k = ck(e), p = rec.presents.includes(k), r = rec.retards[k];
       const st = (r ? ' ret' : p ? ' la' : rec.fini ? ' abs' : '') + (rec.fini ? ' fix' : '');
-      return `<button type="button" class="apt ${e.ok ? 'v' : 'r'}${st}" data-k="${esc(k)}"><b>${esc(String(e.nom).toUpperCase())}</b><span>${esc(e.prenom)}</span><em>${r ? 'Retard ' + esc(r) : rec.fini && !p ? 'Absent' : ''}</em><i></i></button>`;
+      return `<button type="button" class="apt ${e.ok ? 'v' : 'r'}${st}" data-k="${esc(k)}"><b>${esc(String(e.nom).toUpperCase())}</b><span>${esc(e.prenom)}</span><em>${r ? 'Retard ' + esc(r) : p ? 'Présent' : rec.fini ? 'Absent' : ''}</em><i></i></button>`;
     }).join('');
     $('apN').textContent = `${E.filter(e => rec.presents.includes(ck(e)) || rec.retards[ck(e)]).length} / ${E.length}`;
   }
@@ -2485,7 +2490,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   function fin() {
     const rec = A.rec, E = eleves(rec);
     rec.absents = E.map(ck).filter(k => !rec.presents.includes(k));
-    rec.fini = true; ecrire(); stopCam(); postit(rec);
+    rec.fini = true; ecrire(); stopCam(); postit(rec); majClasse();
     toast(`Appel terminé : ${rec.absents.length} absent${rec.absents.length > 1 ? 's' : ''}`);
     afficher();
   }
@@ -2516,7 +2521,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
     const r = Object.values(MEM).find(x => de(x) && x.fini && x.absents.includes(k) && !x.retards[k]);
     if (!r) return false;
     const ret = m - r.debutCours;
-    r.retards[k] = edtH(m) + (ret > 0 ? ', +' + ret + ' min' : ''); ecrire(); postit(r);
+    r.retards[k] = edtH(m) + (ret > 0 ? ', +' + ret + ' min' : ''); ecrire(); postit(r); majClasse();
     appelGeant(e); sonOk(); M('ok', '✓ Retard ' + edtH(m).replace('h', ' h ') + nomH);
     if (A && A.rec === r && !$('ovAp').hidden) tuiles();
     return true;
@@ -2525,6 +2530,15 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   new MutationObserver(() => { if ($('ovAp').hidden) stopCam(); }).observe($('ovAp'), { attributes: true, attributeFilter: ['hidden'] });
   $('btnAppel').onclick = ouvrir;
   if ($('clAppel')) $('clAppel').style.display = 'none';   // l'ancien appel de la fenêtre d'une classe n'existe plus
+  // Fenêtre d'une classe : « ABSENT » ou « RETARD » d'après le dernier appel terminé aujourd'hui pour cet élève
+  window.apStatut = (classe, e) => {
+    const k = ck(e), r = Object.values(MEM).filter(x => x.jour === auj() && x.fini && x.classe === classe && (!x.groupe || x.groupe === grp(e))).sort((a, b) => b.debut - a.debut)[0];
+    if (!r) return '';
+    if (r.retards[k]) return `<em class="stap ret">Retard ${esc(String(r.retards[k]).split(',')[0])}</em>`;
+    return r.absents.includes(k) ? '<em class="stap abs">Absent</em>' : '';
+  };
+  const majClasse = () => { try { if (!$('ovClass').hidden) renderClass(); } catch (e) {} };
+  new MutationObserver(majClasse).observe($('ovAp'), { attributes: true, attributeFilter: ['hidden'] });
   window.apTest = { MEM, lu: t => lu(t), fin: () => fin(), etat: () => A && A.rec };
 })();
 
