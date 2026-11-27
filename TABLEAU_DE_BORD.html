@@ -1100,7 +1100,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 08h40';
+const VERSION_PAGE = '27/11/2026 - 10h20';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1406,7 +1406,7 @@ const sansAccent = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
 function fichierDe(test) {
   const t = String(test || '').replace(/\s*\(.*\)\s*$/, '').trim();
   let m = /^TEST\s+(\d{3})$/i.exec(t); if (m) return 'TEST_' + m[1] + '.html';
-  m = /^DS\s+(.+)$/i.exec(t); if (m) return 'DS ' + sansAccent(m[1]).toUpperCase() + '.html';
+  m = /^DS\s+(.+)$/i.exec(t); if (m) return 'DS ' + sansAccent(m[1]).toUpperCase().replace(/-/g, '') + '.html';   // DS OXYDO-RÉDUCTION → DS OXYDOREDUCTION.html
   m = /^CERTIFICAT\s+(.+)$/i.exec(t); if (m) return 'Certificat ' + sansAccent(m[1]).toUpperCase().replace(/-/g, '') + '.html';
   return '';
 }

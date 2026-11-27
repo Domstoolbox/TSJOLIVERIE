@@ -573,7 +573,7 @@ body.need-net .sheet{display:none}
     </div>
   </div>
 
-  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 26/11/2026 - 19h10</span></footer>
+  <footer class="foot"><span>* Fabriquer du CO<sub>2</sub>, ce n'est pas top pour la planète !</span><span>Domstoolbox · Version du 27/11/2026 - 10h15</span></footer>
 </div>
 
 <script>
@@ -1711,7 +1711,8 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   // ===== DS : barème (10 points par partie) =====
   const BAREME = {famille:.5, hydro:.5, reactifs:.5, produits:.5, combustible:.5, comburant:.5, disparu:.5, apparu:.5, moles:1.5, masses:1.5, grammes:1.5, masseco2:1.5,
     limitant:1, restant:1, reste:1.5, volume:1.5, energie:1.5, co:1};
-  const PARTIEL = ['moles', 'masses', 'grammes'];             // points au prorata des cases justes
+
+  const PARTIEL = ['moles', 'masses', 'grammes'];   // points au prorata des cases justes (null : toute question à plusieurs cases)
   window.dsNoter = () => {
     const items = CHECKS.map(q => {
       const max = BAREME[q.key] !== undefined ? BAREME[q.key] : /^qcm/.test(q.key) ? .5 : 1;
@@ -1719,9 +1720,9 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
       let r; try { r = q.check() || {}; } catch (e) { r = {st:'bad'}; }
       const faux = new Set([...(r.bad || []), ...(r.empty || [])]);
       let f = r.st === 'ok' ? 1 : 0;
-      if (r.st !== 'ok' && PARTIEL.includes(q.key) && box) {
+      if (r.st !== 'ok' && (PARTIEL ? PARTIEL.includes(q.key) : true) && box) {
         const ch = [...box.querySelectorAll('input:not([type=checkbox]):not([type=radio]),select')].filter(x => x.id);
-        if (ch.length && faux.size) f = Math.max(0, ch.filter(x => !faux.has(x.id)).length / ch.length);
+        if (ch.length > (PARTIEL ? 0 : 1) && faux.size) f = Math.max(0, ch.filter(x => !faux.has(x.id)).length / ch.length);
       }
       return {key: q.key, name: q.name, max, pts: Math.round(max * f * 100) / 100, ok: r.st === 'ok', faux};
     });
@@ -1849,7 +1850,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
     // Bande « virtuelle » : 4 cases seulement, dont le contenu change pendant la rotation.
     // (Une très longue bande de ~150 cases devenait parfois blanche pendant le défilement sur téléphone.)
     const ITEM = 76, LOOPS = 6;
-    const target = FUELS[Math.floor(Math.random() * FUELS.length)];
+    const target = FUELS[Math.floor(RNG() * FUELS.length)];
     const order = shuffle(FUELS), n = order.length;
     const at = i => order[((i % n) + n) % n];
     const stopAt = LOOPS * n + order.indexOf(target);                     // case où s'arrête le carburant tiré
@@ -2275,38 +2276,38 @@ body.locked #npad{display:none!important}
     clone.querySelectorAll('[data-state]').forEach(e => e.removeAttribute('data-state'));
     clone.querySelectorAll('.f-bad,.f-todo').forEach(e => e.classList.remove('f-bad', 'f-todo'));
     clone.querySelectorAll('.tools,.fb,.help').forEach(e => e.remove());
-    if (corr === 'copie') {                                   // DS : réponses de l'élève, juste / faux, bonne réponse, points
-      const R = window.DS_RES || {items: []}, live = id => document.getElementById(id), faux = new Set();
-      const e2 = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-      R.items.forEach(it => it.faux.forEach(id => faux.add(id)));
-      clone.querySelectorAll('input').forEach(inp => {
-        if (inp.type === 'checkbox' || inp.type === 'radio') {
-          const lv = inp.id ? live(inp.id) : document.querySelector('input[name="' + inp.name + '"][value="' + inp.value + '"]');
-          const on = !!(lv && lv.checked), good = isOk(inp), lb = inp.closest('label');
-          if (lb) lb.classList.add(good ? 'pok' : on ? 'pko' : 'pno');
-          inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (on ? ' on' : ''), ''));
+        if (corr === 'copie') {                                   // DS : réponses de l'élève, juste / faux, bonne réponse, points
+          const R = window.DS_RES || {items: []}, live = id => document.getElementById(id), faux = new Set();
+          const e2 = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+          R.items.forEach(it => it.faux.forEach(id => faux.add(id)));
+          clone.querySelectorAll('input').forEach(inp => {
+            if (inp.type === 'checkbox' || inp.type === 'radio') {
+              const lv = inp.id ? live(inp.id) : document.querySelector('input[name="' + inp.name + '"][value="' + inp.value + '"]');
+              const on = !!(lv && lv.checked), good = isOk(inp), lb = inp.closest('label');
+              if (lb) lb.classList.add(good ? 'pok' : on ? 'pko' : 'pno');
+              inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (on ? ' on' : ''), ''));
+              return;
+            }
+            const v = ((live(inp.id) || {}).value || '').trim(), bad = !v || faux.has(inp.id);
+            let cor = '';
+            if (inp.classList.contains('num')) { const a = NUM[inp.id]; if (a) cor = fmt(a[0], a[1]); }
+            else if (inp.id === 'hydro-mot') cor = 'HYDROCARBURE'; else if (inp.id === 'co-nom') cor = 'monoxyde de carbone';
+            const sp = span('pans' + (inp.classList.contains('num') ? '' : ' word') + (bad ? ' ko' : ' ok'), v ? e2(v) : '&nbsp;');
+            inp.replaceWith(sp);
+            if (bad && cor) sp.insertAdjacentHTML('afterend', '<span class="pcor">' + cor + '</span>');
+          });
+          clone.querySelectorAll('select').forEach(sl => {
+            const lv = live(sl.id), txt = lv && lv.value && lv.selectedIndex >= 0 ? lv.options[lv.selectedIndex].text : '', bad = !txt || faux.has(sl.id);
+            const cor = sl.id === 'm-co2-unit' ? 'kg' : sl.id === 'hydro-mot' ? 'HYDROCARBURE' : '';
+            const sp = span('pans word' + (bad ? ' ko' : ' ok'), txt ? e2(txt) : '&nbsp;');
+            sl.replaceWith(sp);
+            if (bad && cor) sp.insertAdjacentHTML('afterend', '<span class="pcor">' + cor + '</span>');
+          });
+          const f2 = x => String(Math.round(x * 100) / 100).replace('.', ',');
+          R.items.forEach(it => { const box = clone.querySelector('.q[data-q="' + it.key + '"]'); if (box) box.insertAdjacentHTML('afterbegin', '<div class="ppts ' + (it.pts >= it.max ? 'ok' : it.pts > 0 ? 'mid' : 'ko') + '">' + f2(it.pts) + ' / ' + f2(it.max) + '</div>'); });
           return;
         }
-        const v = ((live(inp.id) || {}).value || '').trim(), bad = !v || faux.has(inp.id);
-        let cor = '';
-        if (inp.classList.contains('num')) { const a = NUM[inp.id]; if (a) cor = fmt(a[0], a[1]); }
-        else if (inp.id === 'hydro-mot') cor = 'HYDROCARBURE'; else if (inp.id === 'co-nom') cor = 'monoxyde de carbone';
-        const sp = span('pans' + (inp.classList.contains('num') ? '' : ' word') + (bad ? ' ko' : ' ok'), v ? e2(v) : '&nbsp;');
-        inp.replaceWith(sp);
-        if (bad && cor) sp.insertAdjacentHTML('afterend', '<span class="pcor">' + cor + '</span>');
-      });
-      clone.querySelectorAll('select').forEach(sl => {
-        const lv = live(sl.id), txt = lv && lv.value && lv.selectedIndex >= 0 ? lv.options[lv.selectedIndex].text : '', bad = !txt || faux.has(sl.id);
-        const cor = sl.id === 'm-co2-unit' ? 'kg' : sl.id === 'hydro-mot' ? 'HYDROCARBURE' : '';
-        const sp = span('pans word' + (bad ? ' ko' : ' ok'), txt ? e2(txt) : '&nbsp;');
-        sl.replaceWith(sp);
-        if (bad && cor) sp.insertAdjacentHTML('afterend', '<span class="pcor">' + cor + '</span>');
-      });
-      const f2 = x => String(Math.round(x * 100) / 100).replace('.', ',');
-      R.items.forEach(it => { const box = clone.querySelector('.q[data-q="' + it.key + '"]'); if (box) box.insertAdjacentHTML('afterbegin', '<div class="ppts ' + (it.pts >= it.max ? 'ok' : it.pts > 0 ? 'mid' : 'ko') + '">' + f2(it.pts) + ' / ' + f2(it.max) + '</div>'); });
-      return;
-    }
-    clone.querySelectorAll('input').forEach(inp => {
+        clone.querySelectorAll('input').forEach(inp => {
       if (inp.type === 'checkbox' || inp.type === 'radio') {
         inp.replaceWith(span('pck' + (inp.type === 'radio' ? ' rd' : '') + (corr && isOk(inp) ? ' on' : ''), ''));
         return;
@@ -3088,9 +3089,9 @@ body.cert-open{overflow:hidden}
   function payload() {
     const R = window.DS_RES, t0 = window.FICHE_START || null, t1 = window.FICHE_END || new Date(), day = t0 || t1;
     const nom = val('nom').toLocaleUpperCase('fr-FR'), pre = val('prenom');
-    let h = 5381; for (const ch of (pre.toLocaleUpperCase('fr-FR') + nom + 'DS' + day.toDateString())) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
+    let h = 5381; for (const ch of (pre.toLocaleUpperCase('fr-FR') + nom + (window.DS_NOM || 'DS') + (t0 ? t0.getTime() : day.toDateString()))) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0;
     const num = 'DS-' + day.getFullYear() + String(day.getMonth() + 1).padStart(2, '0') + String(day.getDate()).padStart(2, '0') + '-' + h.toString(16).toUpperCase().slice(-5).padStart(5, '0');
-    return ['DS COMBUSTION', nom || 'ELEVE', pre || 'Inconnu', val('classe') || 'Sans-Classe', fr(R.note) + '/20',
+    return [window.DS_NOM || 'DS', nom || 'ELEVE', pre || 'Inconnu', val('classe') || 'Sans-Classe', fr(R.note) + '/20',
       day.toLocaleDateString('fr-FR'), t0 ? t0.toLocaleTimeString('fr-FR') : '-', t1.toLocaleTimeString('fr-FR'), window.CERT_CODE || '-', num].join('\n');
   }
   function qrSvg(p, margin) {
@@ -3098,6 +3099,7 @@ body.cert-open{overflow:hidden}
     const q = qrcode(0, 'M'); q.addData(p, 'Byte'); q.make();
     return q.createSvgTag({ cellSize: 4, margin: margin || 0, scalable: true });
   }
+  function sujet() { const f = $('fuel'); return f && f.selectedIndex >= 0 && f.value ? f.options[f.selectedIndex].text.trim() : ''; }
   function duree(a, b) {
     const s = Math.max(0, Math.round((b - a) / 1000)), m = Math.floor(s / 60), x = s % 60;
     return m ? m + ' min ' + String(x).padStart(2, '0') + ' s' : x + ' s';
@@ -3107,11 +3109,11 @@ body.cert-open{overflow:hidden}
     const R = window.DS_RES, t0 = window.FICHE_START, t1 = window.FICHE_END || new Date(), F = (window.FICHE_DATA || {}).F || {};
     return `<div class="pdsb"><div class="pdsi"><div class="pdsn">${esc(val('prenom'))} <b>${esc(val('nom').toLocaleUpperCase('fr-FR'))}</b></div>
       <div>${esc(val('classe'))} · ${esc(t1.toLocaleDateString('fr-FR'))}${t0 ? ' · de ' + t0.toLocaleTimeString('fr-FR').slice(0, 5) + ' à ' + t1.toLocaleTimeString('fr-FR').slice(0, 5) + ' (' + duree(t0, t1) + ')' : ''}</div>
-      <div>Carburant : <b>${esc(F.nom || '')}</b> · Code : ${esc(window.CERT_CODE || '-')}</div></div>
+      <div>${esc(window.DS_SUJET || 'Sujet')} : <b>${esc(sujet())}</b> · Code : ${esc(window.CERT_CODE || '-')}</div></div>
       <div class="pdsnote">${fr(R.note)}<small>/ 20</small></div><div class="pdsqr">${qrSvg(window.DS_PAYLOAD)}</div></div>`;
   };
   window.dsPayload = payload;
-  window.dsNomFichier = () => (val('nom').toLocaleUpperCase('fr-FR') + '-' + val('prenom').charAt(0).toUpperCase() + '-' + val('classe') + '-DS_COMBUSTION.pdf').replace(/[\\\/:*?"<>|\s]/g, '');
+  window.dsNomFichier = () => (val('nom').toLocaleUpperCase('fr-FR') + '-' + val('prenom').charAt(0).toUpperCase() + '-' + val('classe') + '-' + String(window.DS_NOM || 'DS').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9]+/gi, '_') + '.pdf').replace(/[\\\/:*?"<>|\s]/g, '');
 
   // ----- Fin du devoir -----
   window.dsFinir = function () {
@@ -3128,7 +3130,7 @@ body.cert-open{overflow:hidden}
       data: { seed: window.DS_SEED, fuel: ($('fuel') || {}).value, code: window.CERT_CODE || '-', rep: window.dsReponses() }, start: window.FICHE_START ? +window.FICHE_START : 0, end: +window.FICHE_END, now: +window.FICHE_END });   // copie envoyée en silence dès qu'Internet revient
     const who = [val('prenom'), val('nom').toLocaleUpperCase('fr-FR')].filter(Boolean).join(' ');
     const ov = document.createElement('div'); ov.id = 'certOv'; ov.className = 'qrmode';
-    ov.innerHTML = `<div class="cqscreen"><div class="cqwho"><span>${esc(who)}</span> · <span>${esc(val('classe'))}</span></div><div class="cqok">DS COMBUSTION</div>
+    ov.innerHTML = `<div class="cqscreen"><div class="cqwho"><span>${esc(who)}</span> · <span>${esc(val('classe'))}</span></div><div class="cqok">${esc(window.DS_NOM || 'DS')}</div>
       <div class="cqbig">${qrSvg(p, 4)}</div><p class="dsqmsg">Montre ce QR-CODE à ton enseignant avant de continuer !</p><button type="button" class="cqsee">Suivant</button></div>
       <div class="dsfin"><div class="dsbox"><div>${esc(who)}</div><div>${esc(val('classe'))}</div><div>${esc(new Date().toLocaleDateString('fr-FR'))}</div><div>Note : ${fr(R.note)} / 20</div></div>
       <button type="button" class="dspdf">GÉNÉRER TA COPIE EN PDF</button><div class="dsqs">${qrSvg(p, 4)}</div></div>`;
@@ -3166,7 +3168,7 @@ body.cert-open{overflow:hidden}
 (function(){
 const TOTAL_URL = 'https://script.google.com/macros/s/AKfycbylGfrpfkK2-IAFQFzSny_gcsZO2hNjz4YljSS0dZXDo2RHdRhV0i-G8YIJcqkq4YVq/exec';   // script du fichier « SCANNER COPIE TOTAL »
 const TDB_URL = 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec';     // script du fichier « Tableau de Bord - TESTS et CERTIFICATS »
-const ID_TEST = 'DS COMBUSTION';
+const ID_TEST = 'DS COMBUSTION'; window.DS_NOM = ID_TEST; window.DS_SUJET = 'Carburant';
 const estProf = () => window.CERT_CODE === '#@';
 const enCours = () => { const c = document.body.classList; return !c.contains('need-code') && !c.contains('no-id') && !c.contains('locked') && !window.FICHE_DONE; };
 const logIncident = t => { try { console.info(t); } catch (e) {} };
