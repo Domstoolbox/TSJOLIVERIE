@@ -795,6 +795,13 @@ async function call(action, extra) {
 }
 const refresh = () => { if (mdp && !busy) call('admin'); };
 setInterval(() => { if (!document.hidden && $('ovSet').hidden) refresh(); }, REFRESH_S * 1000);
+// Tests Google : tant que le tableau de bord est ouvert, les nouvelles réponses sont lues chaque minute
+let GF_EN_COURS = false;
+setInterval(() => {
+  if (!S || document.hidden || GF_EN_COURS) return;
+  GF_EN_COURS = true;
+  call('importGF').then(r => { if (r && r.ajouts) refresh(); }).catch(() => {}).finally(() => { GF_EN_COURS = false; });
+}, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 $('btnRefresh').onclick = refresh;
 // ---------- Flouter les notes à l'écran (réglage propre à cet ordinateur) ----------
@@ -1093,7 +1100,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 08h30';
+const VERSION_PAGE = '27/11/2026 - 08h40';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
