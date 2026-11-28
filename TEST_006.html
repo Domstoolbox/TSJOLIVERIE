@@ -429,7 +429,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 08h30</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 08h40</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3518,7 +3518,7 @@ function generatePDF() {
   addEventListener('keydown', e => { if (e.key === 'Escape') { stop(); fermer(); } });
   const fermer = () => { const p = document.getElementById('pfOv'); if (p) p.remove(); };
   // Lance une action exactement comme si le code avait été tapé (le code n'est jamais affiché)
-  const lancer = (code, lab) => { if (lab) journal('action', lab); fermer(); window.__codeInterne = code; document.getElementById('accessCodeBtn').click(); };
+  const lancer = (code, lab, garder) => { if (lab) journal('action', lab); if (!garder) fermer(); window.__codeInterne = code; document.getElementById('accessCodeBtn').click(); };   // PDF : le panneau reste ouvert
   const dl = ms => { const d = new Date(ms - new Date(ms).getTimezoneOffset() * 60000); return d.toISOString().slice(0, 16); };
   const txt = ms => new Date(ms).toLocaleString('fr-FR', { weekday: 'long', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
   function etatLibre(o) {
@@ -3564,14 +3564,14 @@ function generatePDF() {
     const w = p.querySelector('.pfw'), h = w.offsetHeight + 36; if (h > innerHeight) w.style.zoom = Math.max(0.6, innerHeight / h).toFixed(3);   // tout à l’écran, sans défiler
     p.onclick = e => { if (e.target === p) fermer(); };
     document.getElementById('pfX').onclick = fermer;
-    p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent));
+    p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
     p.querySelectorAll('[data-dur]').forEach(b => b.onclick = () => { const d = Date.now(); definir(d, d + b.dataset.dur * 60000); });
     p.querySelector('[data-soir]').onclick = () => { const d = Date.now(), f = new Date(); f.setHours(18, 0, 0, 0); if (f.getTime() <= d) { document.getElementById('pfM1').textContent = 'Il est déjà plus de 18h.'; return; } definir(d, f.getTime()); };
     document.getElementById('pfPer').onclick = () => { const d = new Date(document.getElementById('pfDeb').value).getTime(), f = new Date(document.getElementById('pfFin').value).getTime();
       if (!(f > d)) { const m = document.getElementById('pfM1'); m.textContent = 'La fin doit être après le début.'; m.style.color = '#b91c1c'; return; } definir(d, f); };
     document.getElementById('pfOff').onclick = () => definir(0, 0);
     document.getElementById('pfBl').onclick = () => definir(0, 0, !document.getElementById('pfBl').dataset.b);
-    document.getElementById('pfRef').onclick = () => { const k = document.getElementById('pfCle').value.trim(); if (k) lancer(k, 'Copie d’un élève refaite'); };
+    document.getElementById('pfRef').onclick = () => { const k = document.getElementById('pfCle').value.trim(); if (k) lancer(k, 'Copie d’un élève refaite', true); };
     idCall({ action: 'libreEtat', test: NOM }).then(etatLibre).catch(() => etatLibre(null));
   }
   // Côté élève : « Valider » sans code → le tableau de bord dit si l'accès sans code est ouvert
