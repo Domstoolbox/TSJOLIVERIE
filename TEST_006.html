@@ -429,7 +429,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 09h10</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 09h20</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3479,9 +3479,9 @@ function generatePDF() {
 #pfOv .pfb3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 @media (min-width:960px){#pfOv .pfg{grid-template-columns:repeat(3,1fr)}}
 #pfOv .pfqrb{border:0;border-radius:12px;padding:9px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;margin-right:10px}
-#pfOv .pfn{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}#pfOv .pfn>div{display:flex;border:1.5px solid #16a34a;border-radius:10px;overflow:hidden}
-#pfOv .pfn button{border:0;background:#fff;color:#166534;font:700 12.5px inherit;font-family:inherit;padding:6px 9px;cursor:pointer}#pfOv .pfn button+button{border-left:1.5px solid #16a34a}
-#pfOv .pfn button.sel{background:#16a34a;color:#fff}
+#pfOv .pfn{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}#pfOv .pfn>div{display:inline-flex;gap:2px;background:#dcfce7;border-radius:999px;padding:3px}
+#pfOv .pfn button{border:0;border-radius:999px;background:transparent;color:#166534;font:700 12.5px inherit;font-family:inherit;padding:5px 12px;margin:0;cursor:pointer;transition:background .15s}
+#pfOv .pfn button:hover{background:rgba(22,163,74,.12)}#pfOv .pfn button.sel{background:#16a34a;color:#fff;box-shadow:0 1px 4px rgba(22,101,52,.35)}
 #pfOv .pfsc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}#pfOv .pfsc span{background:#ecfeff;border-radius:10px;padding:5px 4px;text-align:center;font-size:11px;color:#155e75}
 #pfOv .pfsc b{display:block;font-size:20px;color:#0e7490}#pfOv .pfsc .al{background:#fee2e2;color:#991b1b}#pfOv .pfsc .al b{color:#dc2626}
 #pfOv .pfsl{max-height:118px;overflow:auto;font-size:12.5px}#pfOv .pfsl div{display:flex;gap:5px;align-items:baseline;padding:3px 2px;border-top:1px solid #f1f5f9}
@@ -3604,9 +3604,9 @@ function generatePDF() {
         <div class="pft" style="margin:8px 0 6px">Projeter en grand le code base 1 + :</div>
         <div class="pfb3">${['A', 'B', 'C', 'AW', 'BW', 'CW'].map(x => `<button class="b${x.length > 1 ? ' l' : ''}" data-proj="${x}" title="${nivTxt(x)}">${x}</button>`).join('')}</div>
         <div class="pft" style="margin-top:6px"><code>A</code> <code>B</code> <code>C</code> = 10 / 20 / 30 questions, Internet coupé · <code>W</code> = Internet permis.</div></section>
-      <section class="pfc" style="--k:#2563eb"><h3>📄 Corrigé et essai</h3><p>Corrigé des 30 questions en PDF, ou essai du test en mode enseignant (sécurités désactivées, pas d’identification).</p>
+      <section class="pfc" style="--k:#2563eb"><h3>📄 Corrigé et essai</h3><p>Corrigé des 30 questions en PDF, ou essai du test dans un nouvel onglet, en mode enseignant (sécurités désactivées, pas d’identification).</p>
         <div class="pfb" style="margin-bottom:8px"><button class="b" data-code="#@">Télécharger le corrigé</button></div>
-        <div class="pfb3"><button class="b l" data-code="#@A">Essai 10 q.</button><button class="b l" data-code="#@B">Essai 20 q.</button><button class="b l" data-code="#@C">Essai 30 q.</button></div></section>
+        <div class="pfb3"><button class="b l" data-essai="A">Essai 10 q. ↗</button><button class="b l" data-essai="B">Essai 20 q. ↗</button><button class="b l" data-essai="C">Essai 30 q. ↗</button></div></section>
       <section class="pfc" style="--k:#ea580c"><h3>🖨️ Copie papier à imprimer</h3><p>Sujet PDF tiré au hasard, avec son QR code. PAP = 30 % de questions en moins.</p>
         <div class="pfb3"><button class="b" data-code="${b1}ACOPIE">10 q.</button><button class="b" data-code="${b1}BCOPIE">20 q.</button><button class="b" data-code="${b1}CCOPIE">30 q.</button>
         <button class="b l" data-code="${b1}ACOPIEPAP">10 q. PAP</button><button class="b l" data-code="${b1}BCOPIEPAP">20 q. PAP</button><button class="b l" data-code="${b1}CCOPIEPAP">30 q. PAP</button></div></section>
@@ -3621,6 +3621,11 @@ function generatePDF() {
     niveauMet('AW');
     p.querySelectorAll('#pfNiv button, #pfNet button').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); });
     p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(grand(COURT, 0.22) + grand(b1 + b.dataset.proj, 0.3)); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
+    p.querySelectorAll('[data-essai]').forEach(b => b.onclick = () => {
+      try { localStorage.setItem('pf_essai', JSON.stringify({ n: b.dataset.essai, j: jeton, t: Date.now() })); } catch (e) {}
+      journal('action', 'Essai du test (' + NIV[b.dataset.essai] + ') dans un nouvel onglet');
+      window.open(location.href.split('#')[0] + '#essai', '_blank');
+    });
     p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
     p.querySelectorAll('[data-dur]').forEach(b => b.onclick = () => { const d = Date.now(); definir(d, d + b.dataset.dur * 60000); });
     p.querySelector('[data-soir]').onclick = () => { const d = Date.now(), f = new Date(); f.setHours(18, 0, 0, 0); if (f.getTime() <= d) { document.getElementById('pfM1').textContent = 'Il est déjà plus de 18h.'; return; } definir(d, f.getTime()); };
@@ -3638,6 +3643,12 @@ function generatePDF() {
     };
     idCall({ action: 'libreEtat', test: NOM }).then(etatLibre).catch(() => etatLibre(null));
     suivre(); clearInterval(SUIVI); SUIVI = setInterval(() => { if (!document.getElementById('pfOv')) { clearInterval(SUIVI); return; } suivre(); }, 10000);
+  }
+  if (location.hash === '#essai') {
+    history.replaceState(null, '', location.pathname + location.search);
+    let k = null; try { k = JSON.parse(localStorage.getItem('pf_essai') || 'null'); localStorage.removeItem('pf_essai'); } catch (e) {}
+    if (k && /^[ABC]$/.test(k.n) && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)
+      window.addEventListener('load', () => setTimeout(() => { window.__codeInterne = '#@' + k.n; document.getElementById('accessCodeBtn').click(); }, 300));
   }
   // Côté élève : « Valider » sans code → le tableau de bord dit si l'accès sans code est ouvert
   window.libreTenter = async () => {

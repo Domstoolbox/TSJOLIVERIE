@@ -1123,7 +1123,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '28/11/2026 - 08h30';
+const VERSION_PAGE = '28/11/2026 - 09h20';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1945,7 +1945,7 @@ function jpRender() {
   a.className = j.type === 'echec' ? '' : 'ouv';
   a.innerHTML = `${esc(jpTxt(j))} · ${esc(jpDate(j.ms))}<small>${neuf.length > 1 ? neuf.length + ' événements · ' : ''}${esc(j.appareil || '')} · cliquer pour fermer</small>`;
   a.hidden = false;
-  if (a._k !== k) { a._k = k; try { if (window.tdbBipGrave) window.tdbBipGrave(2); } catch (e) {} }
+  a._k = k;   // sans son
   a.onclick = () => { try { localStorage.setItem(JP_VU, String(Math.max(...L.map(x => x.ms)))); } catch (e) {} a.hidden = true; };
 }
 
