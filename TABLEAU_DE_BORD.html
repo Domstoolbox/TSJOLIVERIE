@@ -581,6 +581,13 @@ td.n{font-family:var(--fm);color:var(--muted)}
 #ovClass.fs .stu small{font-size:.88em;margin-top:.25em}#ovClass.fs .stu .stap{font-size:.8em}
 #ovClass.fs .stu .gb{width:1.7em;height:1.7em;font-size:1em;line-height:1.7em}#ovClass.fs .stu b{padding-right:2em}
 #ovClass.fs .stu small.plus{background:rgba(255,255,255,.75);color:#334155}
+#cfOv{position:fixed;inset:0;z-index:20000;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;animation:cfin .12s ease-out}
+#cfOv .cfw{background:#fff;border-radius:18px;padding:22px 26px 18px;width:min(380px,92vw);text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+#cfOv .cfw>svg{width:44px;height:44px;fill:none;stroke:#dc2626;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;background:#fee2e2;border-radius:50%;padding:10px;box-sizing:content-box}
+#cfOv p{font:700 17px var(--f);color:#0f172a;margin:12px 0 18px}#cfOv .cfw div{display:flex;gap:10px}
+#cfOv button{flex:1;border:0;border-radius:12px;padding:12px;font:800 15px var(--f);cursor:pointer}#cfOv .cfn{background:#f1f5f9;color:#334155}#cfOv .cfo{background:#dc2626;color:#fff}
+#cfOv button:hover{filter:brightness(.95)}@keyframes cfin{from{opacity:0}}
+svg.poub{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
 </style>
 </head>
 <body>
@@ -731,7 +738,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
 <div class="ov" id="ovJournal" hidden>
   <div class="win jwin" role="dialog" aria-modal="true" aria-labelledby="jT">
     <div class="whead"><h3 id="jT">Espace enseignant des tests</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
-    <div class="wbody"><h4>Exceptions réglées dans l’espace enseignant</h4><div id="jBloq"></div><h4 class="jh">🔐 Journal <button type="button" id="jpVid">Vider</button></h4><div id="jList"></div></div>
+    <div class="wbody"><h4>Exceptions réglées dans l’espace enseignant</h4><div id="jBloq"></div><h4 class="jh">🔐 Journal <button type="button" id="jpVid" title="Vider le journal" aria-label="Vider le journal"><svg class="poub" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg></button></h4><div id="jList"></div></div>
   </div>
 </div>
 <div class="ov" id="ovFiche" hidden>
@@ -1030,7 +1037,7 @@ const enEdition = () => $('posts').contains(document.activeElement);
 function renderPosts() {
   if (enEdition()) return;                                   // ne jamais effacer ce que l'on est en train d'écrire
   POSTS = S && S.postits ? S.postits.map(p => Object.assign({}, p)) : [];
-  const nx = $('nextCours'); $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
+  const nx = $('nextCours'); $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">${POUB}</button></div></div>`).join('');
   $('posts').prepend(nx); $('posts').querySelectorAll('textarea').forEach(auto);
 }
 function auto(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
@@ -1045,12 +1052,12 @@ $('posts').addEventListener('input', e => {
   POSTS[+n.dataset.p].texte = e.target.value; S.postits = POSTS.map(p => Object.assign({}, p)); auto(e.target); savePosts();
 });
 $('posts').addEventListener('focusout', () => setTimeout(() => { if (!enEdition()) savePosts(true); }, 0));
-$('posts').addEventListener('click', e => {
+$('posts').addEventListener('click', async e => {
   const n = e.target.closest('[data-p]'); if (!n) return; const i = +n.dataset.p;
   if (e.target.closest('[data-pc]')) { POSTS[i].couleur = COULEURS[(COULEURS.indexOf(POSTS[i].couleur) + 1) % COULEURS.length]; n.className = 'pi ' + POSTS[i].couleur; S.postits = POSTS.map(p => Object.assign({}, p)); savePosts(); }
   if (e.target.closest('[data-pd]')) {
     const b = e.target.closest('[data-pd]');
-    if (!b.classList.contains('armed')) { b.classList.add('armed'); setTimeout(() => b.classList.remove('armed'), 2500); return; }
+    if (!(await confirmer('Supprimer ce post-it ?'))) return;
     POSTS.splice(i, 1); S.postits = POSTS.map(p => Object.assign({}, p)); document.activeElement && document.activeElement.blur(); renderPosts(); savePosts(true);
   }
 });
@@ -1110,9 +1117,9 @@ function renderSet() {
     '<button type="button" class="add" id="addCls">＋ Ajouter une classe</button>';
   const c = draft[curTab];
   if (!c) { $('setPane').innerHTML = '<div class="empty">Aucune classe. Clique sur « Ajouter une classe ».</div>'; return; }
-  $('setPane').innerHTML = `<div class="crow"><input id="clsName" value="${esc(c.nom)}" aria-label="Nom de la classe" placeholder="Nom de la classe"><button type="button" class="btn dan" id="delCls">Supprimer la classe</button></div>
+  $('setPane').innerHTML = `<div class="crow"><input id="clsName" value="${esc(c.nom)}" aria-label="Nom de la classe" placeholder="Nom de la classe"><button type="button" class="btn dan" id="delCls">${POUB} Supprimer la classe</button></div>
     <div class="erows"><div class="erow h"><span>NOM</span><span>Prénom</span><span>N° de badge</span><span>Groupe</span><span>PAP</span><span>Statut</span><span></span><span></span></div>` +
-    c.eleves.map((e, i) => `<div class="erow" data-i="${i}"><input class="nom" data-f="nom" value="${esc(e.nom)}" aria-label="NOM"><input data-f="prenom" value="${esc(e.prenom)}" aria-label="Prénom"><input data-f="badge" value="${esc(e.badge || '')}" aria-label="N° de badge" inputmode="numeric" maxlength="6" placeholder="000000" style="font-family:var(--fm)"><button type="button" class="grp g${e.groupe === 'B' ? 'B' : 'A'}" data-grp title="Groupe (clic pour changer)" aria-label="Groupe ${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</button><button type="button" class="pap${e.pap ? ' on' : ''}" data-pap title="${e.pap ? 'Bénéficie d’un PAP' : 'Pas de PAP'} (clic pour changer)" aria-label="PAP : ${e.pap ? 'oui' : 'non'}" aria-pressed="${!!e.pap}">PAP</button><button type="button" class="sw ${e.ok ? 'ok' : 'no'}" data-sw title="${e.ok ? 'Autorisé' : 'Bloqué'}" aria-label="${e.ok ? 'Autorisé' : 'Bloqué'}"></button><button type="button" class="crd" data-crd title="Fabriquer la carte de l’élève" aria-label="Fabriquer la carte"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button><button type="button" class="del" data-del title="Supprimer cet élève" aria-label="Supprimer">✕</button></div>`).join('') +
+    c.eleves.map((e, i) => `<div class="erow" data-i="${i}"><input class="nom" data-f="nom" value="${esc(e.nom)}" aria-label="NOM"><input data-f="prenom" value="${esc(e.prenom)}" aria-label="Prénom"><input data-f="badge" value="${esc(e.badge || '')}" aria-label="N° de badge" inputmode="numeric" maxlength="6" placeholder="000000" style="font-family:var(--fm)"><button type="button" class="grp g${e.groupe === 'B' ? 'B' : 'A'}" data-grp title="Groupe (clic pour changer)" aria-label="Groupe ${e.groupe === 'B' ? 'B' : 'A'}">${e.groupe === 'B' ? 'B' : 'A'}</button><button type="button" class="pap${e.pap ? ' on' : ''}" data-pap title="${e.pap ? 'Bénéficie d’un PAP' : 'Pas de PAP'} (clic pour changer)" aria-label="PAP : ${e.pap ? 'oui' : 'non'}" aria-pressed="${!!e.pap}">PAP</button><button type="button" class="sw ${e.ok ? 'ok' : 'no'}" data-sw title="${e.ok ? 'Autorisé' : 'Bloqué'}" aria-label="${e.ok ? 'Autorisé' : 'Bloqué'}"></button><button type="button" class="crd" data-crd title="Fabriquer la carte de l’élève" aria-label="Fabriquer la carte"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button><button type="button" class="del" data-del title="Supprimer cet élève" aria-label="Supprimer">${POUB}</button></div>`).join('') +
     `</div><div style="margin-top:10px"><button type="button" class="btn sec" id="addStu">＋ Ajouter un élève</button></div>`;
 }
 $('setTabs').addEventListener('click', e => {
@@ -1127,27 +1134,35 @@ $('setPane').addEventListener('input', e => {
 $('setPane').addEventListener('click', e => {
   const c = draft[curTab];
   if (e.target.id === 'addStu') { c.eleves.push({ nom: '', prenom: '', badge: badgeLibre(), ok: true }); renderSet();   /* nouvel élève : badge attribué tout de suite */ const rows = $('setPane').querySelectorAll('.erow[data-i] input.nom'); rows[rows.length - 1].focus(); return; }
-  if (e.target.id === 'delCls') { if (confirmTwice(e.target, 'Confirmer la suppression')) { draft.splice(curTab, 1); curTab = Math.max(0, curTab - 1); renderSet(); } return; }
+  if (e.target.closest('#delCls')) { confirmer('Supprimer la classe ' + c.nom + ' ?').then(v => { if (v) { draft.splice(curTab, 1); curTab = Math.max(0, curTab - 1); renderSet(); } }); return; }
   const r = e.target.closest('[data-i]'); if (!r) return;
   const i = +r.dataset.i;
   if (e.target.closest('[data-sw]')) { c.eleves[i].ok = !c.eleves[i].ok; renderSet(); }
   if (e.target.closest('[data-grp]')) { c.eleves[i].groupe = c.eleves[i].groupe === 'B' ? 'A' : 'B'; renderSet(); }
   if (e.target.closest('[data-pap]')) { c.eleves[i].pap = !c.eleves[i].pap; renderSet(); }
-  if (e.target.closest('[data-del]')) { c.eleves.splice(i, 1); renderSet(); }
+  if (e.target.closest('[data-del]')) { const el = c.eleves[i]; confirmer('Supprimer ' + ((el.prenom || '') + ' ' + (el.nom || '')).trim() + ' ?').then(v => { if (v) { c.eleves.splice(c.eleves.indexOf(el), 1); renderSet(); } }); }
   if (e.target.closest('[data-crd]')) carteOuvrir(curTab, i);
 });
+// Confirmation commune à toutes les corbeilles : « Confirmer la suppression ? » OUI / NON (Entrée = OUI, Échap = NON)
+const POUB = '<svg class="poub" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg>';
+function confirmer(txt) {
+  return new Promise(ok => {
+    const o = document.createElement('div'); o.id = 'cfOv';
+    o.innerHTML = `<div class="cfw" role="alertdialog" aria-modal="true">${POUB}<p>${esc(txt || 'Confirmer la suppression ?')}</p><div><button type="button" class="cfn">NON</button><button type="button" class="cfo">OUI</button></div></div>`;
+    const fin = v => { removeEventListener('keydown', kd, true); o.remove(); ok(v); };
+    const kd = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fin(false); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fin(true); } };
+    o.querySelector('.cfo').onclick = () => fin(true); o.querySelector('.cfn').onclick = () => fin(false); o.onclick = e => { if (e.target === o) fin(false); };
+    addEventListener('keydown', kd, true); document.body.appendChild(o); o.querySelector('.cfo').focus();
+  });
+}
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '28/11/2026 - 10h40';
+const VERSION_PAGE = '28/11/2026 - 10h55';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
-  if (!b.classList.contains('arme')) {
-    b.classList.add('arme'); b.textContent = 'Tout effacer aujourd’hui ?';
-    clearTimeout(razT); razT = setTimeout(() => { b.classList.remove('arme'); b.textContent = 'RAZ du jour'; }, 4000);
-    return;
-  }
-  clearTimeout(razT); b.disabled = true; b.textContent = 'Effacement…';
+  if (!(await confirmer('Effacer les copies et l’activité d’aujourd’hui du tableau de bord ?'))) return;
+  b.disabled = true; b.textContent = 'Effacement…';
   const o = await call('raz');
   b.disabled = false; b.classList.remove('arme'); b.textContent = 'RAZ du jour';
   if (o) {
@@ -1476,7 +1491,7 @@ $('findFil').addEventListener('click', e => {
 });
 $('findFil').addEventListener('change', e => { if (e.target.id === 'findDate') { FILTRE.date = e.target.value; e.target.classList.toggle('on', !!FILTRE.date); findRender(); } });
 const filtreOk = c => (!FILTRE.date || c.date === FILTRE.date) && (!FILTRE.cl.size || FILTRE.cl.has(c.classe) || FILTRE.cl.has(c.classe + '|' + groupeDe(c)));
-function actsCopie(c) { return actsCopie0(c) + `<button type="button" class="del" data-eff="${FIND.indexOf(c)}" title="Effacer cette copie partout (comme si l’élève n’avait jamais fait ce test)">🗑</button>`; }
+function actsCopie(c) { return actsCopie0(c) + `<button type="button" class="del" data-eff="${FIND.indexOf(c)}" title="Effacer cette copie partout (comme si l’élève n’avait jamais fait ce test)">${POUB}</button>`; }
 function actsCopie0(c) {
   const f = fichierDe(c.test), cert = /^(CERTIFICAT|DS )/i.test(c.test), i = FIND.indexOf(c);   // certificats et DS : refaits avec leurs données
   return cert ? (c.regen && f ? `<button type="button" data-cert="${i}" title="${/^DS /i.test(c.test) ? 'Refaire la copie (PDF)' : 'Refaire le certificat (PDF)'}">📄</button>` : '<span class="na">—</span>')
@@ -1500,11 +1515,12 @@ async function actionCopie(e) {
   const b = e.target.closest('button'); if (!b || !b.closest('.acts')) return;
   // 🗑 : 1er clic « Effacer ? » (3 s), 2e clic : effacée dans le tableau de bord, SCANNER COPIE TOTAL et SCANNER COPIE QRCODE
   if (b.dataset.eff) {
-    if (!b.classList.contains('arme')) { b.classList.add('arme'); b.textContent = 'Effacer ?'; clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('arme'); b.textContent = '🗑'; }, 3000); return; }
-    clearTimeout(b._t); b.disabled = true; b.textContent = '…';
     const c = FIND[+b.dataset.eff];
+    if (!(await confirmer('Effacer la copie de ' + c.prenom + ' ' + c.nom + ' (' + c.test + ') partout ?'))) return;
+    const ligne = b.closest('.frow, tr, .fr, li'); if (ligne) ligne.style.display = 'none';   // disparaît tout de suite
+    b.disabled = true;
     const o = await call('effacer', { test: c.test, nom: c.nom, prenom: c.prenom, date: c.date, fin: c.fin });
-    if (!o) { b.disabled = false; b.classList.remove('arme'); b.textContent = '🗑'; toast('Effacement impossible'); return; }
+    if (!o) { b.disabled = false; if (ligne) ligne.style.display = ''; toast('Effacement impossible'); return; }
     const ok = v => typeof v === 'number', manque = [['total', 'TOTAL'], ['qrcode', 'QRCODE']].filter(([k]) => !ok(o[k])).map(x => x[1]);
     toast(manque.length ? 'Copie effacée du tableau de bord (pas de ' + manque.join(' ni de ') + ')' : 'Copie effacée partout');
     try { const k = ((c.test || '') + '|' + c.nom + '|' + c.prenom + '|' + c.classe).toUpperCase(); if (vus && vus.l) { delete vus.l[k]; localStorage.setItem(STORE + '_vus', JSON.stringify(vus)); } } catch (x) {}
@@ -1967,7 +1983,7 @@ function jpRender() {
 function jpVu() { const L = (S && S.journalProf) || []; if (L.length) try { localStorage.setItem(JP_VU, String(Math.max(...L.map(x => x.ms)))); } catch (e) {} $('jpAlerte').hidden = true; $('jDot').hidden = true; }
 $('btnJournal').onclick = () => { jpVu(); $('ovJournal').hidden = false; };
 $('btnBloq').onclick = $('btnForceOn').onclick = () => { $('ovJournal').hidden = false; };
-$('jpVid').onclick = e => { const b = e.target; if (b.dataset.ok) { b.dataset.ok = ''; b.textContent = 'Vider'; call('journalVider').then(refresh); } else { b.dataset.ok = 1; b.textContent = 'Vider ?'; setTimeout(() => { b.dataset.ok = ''; b.textContent = 'Vider'; }, 3000); } };
+$('jpVid').onclick = async () => { if (!(await confirmer('Vider le journal ?'))) return; if (S) S.journalProf = []; jpRender(); call('journalVider'); };   // vidé tout de suite à l'écran
 
 // ---------- Carte d'AGENT INSTRUCTEUR devant le Scanner ----------
 // Verso (QR secret) : verrouille le tableau de bord (comme le cadenas) ; Recto (badge 866738) : « Merci de travailler en silence ! » 10 s, sans son
@@ -2228,8 +2244,8 @@ $('ntWrap').addEventListener('click', async e => {
   }
   const sp = e.target.closest('[data-sp]');
   if (sp) {   // 1er clic : « Supprimer ? » (3 s) ; 2e clic : la colonne disparaît
-    if (!sp.classList.contains('arme')) { sp.classList.add('arme'); sp.textContent = 'Supprimer ?'; setTimeout(() => ntRender(), 3000); return; }
-    const T = N.tests[+sp.dataset.sp]; N.tests.splice(+sp.dataset.sp, 1); ntRender();
+    const T = N.tests[+sp.dataset.sp];
+    if (!(await confirmer('Supprimer la colonne ' + T.t + ' du relevé ?'))) return; N.tests.splice(+sp.dataset.sp, 1); ntRender();
     const o = await call('carnetSuppr', { classe: N.classe, test: T.t }); if (o && o.carnet) N.carnet = o.carnet;
     return;
   }
@@ -2527,7 +2543,7 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
     $('apBody').innerHTML = '<div class="apside">' + (rec.fini ? '' :
       '<div class="apvid"><video id="apV" playsinline muted></video><button type="button" id="apSw" title="Changer de caméra" aria-label="Changer de caméra">⟲</button></div><p class="apmsg2" id="apM"></p>' +
       '<button type="button" class="apbtn apfin" id="apFin2">Fin de l’appel</button>') +
-      '<button type="button" class="apbtn apsup" id="apSup">Supprimer l’appel</button></div><div class="apgrid" id="apG"></div>';
+      '<button type="button" class="apbtn apsup" id="apSup">' + POUB + ' Supprimer l’appel</button></div><div class="apgrid" id="apG"></div>';
     tuiles();
     if (rec.fini) stopCam(); else camera();
     $('apBody').onclick = e => {
@@ -2599,10 +2615,10 @@ async function pageDeGarde(doc, R, StandardFonts, rgb) {
   }
   let supT = 0;
   function supprimer(b) {
-    if (!b.classList.contains('conf')) { b.classList.add('conf'); b.textContent = 'Confirmer la suppression'; clearTimeout(supT); supT = setTimeout(() => { b.classList.remove('conf'); b.textContent = 'Supprimer l’appel'; }, 3000); return; }
-    const rec = A.rec; stopCam();
+    const rec = A.rec;
+    confirmer('Supprimer cet appel ?').then(v => { if (!v || A === null || A.rec !== rec) return; stopCam();
     SUPPR[rec.id] = { id: rec.id, jour: rec.jour, suppr: true, v: rec.v || 0 }; DIRTY.add(rec.id); delete MEM[rec.id]; ecrire(); postit(rec, true);
-    A = null; $('ovAp').hidden = true; toast('Appel supprimé');
+    A = null; $('ovAp').hidden = true; toast('Appel supprimé'); });
   }
 
   // ---------- Carte passée au Scanner (tuile Scanner du tableau de bord) ----------
