@@ -710,7 +710,7 @@ body.need-net .sheet{display:none}
     </div>
   </div>
 
-  <footer class="foot"><span>Une mesure sans unité ne veut rien dire !</span><span>Domstoolbox · Version du 27/11/2026 - 17h55</span></footer>
+  <footer class="foot"><span>Une mesure sans unité ne veut rien dire !</span><span>Domstoolbox · Version du 28/11/2026 - 11h30</span></footer>
 </div>
 
 <script>
@@ -2012,8 +2012,9 @@ function sha256hex(str) {
   }
   const inp = document.getElementById('certCode'), btn = document.getElementById('certCodeBtn'), msg = document.getElementById('certCodeMsg');
   function check() {
-    const c = inp.value.trim().toUpperCase().replace(/\s+/g, '');
-    if (!c) return;
+    const interne = window.__codeInterne || ''; window.__codeInterne = '';   // espace enseignant / accès sans code : code jamais affiché
+    const c = (interne || inp.value).trim().toUpperCase().replace(/\s+/g, '');
+    if (!c) { if (window.libreTenter) window.libreTenter(); return; }   // « Valider » sans code : accès sans code ouvert ?
     const prof = sha256hex(CODE_SALT + c) === H_PROF;
     const eleve = [base2()].some(b => /^[ABC]W?X?$/.test(c.startsWith(b) ? c.slice(b.length) : ''));   // DS : base 2 seulement ; X à la fin = sans QR code, sans note, sans copie
     if (!prof && !eleve) { msg.hidden = false; inp.value = ''; inp.focus(); return; }
@@ -2030,6 +2031,7 @@ function sha256hex(str) {
   inp.addEventListener('input', () => { msg.hidden = true; });
   try { inp.focus(); } catch (e) {}
   window.certBases = () => [base1(), base2()];   // (tests)
+  window.sha256hex = sha256hex;   // pour l'espace enseignant
 })();
 </script>
 <script>
@@ -2484,8 +2486,7 @@ body.locked #npad{display:none!important}
   if (memo) memo.innerHTML = memo.innerHTML.replace(/^D/, '<span id="hidBlank">D</span>');
   const hc = document.getElementById('hidCorr'), hb = document.getElementById('hidBlank');
   const prof = () => window.dsAdmin && window.dsAdmin();   // DS : liens cachés réservés au professeur
-  if (hc) hc.addEventListener('click', () => { if (prof()) make(true); });
-  if (hb) hb.addEventListener('click', () => { if (prof()) make(false); });
+  window.pfFiche = make;   // fiches PDF : depuis l'espace enseignant (« x » de Domstoolbox + carte)
   window.dsCopie = () => make('copie');
 })();
 </script>
@@ -3235,7 +3236,7 @@ body.cert-open{overflow:hidden}
 (function(){
 const TOTAL_URL = 'https://script.google.com/macros/s/AKfycbylGfrpfkK2-IAFQFzSny_gcsZO2hNjz4YljSS0dZXDo2RHdRhV0i-G8YIJcqkq4YVq/exec';   // script du fichier « SCANNER COPIE TOTAL »
 const TDB_URL = 'https://script.google.com/macros/s/AKfycbwxg9K8-EDTUVq2_KI4VOTDCJBAR2KaAxQzLOPMRFgpHfDwQHT6-aB-m7Kf6egNPojh2w/exec';     // script du fichier « Tableau de Bord - TESTS et CERTIFICATS »
-const ID_TEST = 'DS ÉLECTRICITÉ'; window.DS_NOM = ID_TEST; window.DS_SUJET = 'Sujet';
+const ID_TEST = 'DS ÉLECTRICITÉ'; window.ID_TEST = ID_TEST; window.idCall = idCall; window.idChargerJsQR = idChargerJsQR;   // pour l'espace enseignant window.DS_NOM = ID_TEST; window.DS_SUJET = 'Sujet';
 const estProf = () => window.CERT_CODE === '#@';
 const enCours = () => { const c = document.body.classList; return !c.contains('need-code') && !c.contains('no-id') && !c.contains('locked') && !window.FICHE_DONE; };
 const logIncident = t => { try { console.info(t); } catch (e) {} };
@@ -3312,7 +3313,7 @@ async function idCall(o) {
   const ctl = 'AbortController' in window ? new AbortController() : null;
   const t = setTimeout(() => { if (ctl) ctl.abort(); }, 20000);   // Google peut mettre plusieurs secondes à se réveiller
   try {
-    const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o), redirect: 'follow', signal: ctl ? ctl.signal : undefined });
+    const r = await fetch(TDB_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ test: ID_TEST }, o)), redirect: 'follow', signal: ctl ? ctl.signal : undefined });   // test : bloqué ou non
     return await r.json();
   } finally { clearTimeout(t); }
 }
@@ -3508,6 +3509,276 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'Backspace') { e.preventDefault(); idKey('del'); }
   } else if (IDENT.step === 'manuel' && e.key === 'Enter') { e.preventDefault(); $id('idManOk').click(); }
 });
+})();
+</script>
+<style>
+#dtbX,.dtbX,#hidCorr{cursor:default}
+#codegate .pfcred{margin:12px 0 0;font-size:.78rem;opacity:.6;text-align:center}
+#pfOv .pfb2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+#pfOv .pfw.w2{width:min(880px,100%)}@media (min-width:960px){#pfOv .pfg.g2{grid-template-columns:repeat(2,1fr)}}
+#pfScan{position:fixed;inset:0;z-index:100000;background:rgba(10,15,30,.88);display:flex;align-items:center;justify-content:center}
+#pfScan video{width:min(78vw,420px);aspect-ratio:1;object-fit:cover;border-radius:22px;border:3px solid rgba(255,255,255,.35);background:#000}
+#pfScan video.miroir{transform:scaleX(-1)}
+#pfOv{position:fixed;inset:0;z-index:100001;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;overflow:auto;padding:12px;font-family:inherit}
+#pfOv .pfw{background:#f8fafc;border-radius:22px;width:min(1240px,100%);box-shadow:0 30px 80px rgba(0,0,0,.4);overflow:hidden}
+#pfOv .pfh{background:linear-gradient(120deg,#1e3a8a,#7c3aed);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px}
+#pfOv .pfh h2{margin:0;font-size:20px;flex:1;color:#fff!important;text-transform:none!important;letter-spacing:0!important;font-family:inherit!important;background:none!important;-webkit-text-fill-color:#fff}#pfOv .pfh h2 small{display:block;margin-top:2px;color:#fff;text-transform:none;letter-spacing:0;-webkit-text-fill-color:#fff}
+#pfOv h3{text-transform:none;letter-spacing:0;font-family:inherit}#pfOv .pfh small{display:block;font-size:13px;opacity:.85;font-weight:500}
+#pfOv .pfforce{display:flex;gap:3px;background:rgba(255,255,255,.16);border-radius:12px;padding:3px;margin-right:10px}
+#pfOv .pfforce button{border:0;border-radius:9px;padding:7px 12px;margin:0;font:800 13.5px inherit;font-family:inherit;cursor:pointer;background:transparent;color:rgba(255,255,255,.85);transition:background .15s}
+#pfOv .pfforce button:hover{background:rgba(255,255,255,.14)}
+#pfOv .pfforce button.sel[data-f="bloque"]{background:#dc2626;color:#fff}#pfOv .pfforce button.sel[data-f=""]{background:#fff;color:#334155}#pfOv .pfforce button.sel[data-f="ouvert"]{background:#16a34a;color:#fff}#pfOv .pfforce button.sel[data-f="ouvert"]{background:#16a34a;color:#fff}
+#pfOv .pfx{display:flex;align-items:center;justify-content:center;padding:0;line-height:1;background:rgba(255,255,255,.18);border:0;color:#fff;width:36px;height:36px;border-radius:12px;font-size:22px;cursor:pointer}
+#pfOv .pfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;padding:12px}
+#pfOv .pfc{background:#fff;border-radius:16px;padding:10px 14px;border-top:5px solid var(--k);box-shadow:0 2px 10px rgba(15,23,42,.07)}
+#pfOv .pfc h3{margin:0 0 2px;font-size:16px;color:var(--k)}#pfOv .pfc p{margin:0 0 8px;font-size:12.5px;line-height:1.35;color:#475569}
+#pfOv .pfb{display:flex;flex-wrap:wrap;gap:8px}
+#pfOv button.b{border:0;border-radius:10px;padding:7px 12px;font:700 13.5px inherit;font-family:inherit;cursor:pointer;background:var(--k);color:#fff}
+#pfOv button.b.l{background:color-mix(in srgb,var(--k) 14%,#fff);color:var(--k)}
+#pfOv button.b.r{background:#dc2626}
+#pfOv .pfst{border-radius:10px;padding:7px 10px;font-weight:700;font-size:13px;margin-bottom:8px;background:#f1f5f9;color:#475569}
+#pfOv .pfst.on{background:#dcfce7;color:#166534}#pfOv .pfst.fut{background:#fef3c7;color:#92400e}
+#pfOv .pfd{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:6px;align-items:center;font-size:12.5px;margin:8px 0}
+#pfOv input[type=datetime-local],#pfOv textarea{font:13px inherit;font-family:inherit;padding:5px 6px;min-width:0;border:1.5px solid #cbd5e1;border-radius:10px;width:100%;box-sizing:border-box}
+#pfOv textarea{height:46px;resize:vertical}
+#pfOv .pfk{display:flex;gap:10px;flex-wrap:wrap}#pfOv .pfk div{flex:1;min-width:120px;background:#f1f5f9;border-radius:12px;padding:8px 10px}
+#pfOv .pfk b{display:block;font-size:20px;letter-spacing:1px;color:#0f172a}#pfOv .pfk span{font-size:12px;color:#64748b}
+#pfOv .pft{font-size:12.5px;color:#475569;line-height:1.5}#pfOv .pft code{background:#f1f5f9;border-radius:5px;padding:1px 5px;font-weight:700}
+#pfOv .pfm{font-size:12.5px;font-weight:700;min-height:0;margin-top:4px}
+#pfOv .pfb3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (min-width:960px){#pfOv .pfg{grid-template-columns:repeat(3,1fr)}}
+#pfOv .pfqrb{border:0;border-radius:12px;padding:9px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;margin-right:10px}
+#pfOv [hidden]{display:none!important}
+#pfOv .pfa{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#pfOv .pfsw{position:relative;width:54px;height:30px;flex:none;cursor:pointer}#pfOv .pfsw input{opacity:0;width:0;height:0;position:absolute}
+#pfOv .pfsw i{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s}#pfOv .pfsw i::after{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+#pfOv .pfsw input:checked+i{background:#16a34a}#pfOv .pfsw input:checked+i::after{left:27px}#pfOv .pfsw input:disabled+i{opacity:.4;cursor:default}
+#pfOv .pfacc .pfst{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#pfOv .pfst.ko{background:#fee2e2;color:#b91c1c}
+#pfOv .pfrow{display:flex;align-items:center;gap:8px;margin-top:7px}#pfOv .pfrow>span{width:66px;flex:none;font-size:12px;font-weight:700;color:#64748b}
+#pfOv .pfseg{display:flex;flex:1;gap:4px}
+#pfOv .pfseg button{flex:1;border:1.5px solid #e2e8f0;background:#fff;color:#334155;border-radius:9px;padding:6px 4px;margin:0;font:700 13px inherit;font-family:inherit;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+#pfOv .pfseg button:hover{border-color:var(--k)}#pfOv .pfseg button.sel{background:var(--k);border-color:var(--k);color:#fff}
+#pfOv .pfacc:not(.on) .pfseg button.sel{background:#64748b;border-color:#64748b}
+#pfOv .pfsc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}#pfOv .pfsc span{background:#ecfeff;border-radius:10px;padding:5px 4px;text-align:center;font-size:11px;color:#155e75}
+#pfOv .pfsc b{display:block;font-size:20px;color:#0e7490}#pfOv .pfsc .al{background:#fee2e2;color:#991b1b}#pfOv .pfsc .al b{color:#dc2626}
+#pfOv .pfsl{max-height:118px;overflow:auto;font-size:12.5px}#pfOv .pfsl div{display:flex;gap:5px;align-items:baseline;padding:3px 2px;border-top:1px solid #f1f5f9}
+#pfOv .pfsl i{color:#94a3b8;font-style:normal;font-size:11px}#pfOv .pfsl em{margin-left:auto;font-style:normal;font-weight:700;color:#0e7490;white-space:nowrap}
+#pfOv .pfsl .fini em{color:#166534}#pfOv .pfsl .al em{color:#dc2626}#pfOv .pfsl p{margin:4px 0;color:#64748b}
+#pfOv button.b:disabled{opacity:.4;cursor:default}
+#pfBig{position:fixed;inset:0;z-index:100002;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;cursor:pointer;font-family:inherit;text-align:center;padding:3vh}
+#pfBig .pfbt{font-size:clamp(20px,4vh,44px);font-weight:800;color:#1e3a8a}#pfBig .pfcode{font-size:clamp(60px,17vw,260px);font-weight:900;letter-spacing:.04em;color:#0f172a;line-height:1}
+#pfBig .pfqr{width:min(66vh,86vw)}#pfBig .pfqr svg{width:100%;height:auto;display:block}#pfBig .pfbs{font-size:clamp(16px,3vh,32px);font-weight:700;color:#475569;margin:0}#pfBig .pfbq{position:absolute;bottom:12px;font-size:13px;color:#94a3b8;margin:0}
+</style>
+<script>
+// ---------- Espace enseignant : clic sur le « x » de Domstoolbox → carte d'AGENT INSTRUCTEUR → panneau ----------
+(() => {
+  const CARTE_H = '6d87fce4114d46747d68e4f1d4c8476fd8098d93549a78b00266c8ed1a07132b';   // empreinte du QR du verso de la carte
+  const NOM = typeof ID_TEST !== 'undefined' ? ID_TEST : window.ID_TEST; if (!NOM) return;
+  // Trois sortes de pages : tests (TEST ###), certificats, DS — mêmes outils, options adaptées aux codes de chacun
+  const TYPE = /^DS /i.test(NOM) ? 'ds' : /^CERTIFICAT/i.test(NOM) ? 'cert' : 'test';
+  const MOT = TYPE === 'test' ? 'Test' : TYPE === 'ds' ? 'DS' : 'Certificat';
+  const BTN = () => document.getElementById(TYPE === 'test' ? 'accessCodeBtn' : 'certCodeBtn');
+  const B1 = () => TYPE === 'test' ? getExpectedCode() : window.certBases()[0];
+  const B2 = () => TYPE === 'test' ? getExpectedCode2() : window.certBases()[1];
+  const MSG = (t, ok) => { if (TYPE === 'test') { showCodeMsg(t, ok); return; } const m = document.getElementById('certCodeMsg'); if (m) { m.textContent = t; m.style.color = ok ? '#157347' : ''; m.hidden = false; } };
+  const MSGOFF = () => { const m = document.getElementById(TYPE === 'test' ? 'codeMsg' : 'certCodeMsg'); if (m) m.hidden = true; };
+  if (TYPE === 'test') { const cr = document.getElementById('codeCredit'); if (cr) cr.innerHTML = cr.innerHTML.replace('Domstoolbox', 'Domstoolbo<span id="dtbX" class="dtbX">x</span>'); }
+  else { const g = document.getElementById('codegate'); if (g) g.insertAdjacentHTML('beforeend', '<p class="pfcred">By Domstoolbo<span class="dtbX">x</span> pour La Joliverie</p>'); }
+  const XS = [...document.querySelectorAll('.dtbX, #hidCorr')]; if (!XS.length) return;
+  let cam = null, jeton = '';
+  const bip = () => { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = 1150; g.gain.value = 0.25; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.09); setTimeout(() => c.close(), 300); } catch (e) {} };
+  const APP = (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablette' : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'téléphone' : 'ordinateur') + ' · ' + (/Edg\//.test(navigator.userAgent) ? 'Edge' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : 'navigateur');
+  const journal = (type, detail) => { try { idCall({ action: 'journalProf', type, detail: detail || '', jeton, appareil: APP, test: NOM }).catch(() => {}); } catch (e) {} };   // vu sur le tableau de bord
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const stop = () => { if (cam) { clearTimeout(cam.t); try { cam.s.getTracks().forEach(t => t.stop()); } catch (e) {} cam = null; } const o = document.getElementById('pfScan'); if (o) o.remove(); };
+  XS.forEach(X => X.addEventListener('click', ouvrirScan));
+  async function ouvrirScan(e) {
+    e.stopPropagation(); if (TYPE === 'test' && codeValidated) return; if (document.getElementById('pfScan') || document.getElementById('pfOv')) return;
+    const o = document.createElement('div'); o.id = 'pfScan'; o.innerHTML = '<video playsinline muted></video>';
+    o.onclick = ev => { if (ev.target === o) stop(); }; document.body.appendChild(o);
+    try {
+      const r = await Promise.all([navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }), idChargerJsQR()]);
+      if (!document.getElementById('pfScan')) { r[0].getTracks().forEach(t => t.stop()); return; }
+      cam = { s: r[0], t: 0 }; const v = o.querySelector('video'); v.srcObject = r[0];
+      const st = r[0].getVideoTracks()[0].getSettings ? r[0].getVideoTracks()[0].getSettings() : {}; if (st.facingMode !== 'environment') v.classList.add('miroir');
+      await v.play();
+      const cv = document.createElement('canvas'), g = cv.getContext('2d', { willReadFrequently: true });
+      const boucle = () => {
+        if (!cam) return;
+        if (v.videoWidth) {
+          const k = Math.min(1, 640 / v.videoWidth); cv.width = v.videoWidth * k | 0; cv.height = v.videoHeight * k | 0; g.drawImage(v, 0, 0, cv.width, cv.height);
+          const q = jsQR(g.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height, { inversionAttempts: 'attemptBoth' }), t = q && String(q.data).trim();
+          if (t) { stop(); if (sha256hex(t) === CARTE_H) { jeton = t.split(':').pop(); bip(); journal('ouverture'); panneau(); } else journal('echec', 'QR code inconnu'); return; }
+        }
+        cam.t = setTimeout(boucle, 120);
+      };
+      boucle();
+    } catch (err) { stop(); }
+  }
+  addEventListener('keydown', e => { if (e.key === 'Escape') { const g = document.getElementById('pfBig'); if (g) { g.remove(); return; } stop(); } });   // Échap : seulement la caméra et le grand code
+  const fermer = () => { clearInterval(SUIVI); const p = document.getElementById('pfOv'); if (p) p.remove(); };
+  // Lance une action exactement comme si le code avait été tapé (le code n'est jamais affiché)
+  const lancer = (code, lab, garder) => { if (lab) journal('action', lab); if (!garder) fermer(); window.__codeInterne = code; BTN().click(); };   // PDF : le panneau reste ouvert
+  const dl = ms => { const d = new Date(ms - new Date(ms).getTimezoneOffset() * 60000); return d.toISOString().slice(0, 16); };
+  const txt = ms => new Date(ms).toLocaleString('fr-FR', { weekday: 'long', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+  const court = ms => { const d = new Date(ms), a = new Date(); const j = d.toDateString() === a.toDateString() ? '' : ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'][d.getDay()] + ' ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' '; return j + d.getHours() + 'h' + String(d.getMinutes()).padStart(2, '0'); };
+  function etatLibre(o) {
+    const e = document.getElementById('pfSt'), sw = document.getElementById('pfOn'), c = document.getElementById('pfAcc'); if (!e) return;
+    if (!o || !o.ok) { e.className = 'pfst'; e.textContent = 'Tableau de bord injoignable'; return; }
+    if ('general' in o) GEN = !!o.general;
+    forceAff(o.force || (o.bloque ? 'bloque' : ''));
+    sw.disabled = FORCE === 'bloque';
+    if (FORCE === 'bloque') { sw.checked = false; c.classList.remove('on'); e.className = 'pfst ko'; e.textContent = '⛔ ' + MOT + ' sur OFF'; return; }
+    const n = o.maintenant || Date.now(), nv = o.niveau || 'AW', actif = !!(o.fin && o.fin >= n);
+    if (actif) niveauMet(nv);
+    sw.checked = actif; c.classList.toggle('on', actif);
+    if (actif && o.debut <= n) { e.className = 'pfst on'; e.textContent = 'Ouvert jusqu’à ' + court(o.fin); }
+    else if (actif) { e.className = 'pfst fut'; e.textContent = 'Programmé : ' + court(o.debut) + ' → ' + court(o.fin); }
+    else { e.className = 'pfst'; e.textContent = 'Code du jour obligatoire'; }
+    if (FORCE === '' && !GEN) { e.className = 'pfst ko'; e.textContent = 'Fermé : tableau de bord sur OFF'; }
+    if (actif) { document.getElementById('pfDeb').value = dl(o.debut); document.getElementById('pfFin').value = dl(o.fin); }
+  }
+  let SEQ = 0;
+  let FORCE = '', GEN = true;
+  const forceAff = f => { FORCE = f === 'bloque' || f === 'ouvert' ? f : ''; const g = document.getElementById('pfForce'); if (!g) return;
+    g.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.f === FORCE));
+    g.querySelector('[data-f=""]').textContent = 'Auto · ' + (GEN ? 'ON' : 'OFF'); };
+  async function definir(deb, fin, force) {
+    const n = ++SEQ;
+    if (force !== undefined) { forceAff(force); const sw = document.getElementById('pfOn'); sw.disabled = force === 'bloque'; if (force === 'bloque') { sw.checked = false; document.getElementById('pfAcc').classList.remove('on'); const e = document.getElementById('pfSt'); e.className = 'pfst ko'; e.textContent = '⛔ ' + MOT + ' sur OFF'; } }
+    const e = document.getElementById('pfSt'), err = t => { e.className = 'pfst ko'; e.textContent = t; };
+    if (force === undefined) { e.className = fin ? 'pfst on' : 'pfst'; e.textContent = fin ? (deb > Date.now() + 60000 ? 'Programmé : ' + court(deb) + ' → ' + court(fin) : 'Ouvert jusqu’à ' + court(fin)) : 'Code du jour obligatoire'; }
+    journal('action', force !== undefined ? (force === 'bloque' ? MOT + ' sur OFF' : force === 'ouvert' ? MOT + ' sur ON (même si le tableau de bord est sur OFF)' : MOT + ' en Auto (suit le tableau de bord)') : fin ? 'Accès sans code (' + nivTxt(niveauSel()) + ') du ' + txt(deb) + ' au ' + txt(fin) : 'Accès sans code annulé');
+    try { const o = await idCall(Object.assign({ action: 'libreDefinir', jeton, test: NOM }, force === undefined ? { debut: deb, fin, niveau: niveauSel() } : { force })); if (n !== SEQ) return; if (o && o.ok) etatLibre(o); else err('Refusé par le tableau de bord'); }
+    catch (x) { if (n === SEQ) err('Pas de réponse (Internet ?)'); }
+  }
+  let SUIVI = 0;
+  const NIV = { A: '10 questions', B: '20 questions', C: '30 questions' };
+  const nivTxt = c => (TYPE === 'test' ? NIV[c[0]] + ', ' : '') + (/W/.test(c) ? 'Internet permis' : 'Internet coupé') + (/X$/.test(c) ? ', copie rendue plus tard' : '');
+  // Grand écran à projeter (code du jour ou QR code du test) ; un clic le ferme
+  const COURT = String(NOM).replace(/^TEST\s*0*(\d+)/i, (m, n) => 'TS' + n.padStart(3, '0'));   // TEST 006 → TS006 ; certificats et DS : nom complet
+  const grand = (t, k) => `<div class="pfcode" style="font-size:${Math.min(innerHeight * k, innerWidth * 0.9 / (String(t).length * 0.72)) | 0}px">${esc(t)}</div>`;
+  function projeter(html) {
+    const o = document.createElement('div'); o.id = 'pfBig'; o.innerHTML = html + '<p class="pfbq">Cliquer pour fermer</p>';
+    o.onclick = () => o.remove(); document.body.appendChild(o);
+  }
+  function qrTest() {
+    const url = location.href.split('#')[0];
+    if (!/^https?:/.test(url)) { projeter('<div class="pfbt">Ce fichier est ouvert depuis l’ordinateur</div><p class="pfbs">Ouvrez le test depuis le site (GitHub) pour projeter son QR code.</p>'); return; }
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    const q = qrcode(0, 'M'); q.addData(url); q.make();
+    const w = window.open('', '_blank'); if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>${esc(COURT)} · QR code</title><style>html,body{margin:0;height:100%;background:#fff;font-family:system-ui,Segoe UI,Arial,sans-serif}
+      body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}h1{margin:0;font-size:12vh;font-weight:900;color:#0f172a;letter-spacing:.04em}
+      .q{width:min(72vh,90vw)}.q svg{width:100%;height:auto;display:block}</style></head><body><h1>${esc(COURT)}</h1><div class="q">${q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })}</div></body></html>`);
+    w.document.close();
+    journal('action', 'QR code du test projeté');
+  }
+  function noteSur20(n) { const m = /([\d.,]+)\s*\/\s*([\d.,]+)/.exec(String(n || '')); if (!m) return null; const a = +m[1].replace(',', '.'), b = +m[2].replace(',', '.'); return b ? a * 20 / b : null; }
+  function suiviAff(o) {
+    const z = document.getElementById('pfSv'); if (!z) return;
+    if (!o || !o.ok) { z.innerHTML = '<div class="pfst">Impossible de joindre le tableau de bord (Internet ?)</div>'; return; }
+    const L = o.eleves || [], enc = L.filter(a => a.etat === 'encours' || a.etat === 'alarme'), fin = L.filter(a => a.etat === 'fini'), al = enc.filter(a => a.alarmes > 0);
+    const N = fin.map(a => noteSur20(a.note)).filter(x => x != null), moy = N.length ? (N.reduce((x, y) => x + y, 0) / N.length).toFixed(1).replace('.', ',') : '–';
+    const ord = a => a.etat === 'fini' ? 2 : a.etat === 'ramassage' ? 1 : 0;
+    z.innerHTML = `<div class="pfsc"><span><b>${enc.length}</b>en cours</span><span><b>${fin.length}</b>finis</span><span><b>${moy}</b>moyenne /20</span><span class="${al.length ? 'al' : ''}"><b>${al.length}</b>alarme${al.length > 1 ? 's' : ''}</span></div>` +
+      `<div class="pfsl">${L.length ? L.slice().sort((a, b) => ord(a) - ord(b) || String(a.nom).localeCompare(b.nom)).map(a => `<div class="${a.etat}${a.alarmes > 0 && a.etat !== 'fini' ? ' al' : ''}"><b>${esc(a.nom)}</b> ${esc(a.prenom)} <i>${esc(a.classe)}</i><em>${a.etat === 'fini' ? '✓ ' + esc(a.note) : a.etat === 'ramassage' ? 'ramassage…' : (a.alarmes > 0 ? '⚠ ' + a.alarmes + ' · ' : '') + 'en cours'}</em></div>`).join('') : '<p>Personne n’a encore fait ' + (TYPE === 'ds' ? 'ce DS' : TYPE === 'cert' ? 'ce certificat' : 'ce test') + ' aujourd’hui.</p>'}</div>`;
+    const r = document.getElementById('pfRam'); if (!r) return; r.disabled = !enc.length; r.dataset.ok = ''; r.textContent = '⏹ Tout ramasser' + (enc.length ? ' (' + enc.length + ')' : '');
+  }
+  const suivre = () => idCall({ action: 'suiviTest', jeton, test: NOM }).then(suiviAff).catch(() => suiviAff(null));
+  function niveauSel() { const n = document.querySelector('#pfNiv .sel'), w = document.querySelector('#pfNet .sel'), x = document.querySelector('#pfCx .sel');
+    return (TYPE === 'test' && n ? n.dataset.n : 'A') + (w && w.dataset.w === '1' ? 'W' : '') + (TYPE === 'ds' && x && x.dataset.x === '1' ? 'X' : ''); }
+  function niveauMet(c) { c = /^[ABC]W?X?$/.test(c || '') ? c : 'AW';
+    document.querySelectorAll('#pfCx button').forEach(b => b.classList.toggle('sel', (b.dataset.x === '1') === /X$/.test(c)));
+    document.querySelectorAll('#pfNiv button').forEach(b => b.classList.toggle('sel', b.dataset.n === c[0]));
+    document.querySelectorAll('#pfNet button').forEach(b => b.classList.toggle('sel', (b.dataset.w === '1') === /W/.test(c))); }
+  function panneau() {
+    fermer();
+    const b1 = B1(), b2 = B2(), PB = TYPE === 'ds' ? b2 : b1, now = Date.now(), soir = new Date(); soir.setHours(18, 0, 0, 0);
+    const p = document.createElement('div'); p.id = 'pfOv';
+    p.innerHTML = `<div class="pfw${TYPE === 'test' ? '' : ' w2'}"><div class="pfh"><h2>Espace enseignant<small>${esc(NOM)} · carte d’agent instructeur reconnue</small></h2><button class="pfqrb" id="pfQr" title="Ouvrir dans un nouvel onglet le QR code de cette page">📱 QR code</button><div class="pfforce" id="pfForce" title="OFF : bloqué même si le tableau de bord est sur ON · Auto : suit le tableau de bord · ON : autorisé même si le tableau de bord est sur OFF"><button data-f="bloque">⛔ OFF</button><button data-f="">Auto</button><button data-f="ouvert">✅ ON</button></div><button class="pfx" id="pfX" aria-label="Fermer">✕</button></div><div class="pfg${TYPE === 'test' ? '' : ' g2'}">
+      <section class="pfc pfacc" id="pfAcc" style="--k:#16a34a"><div class="pfa"><h3>🔓 Sans code</h3><label class="pfsw" title="Ouvrir ou fermer l’accès sans code"><input type="checkbox" id="pfOn"><i></i></label></div>
+        <div class="pfst" id="pfSt">…</div>
+        ${TYPE === 'test' ? '<div class="pfrow"><span>Questions</span><div class="pfseg" id="pfNiv"><button data-n="A">10</button><button data-n="B">20</button><button data-n="C">30</button></div></div>' : ''}
+        <div class="pfrow"><span>Internet</span><div class="pfseg" id="pfNet"><button data-w="1">📶 Permis</button><button data-w="0">✈️ Coupé</button></div></div>
+        ${TYPE === 'ds' ? '<div class="pfrow"><span>Copie</span><div class="pfseg" id="pfCx"><button data-x="0" title="QR code, note et copie à la fin">📝 À la fin</button><button data-x="1" title="Code X : ni QR code, ni note, ni copie ; vous la rendrez corrigée">✉️ Plus tard</button></div></div>' : ''}
+        <div class="pfrow"><span>Durée</span><div class="pfseg" id="pfDur"><button data-dur="60" class="sel">1 h</button><button data-dur="120">2 h</button><button data-dur="soir">18h</button><button data-dur="10080">7 j</button><button data-dur="cust" title="Dates au choix">📅</button></div></div>
+        <div class="pfd" id="pfCust" hidden><span>Du</span><input type="datetime-local" id="pfDeb" value="${dl(now)}"><span>au</span><input type="datetime-local" id="pfFin" value="${dl(Math.max(soir.getTime(), now + 3600000))}"></div></section>
+      <section class="pfc" style="--k:#0891b2"><h3>📊 En direct</h3><div id="pfSv"><div class="pfst">Lecture…</div></div>
+        ${TYPE === 'test' ? '<div class="pfb" style="margin-top:8px"><button class="b r" id="pfRam" disabled>⏹ Tout ramasser</button></div><div class="pfm" id="pfM2"></div>' : ''}</section>
+      <section class="pfc" style="--k:#475569"><h3>🔑 Codes du jour</h3>
+        <div class="pfk">${TYPE === 'ds' ? '' : `<div><span>Base 1</span><b>${b1}</b></div>`}<div><span>Base 2${TYPE === 'ds' ? ' (seule valable pour un DS)' : ''}</span><b>${b2}</b></div></div>
+        <div class="pft" style="margin:8px 0 6px">📽️ Projeter en grand :</div>
+        <div class="${TYPE === 'test' ? 'pfb3' : 'pfb2'}">${(TYPE === 'test' ? ['A', 'B', 'C', 'AW', 'BW', 'CW'] : TYPE === 'ds' ? ['A', 'AW', 'AX', 'AWX'] : ['A', 'AW']).map(x => `<button class="b${/W/.test(x) ? ' l' : ''}" data-proj="${x}" title="${nivTxt(x)}">${x}</button>`).join('')}</div></section>
+      ${TYPE === 'test' ? `<section class="pfc" style="--k:#2563eb"><h3>📄 Corrigé et essai</h3>
+        <div class="pfb" style="margin-bottom:8px"><button class="b" data-code="#@">Corrigé PDF</button></div>
+        <div class="pfb3"><button class="b l" data-essai="A" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 10 ↗</button><button class="b l" data-essai="B" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 20 ↗</button><button class="b l" data-essai="C" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 30 ↗</button></div></section>` :
+      `<section class="pfc" style="--k:#2563eb"><h3>📄 Fiches et essai</h3>
+        <div class="pfb2" style="margin-bottom:8px"><button class="b" data-essai="P" data-fiche="corr" title="Ouvre la page en mode enseignant dans un nouvel onglet et télécharge la fiche corrigée">Fiche corrigée ↗</button><button class="b l" data-essai="P" data-fiche="vierge" title="Ouvre la page en mode enseignant dans un nouvel onglet et télécharge la fiche à compléter">Fiche vierge ↗</button></div>
+        <div class="pfb"><button class="b l" data-essai="P" title="Mode enseignant (sécurités désactivées) dans un nouvel onglet">Essai ↗</button></div></section>`}
+      ${TYPE === 'test' ? `<section class="pfc" style="--k:#ea580c"><h3>🖨️ Copie papier</h3>
+        <div class="pfb3"><button class="b" data-code="${b1}ACOPIE">10 q.</button><button class="b" data-code="${b1}BCOPIE">20 q.</button><button class="b" data-code="${b1}CCOPIE">30 q.</button>
+        <button class="b l" data-code="${b1}ACOPIEPAP">10 q. PAP</button><button class="b l" data-code="${b1}BCOPIEPAP">20 q. PAP</button><button class="b l" data-code="${b1}CCOPIEPAP">30 q. PAP</button></div></section>
+      <section class="pfc" style="--k:#0d9488"><h3>♻️ Refaire une copie</h3>
+        <textarea id="pfCle" placeholder="Coller la clé de la copie de l’élève"></textarea><div class="pfb" style="margin-top:8px"><button class="b" id="pfRef">Refaire le PDF</button></div></section>` : ''}
+    </div></div>`;
+    document.body.appendChild(p);
+    const w = p.querySelector('.pfw'), h = w.offsetHeight + 36; if (h > innerHeight) w.style.zoom = Math.max(0.6, innerHeight / h).toFixed(3);   // tout à l’écran, sans défiler
+    // fermeture seulement par ✕ (un clic à côté, ou une sélection qui déborde, ne ferme plus rien)
+    document.getElementById('pfX').onclick = fermer;
+    document.getElementById('pfQr').onclick = qrTest;
+    niveauMet('AW');
+    p.querySelectorAll('.pfseg button').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); });
+    p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(grand(COURT, 0.22) + grand(PB + b.dataset.proj, 0.3)); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
+    p.querySelectorAll('[data-essai]').forEach(b => b.onclick = () => {
+      try { localStorage.setItem('pf_essai', JSON.stringify({ n: b.dataset.essai, f: b.dataset.fiche || '', j: jeton, t: Date.now() })); } catch (e) {}
+      journal('action', b.dataset.fiche ? (b.dataset.fiche === 'corr' ? 'Fiche corrigée PDF' : 'Fiche vierge PDF') : TYPE === 'test' ? 'Essai du test (' + NIV[b.dataset.essai] + ') dans un nouvel onglet' : 'Essai en mode enseignant dans un nouvel onglet');
+      window.open(location.href.split('#')[0] + '#essai', '_blank');
+    });
+    p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
+    const periode = () => {   // début et fin d'après la durée choisie
+      const k = (p.querySelector('#pfDur .sel') || {}).dataset || {}, d = Date.now();
+      if (k.dur === 'cust') { const a = new Date(document.getElementById('pfDeb').value).getTime(), b = new Date(document.getElementById('pfFin').value).getTime(); return b > a && b > d ? [a, b] : null; }
+      if (k.dur === 'soir') { const f = new Date(); f.setHours(18, 0, 0, 0); return f.getTime() > d ? [d, f.getTime()] : null; }
+      return [d, d + (+k.dur || 60) * 60000];
+    };
+    const appliquer = () => { const sw = document.getElementById('pfOn'); if (!sw.checked) return; const r = periode();
+      if (!r) { const e = document.getElementById('pfSt'); e.className = 'pfst ko'; e.textContent = 'Période impossible'; return; } definir(r[0], r[1]); };
+    document.getElementById('pfOn').onchange = e => { document.getElementById('pfAcc').classList.toggle('on', e.target.checked); if (e.target.checked) appliquer(); else definir(0, 0); };
+    p.querySelectorAll('#pfDur button').forEach(b => b.addEventListener('click', () => { document.getElementById('pfCust').hidden = b.dataset.dur !== 'cust'; setTimeout(appliquer); }));
+    p.querySelectorAll('#pfNiv button, #pfNet button, #pfCx button').forEach(b => b.addEventListener('click', () => setTimeout(appliquer)));
+    ['pfDeb', 'pfFin'].forEach(id => document.getElementById(id).addEventListener('change', appliquer));
+    p.querySelectorAll('#pfForce button').forEach(b => b.onclick = () => { if (b.dataset.f !== FORCE) definir(0, 0, b.dataset.f); });
+    forceAff(FORCE);
+    if (document.getElementById('pfRef')) document.getElementById('pfRef').onclick = () => { const k = document.getElementById('pfCle').value.trim(); if (k) lancer(k, 'Copie d’un élève refaite', true); };
+    if (document.getElementById('pfRam')) document.getElementById('pfRam').onclick = async e => {
+      const b = e.currentTarget, m = document.getElementById('pfM2');
+      if (!b.dataset.ok) { b.dataset.ok = '1'; b.textContent = 'Confirmer ?'; setTimeout(() => { if (b.dataset.ok) suivre(); }, 4000); return; }
+      b.dataset.ok = ''; b.disabled = true; m.textContent = 'Ramassage…'; m.style.color = '#475569'; journal('action', 'Ramasser tout le monde');
+      try { const o = await idCall({ action: 'ramasserTest', jeton, test: NOM }); suiviAff(o); m.textContent = o && o.ok ? (o.ramasses ? o.ramasses + ' copie(s) seront validées dans les 10 s (téléphones avec Internet).' : 'Personne en cours.') : 'Refusé'; m.style.color = '#166534'; }
+      catch (x) { m.textContent = 'Pas de réponse (Internet ?)'; m.style.color = '#b91c1c'; }
+    };
+    { const n0 = SEQ; idCall({ action: 'libreEtat', test: NOM }).then(o => { if (n0 === SEQ) etatLibre(o); }).catch(() => { if (n0 === SEQ) etatLibre(null); }); }   // ignoré si un réglage a été fait entre-temps
+    suivre(); clearInterval(SUIVI); SUIVI = setInterval(() => { if (!document.getElementById('pfOv')) { clearInterval(SUIVI); return; } suivre(); }, 10000);
+  }
+  if (location.hash === '#essai') {
+    history.replaceState(null, '', location.pathname + location.search);
+    let k = null; try { k = JSON.parse(localStorage.getItem('pf_essai') || 'null'); localStorage.removeItem('pf_essai'); } catch (e) {}
+    if (k && (TYPE === 'test' ? /^[ABC]$/ : /^P$/).test(k.n) && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)
+      window.addEventListener('load', () => setTimeout(() => {
+        window.__codeInterne = TYPE === 'test' ? '#@' + k.n : '#@'; BTN().click();
+        if (k.f && TYPE !== 'test') { const sel = document.getElementById('fuel'); if (sel) { sel.disabled = false; try { sel.focus(); } catch (e) {} }   // le professeur choisit le sujet ; la fiche se télécharge aussitôt
+          let n = 0; const t = setInterval(() => {   // fiche PDF dès que le sujet est prêt (certificat COMBUSTION : après le choix du carburant)
+          if (window.FICHE_DATA && window.pfFiche) { clearInterval(t); window.pfFiche(k.f === 'corr'); } else if (++n > 600) clearInterval(t); }, 500); }
+      }, 300));
+  }
+  // Côté élève : « Valider » sans code → le tableau de bord dit si l'accès sans code est ouvert
+  window.libreTenter = async () => {
+    MSG('Vérification…', true);
+    let o = null; try { o = await idCall({ action: 'libreEtat', test: NOM }); } catch (e) {}
+    if (o && o.ok && o.ouvert) { MSGOFF(); window.__libre = true; window.__codeInterne = B2() + (/^[ABC]W?X?$/.test(o.niveau || '') ? (TYPE === 'ds' ? o.niveau : o.niveau.replace('X', '')) : 'AW'); BTN().click(); }
+    else MSG(o && o.ok && o.acces === false ? (TYPE === 'ds' ? 'Ce DS' : TYPE === 'cert' ? 'Ce certificat' : 'Ce test') + ' n’est pas ouvert pour le moment.' : o ? 'Entre le code d’accès donné par ton professeur.' : 'Entre le code d’accès (ou vérifie ta connexion Internet).', false);
+  };
 })();
 </script>
 </body>
