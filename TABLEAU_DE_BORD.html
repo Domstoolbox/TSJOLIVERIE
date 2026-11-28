@@ -110,8 +110,11 @@ tr.nonverif td{background:#fffbeb}
 .pi .pt .pc{background:conic-gradient(#fef08a 0 20%,#fbcfe8 0 40%,#bbf7d0 0 60%,#bfdbfe 0 80%,#fed7aa 0)}
 .pi.prochain{background:#fff;border:2px solid #1e3a8a;color:#1e3a8a;font:600 14px/1.35 var(--f);padding:8px 10px}
 .pi.prochain[hidden]{display:none}
-.bloqpill{flex:none;border:0;border-radius:999px;background:#dc2626;color:#fff;font:800 13px var(--f);padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(220,38,38,.35);white-space:nowrap}.bloqpill[hidden]{display:none}.bloqpill.on{background:#16a34a;box-shadow:0 2px 8px rgba(22,163,74,.35)}
-#btnJournal{position:relative}#btnJournal .jdot{position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:#dc2626;border:2px solid var(--card)}#btnJournal .jdot[hidden]{display:none}
+.bloqpill{flex:none;border:0;border-radius:999px;background:#dc2626;color:#fff;font:800 13px var(--f);padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(220,38,38,.35);white-space:nowrap}.bloqpill[hidden]{display:none}.bloqpill.on{background:#16a34a;box-shadow:0 2px 8px rgba(22,163,74,.35)}.bloqpill.gris{background:#e2e8f0;color:#334155;box-shadow:none}
+.bloqpill{position:relative}.bloqpill.neuf::after{content:'';position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:#dc2626;border:2px solid #fff}
+#jpAlerte .jpx{position:absolute;top:6px;right:8px;border:0;background:rgba(255,255,255,.22);color:#fff;width:26px;height:26px;border-radius:8px;font:800 14px var(--f);cursor:pointer}#jpAlerte{padding-right:44px!important}
+.jwin button.jb{border:0;cursor:pointer;font-family:var(--f)}.jwin button.jb:hover{filter:brightness(.95);text-decoration:underline}
+
 .jwin{width:min(620px,96vw)}.jwin h4{margin:4px 0 8px;font:800 14px var(--f);color:#334155;display:flex;align-items:center;justify-content:space-between}.jwin .jh{margin-top:18px}
 .jwin #jpVid{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 10px;font:700 12px var(--f);cursor:pointer;color:#475569}
 .jwin .jb.on{background:#dcfce7;color:#166534}.jwin .jb{display:inline-block;background:#fee2e2;color:#b91c1c;font:800 14px var(--f);border-radius:999px;padding:6px 12px;margin:0 6px 6px 0}.jwin .jv{color:#64748b;font-size:13px}
@@ -602,11 +605,11 @@ svg.poub{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;str
     <span class="code b2" id="base2" aria-label="Base 2">—</span>
     <button type="button" class="switch unk" id="switch" aria-pressed="false"><span class="knob"></span><b id="swTitle">…</b></button>
     <button type="button" class="switch autre unk" id="swAutre" aria-pressed="false" title="Bouton « AUTRE » dans les tests"><span class="knob"></span><b>AUTRE</b></button>
-    <button type="button" class="bloqpill" id="btnBloq" hidden></button><button type="button" class="bloqpill on" id="btnForceOn" hidden></button>
+    <button type="button" class="bloqpill" id="btnBloq" hidden></button><button type="button" class="bloqpill on" id="btnForceOn" hidden></button><button type="button" class="bloqpill gris" id="btnJ" hidden>🔐 Journal</button>
     <span class="gap"></span>
     <span class="sync" id="sync"><i></i><span id="syncTxt">Connexion…</span></span>
     <button type="button" class="ib" id="btnAppel" title="Faire l’appel" aria-label="Faire l’appel"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><circle cx="8" cy="11" r="2.2"/><path d="M4.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h4.5M14 13.5h3"/></svg></button>
-    <button type="button" class="ib" id="btnJournal" title="Espace enseignant des tests : tests bloqués et journal" aria-label="Espace enseignant des tests"><svg viewBox="0 0 24 24"><path d="M12 2.5l7.5 3v6c0 4.6-3.2 8.4-7.5 10-4.3-1.6-7.5-5.4-7.5-10v-6z"/><circle cx="12" cy="10.5" r="2.2"/><path d="M12 12.7v3.3"/></svg><i class="jdot" id="jDot" hidden></i></button>
+    
     <a class="ib" id="btnEdt" href="https://domstoolbox.github.io/TSJOLIVERIE/edt_joliverie.html" target="_blank" rel="noopener" title="Agenda du labo" aria-label="Agenda du labo"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/></svg></a>
     <button type="button" class="ib" id="btnProj" title="Tout flouter sauf le scanner" aria-label="Tout flouter sauf le scanner"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
     <button type="button" class="ib" id="btnFlou" title="Flouter les notes" aria-label="Flouter les notes" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -737,7 +740,7 @@ svg.poub{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;str
 
 <div class="ov" id="ovJournal" hidden>
   <div class="win jwin" role="dialog" aria-modal="true" aria-labelledby="jT">
-    <div class="whead"><h3 id="jT">Espace enseignant des tests</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
+    <div class="whead"><h3 id="jT">Espace enseignant</h3><button type="button" class="x" data-close aria-label="Fermer">✕</button></div>
     <div class="wbody"><h4>Exceptions réglées dans l’espace enseignant</h4><div id="jBloq"></div><h4 class="jh">🔐 Journal <button type="button" id="jpVid" title="Vider le journal" aria-label="Vider le journal"><svg class="poub" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5"/></svg></button></h4><div id="jList"></div></div>
   </div>
 </div>
@@ -1157,7 +1160,7 @@ function confirmer(txt) {
 }
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '28/11/2026 - 10h55';
+const VERSION_PAGE = '28/11/2026 - 11h55';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1957,32 +1960,47 @@ const JP_VU = 'tdb_journal_vu';
 const jpDate = ms => { const d = new Date(ms); return JOURS_FR[d.getDay()].slice(0, 3) + '. ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' ' + d.getHours() + 'h' + String(d.getMinutes()).padStart(2, '0'); };
 const jpTxt = j => j.type === 'echec' ? `⚠️ Tentative ratée sur ${j.test}` : j.type === 'ouverture' ? `🔐 Espace enseignant ouvert sur ${j.test}` : `${j.test} · ${j.detail}`;
 const jpCourt = t => String(t).replace(/^TEST\s*0*(\d+)/i, (m, n) => 'TS' + n.padStart(3, '0'));
+// Journal sans répétitions : réglages successifs du même test (moins de 5 min d'écart) → seulement le plus récent
+const jpCle = j => j.type === 'action' ? j.test + '|' + String(j.detail).replace(/\s*\(.*$/, '').replace(/ du .*$/, '').replace(/ sur (ON|OFF).*$| en Auto.*$/, ' FORCE') : '';
+function jpSansDoublons(L) { const out = []; L.forEach(j => { const p = out[out.length - 1]; if (p && jpCle(j) && jpCle(j) === jpCle(p) && p.ms - j.ms < 300000) return; out.push(j); }); return out; }
+// Clic sur un test du tableau des exceptions : son espace enseignant s'ouvre dans un nouvel onglet (sans repasser la carte)
+let JETON_PROF = '';
+async function jpOuvrirTest(test) {
+  const f = fichierDe(test); if (!f) { toast('Page introuvable pour ' + test); return; }
+  const w = window.open('', '_blank');   // ouvert tout de suite (sinon le navigateur bloque la fenêtre)
+  if (!JETON_PROF) { const o = await call('jetonProf'); JETON_PROF = o && o.jeton || ''; }
+  if (!JETON_PROF) { if (w) w.close(); toast('Script à redéployer (jeton)'); return; }
+  try { localStorage.setItem('pf_essai', JSON.stringify({ n: 'PANEL', j: JETON_PROF, t: Date.now() })); } catch (e) {}
+  if (w) w.location = encodeURI(f) + '#essai'; else window.open(encodeURI(f) + '#essai', '_blank');
+}
 function jpRender() {
   const L = (S && S.journalProf) || [], X = ((S && S.testsBloques) || []).map(x => typeof x === 'string' ? { test: x, force: 'bloque' } : x);
   // Exceptions de l'espace enseignant : pastilles dans la barre du haut (rouge = OFF, vert = ON)
   const pil = (id, f, sym, mot) => { const T = X.filter(x => x.force === f).map(x => jpCourt(x.test)), b = $(id);
     if (T.length) { b.textContent = sym + ' ' + (T.length === 1 ? T[0] + ' ' + mot : T.length + ' tests ' + mot); b.title = T.join(', ') + ' — se règle dans l’espace enseignant du test'; b.hidden = false; } else b.hidden = true; };
   pil('btnBloq', 'bloque', '⛔', 'OFF'); pil('btnForceOn', 'ouvert', '✅', 'ON');
-  $('jBloq').innerHTML = X.length ? X.map(x => `<span class="jb${x.force === 'ouvert' ? ' on' : ''}">${x.force === 'ouvert' ? '✅' : '⛔'} ${esc(jpCourt(x.test))} ${x.force === 'ouvert' ? 'ON' : 'OFF'}</span>`).join('') + '<div class="jv">Se change seulement dans l’espace enseignant du test (« x » de Domstoolbox + carte). Les autres tests suivent le bouton ON/OFF.</div>' : '<div class="jv">Aucune : tous les tests suivent le bouton ON/OFF.</div>';
+  $('btnJ').hidden = !!X.length || !L.length;
+  $('jBloq').innerHTML = X.length ? X.map(x => `<button type="button" class="jb${x.force === 'ouvert' ? ' on' : ''}" data-jt="${esc(x.test)}" title="Ouvrir son espace enseignant">${x.force === 'ouvert' ? '✅' : '⛔'} ${esc(jpCourt(x.test))} ${x.force === 'ouvert' ? 'ON' : 'OFF'}</button>`).join('') + '<div class="jv">Cliquer sur un nom ouvre son espace enseignant. Les autres pages suivent le bouton ON/OFF.</div>' : '<div class="jv">Aucune : tous les tests, certificats et DS suivent le bouton ON/OFF.</div>';
+  $('jBloq').querySelectorAll('[data-jt]').forEach(b => b.onclick = () => jpOuvrirTest(b.dataset.jt));
   $('jList').className = 'jl';
-  $('jList').innerHTML = L.length ? L.map(j => `<div class="${j.type === 'echec' ? 'ko' : j.type === 'ouverture' ? 'ouv' : ''}">${esc(jpDate(j.ms))} · ${esc(jpTxt(j))}${j.type !== 'action' && j.appareil ? ' <small>(' + esc(j.appareil) + ')</small>' : ''}</div>`).join('') : '<div class="jv">Rien pour l’instant.</div>';
+  $('jList').innerHTML = L.length ? jpSansDoublons(L).map(j => `<div class="${j.type === 'echec' ? 'ko' : j.type === 'ouverture' ? 'ouv' : ''}">${esc(jpDate(j.ms))} · ${esc(jpTxt(j))}${j.type !== 'action' && j.appareil ? ' <small>(' + esc(j.appareil) + ')</small>' : ''}</div>`).join('') : '<div class="jv">Rien pour l’instant.</div>';
   // Alerte : ouvertures et tentatives pas encore vues sur cet appareil
   let raw = null; try { raw = localStorage.getItem(JP_VU); } catch (e) {}
-  if (raw === null) { try { localStorage.setItem(JP_VU, String(L.length ? Math.max(...L.map(x => x.ms)) : Date.now())); } catch (e) {} $('jDot').hidden = true; return; }   // premier lancement sur cet appareil : l'ancien journal n'alerte pas
+  if (raw === null) { try { localStorage.setItem(JP_VU, String(L.length ? Math.max(...L.map(x => x.ms)) : Date.now())); } catch (e) {} return; }   // premier lancement sur cet appareil : l'ancien journal n'alerte pas
   const vu = +raw || 0, neuf = L.filter(j => j.type !== 'action' && j.ms > vu);
   const a = $('jpAlerte');
-  $('jDot').hidden = !neuf.length;
+  ['btnBloq', 'btnForceOn', 'btnJ'].forEach(id => $(id).classList.toggle('neuf', !!neuf.length));
   if (!neuf.length) { a.hidden = true; return; }
   const j = neuf.find(x => x.type === 'echec') || neuf[0], k = j.ms + j.type;   // une tentative ratée passe en premier
   a.className = j.type === 'echec' ? '' : 'ouv';
-  a.innerHTML = `${esc(jpTxt(j))} · ${esc(jpDate(j.ms))}<small>${neuf.length > 1 ? neuf.length + ' événements · ' : ''}${esc(j.appareil || '')} · cliquer pour voir</small>`;
+  a.innerHTML = `${esc(jpTxt(j))} · ${esc(jpDate(j.ms))}<small>${neuf.length > 1 ? neuf.length + ' événements · ' : ''}${esc(j.appareil || '')} · cliquer pour voir</small><button type="button" class="jpx" title="Fermer" aria-label="Fermer">✕</button>`;
+  a.querySelector('.jpx').onclick = e => { e.stopPropagation(); jpVu(); };
   a.hidden = false;
   a._k = k;   // sans son
   a.onclick = () => { jpVu(); $('ovJournal').hidden = false; };
 }
-function jpVu() { const L = (S && S.journalProf) || []; if (L.length) try { localStorage.setItem(JP_VU, String(Math.max(...L.map(x => x.ms)))); } catch (e) {} $('jpAlerte').hidden = true; $('jDot').hidden = true; }
-$('btnJournal').onclick = () => { jpVu(); $('ovJournal').hidden = false; };
-$('btnBloq').onclick = $('btnForceOn').onclick = () => { $('ovJournal').hidden = false; };
+function jpVu() { const L = (S && S.journalProf) || []; if (L.length) try { localStorage.setItem(JP_VU, String(Math.max(...L.map(x => x.ms)))); } catch (e) {} $('jpAlerte').hidden = true; ['btnBloq', 'btnForceOn', 'btnJ'].forEach(id => $(id).classList.remove('neuf')); }
+$('btnBloq').onclick = $('btnForceOn').onclick = $('btnJ').onclick = () => { jpVu(); $('ovJournal').hidden = false; };
 $('jpVid').onclick = async () => { if (!(await confirmer('Vider le journal ?'))) return; if (S) S.journalProf = []; jpRender(); call('journalVider'); };   // vidé tout de suite à l'écran
 
 // ---------- Carte d'AGENT INSTRUCTEUR devant le Scanner ----------

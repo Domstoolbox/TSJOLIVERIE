@@ -455,7 +455,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 11h30</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 11h55</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3747,7 +3747,7 @@ function generatePDF() {
     if (FORCE === '' && !GEN) { e.className = 'pfst ko'; e.textContent = 'Fermé : tableau de bord sur OFF'; }
     if (actif) { document.getElementById('pfDeb').value = dl(o.debut); document.getElementById('pfFin').value = dl(o.fin); }
   }
-  let SEQ = 0;
+  let SEQ = 0, JT = 0;
   let FORCE = '', GEN = true;
   const forceAff = f => { FORCE = f === 'bloque' || f === 'ouvert' ? f : ''; const g = document.getElementById('pfForce'); if (!g) return;
     g.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.f === FORCE));
@@ -3757,7 +3757,8 @@ function generatePDF() {
     if (force !== undefined) { forceAff(force); const sw = document.getElementById('pfOn'); sw.disabled = force === 'bloque'; if (force === 'bloque') { sw.checked = false; document.getElementById('pfAcc').classList.remove('on'); const e = document.getElementById('pfSt'); e.className = 'pfst ko'; e.textContent = '⛔ ' + MOT + ' sur OFF'; } }
     const e = document.getElementById('pfSt'), err = t => { e.className = 'pfst ko'; e.textContent = t; };
     if (force === undefined) { e.className = fin ? 'pfst on' : 'pfst'; e.textContent = fin ? (deb > Date.now() + 60000 ? 'Programmé : ' + court(deb) + ' → ' + court(fin) : 'Ouvert jusqu’à ' + court(fin)) : 'Code du jour obligatoire'; }
-    journal('action', force !== undefined ? (force === 'bloque' ? MOT + ' sur OFF' : force === 'ouvert' ? MOT + ' sur ON (même si le tableau de bord est sur OFF)' : MOT + ' en Auto (suit le tableau de bord)') : fin ? 'Accès sans code (' + nivTxt(niveauSel()) + ') du ' + txt(deb) + ' au ' + txt(fin) : 'Accès sans code annulé');
+    clearTimeout(JT); const lab = force !== undefined ? (force === 'bloque' ? MOT + ' sur OFF' : force === 'ouvert' ? MOT + ' sur ON (même si le tableau de bord est sur OFF)' : MOT + ' en Auto (suit le tableau de bord)') : fin ? 'Accès sans code (' + nivTxt(niveauSel()) + ') du ' + txt(deb) + ' au ' + txt(fin) : 'Accès sans code annulé';
+    if (force !== undefined) journal('action', lab); else JT = setTimeout(() => journal('action', lab), 4000);   // réglages en rafale : une seule ligne dans le journal
     try { const o = await idCall(Object.assign({ action: 'libreDefinir', jeton, test: NOM }, force === undefined ? { debut: deb, fin, niveau: niveauSel() } : { force })); if (n !== SEQ) return; if (o && o.ok) etatLibre(o); else err('Refusé par le tableau de bord'); }
     catch (x) { if (n === SEQ) err('Pas de réponse (Internet ?)'); }
   }
@@ -3873,7 +3874,9 @@ function generatePDF() {
   if (location.hash === '#essai') {
     history.replaceState(null, '', location.pathname + location.search);
     let k = null; try { k = JSON.parse(localStorage.getItem('pf_essai') || 'null'); localStorage.removeItem('pf_essai'); } catch (e) {}
-    if (k && (TYPE === 'test' ? /^[ABC]$/ : /^P$/).test(k.n) && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)
+    if (k && k.n === 'PANEL' && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)   // depuis le tableau de bord : espace enseignant ouvert directement
+      window.addEventListener('load', () => setTimeout(() => { jeton = k.j; journal('action', 'Espace ouvert depuis le tableau de bord'); panneau(); }, 300));
+    else if (k && (TYPE === 'test' ? /^[ABC]$/ : /^P$/).test(k.n) && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)
       window.addEventListener('load', () => setTimeout(() => {
         window.__codeInterne = TYPE === 'test' ? '#@' + k.n : '#@'; BTN().click();
         if (k.f && TYPE !== 'test') { const sel = document.getElementById('fuel'); if (sel) { sel.disabled = false; try { sel.focus(); } catch (e) {} }   // le professeur choisit le sujet ; la fiche se télécharge aussitôt
