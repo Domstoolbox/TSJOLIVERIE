@@ -110,6 +110,13 @@ tr.nonverif td{background:#fffbeb}
 .pi .pt .pc{background:conic-gradient(#fef08a 0 20%,#fbcfe8 0 40%,#bbf7d0 0 60%,#bfdbfe 0 80%,#fed7aa 0)}
 .pi.prochain{background:#fff;border:2px solid #1e3a8a;color:#1e3a8a;font:600 14px/1.35 var(--f);padding:8px 10px}
 .pi.prochain[hidden]{display:none}
+.pi.journal{background:#f5f3ff;border:2px solid #7c3aed;color:#3b0764;font:500 12.5px/1.4 var(--f);padding:8px 10px}.pi.journal[hidden]{display:none}
+.pi.journal small{display:flex;justify-content:space-between;align-items:center;font:800 11.5px var(--f);letter-spacing:.08em;text-transform:uppercase;color:#7c3aed;margin-bottom:3px}
+.pi.journal small button{border:0;background:none;cursor:pointer;color:#7c3aed;font:700 11px var(--f);padding:0}
+.pi.journal div{padding:2px 0;border-top:1px dashed #ddd6fe}.pi.journal div.ko{color:#b91c1c;font-weight:700}.pi.journal div.ouv{font-weight:700}
+#jpAlerte{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9000;background:#dc2626;color:#fff;font:800 17px var(--f);padding:14px 22px;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.35);cursor:pointer;max-width:92vw;text-align:center;animation:jpclig 1.4s ease-in-out infinite}
+#jpAlerte.ouv{background:#7c3aed}#jpAlerte small{display:block;font:600 12.5px var(--f);opacity:.9;margin-top:3px}#jpAlerte[hidden]{display:none}
+@keyframes jpclig{50%{box-shadow:0 0 0 8px rgba(220,38,38,.25),0 14px 40px rgba(0,0,0,.35)}}
 .pi.prochain small{display:block;font:800 11.5px var(--f);letter-spacing:.08em;text-transform:uppercase;opacity:.75;margin-bottom:2px}
 .pi.prochain b{font-size:16px}.pi.prochain .nw{white-space:nowrap}
 .pi .pt .pd.armed{background:#dc2626;color:#fff;border-color:#dc2626}
@@ -622,7 +629,7 @@ td.n{font-family:var(--fm);color:var(--muted)}
     </div>
     <div class="card post">
       <h2>Post-it <span class="grow"></span><button type="button" class="mini" id="postAdd" title="Nouveau post-it" aria-label="Nouveau post-it"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></h2>
-      <div class="posts" id="posts"><div class="pi prochain" id="nextCours" hidden></div></div>
+      <div class="posts" id="posts"><div class="pi prochain" id="nextCours" hidden></div><div class="pi journal" id="journalProf" hidden></div></div>
     </div>
   </section>
 
@@ -794,7 +801,8 @@ async function call(action, extra) {
     if (o.liste) { setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })); return o; }   // recherche de copies
     const perime = lecture ? (MODIFS_EN_COURS > 0 || seq < DERNIERE_MODIF) : seq < DERNIERE_MODIF;
     if (!perime) { (o.classes || []).forEach(c => triEleves(c.eleves)); S = o; render(); }
-    if (window.apFusion && o.appels) window.apFusion(o.appels);   // appels faits sur un autre appareil
+    if (window.apFusion && o.appels) window.apFusion(o.appels);
+    if (!perime) try { jpRender(); } catch (e) {}   // appels faits sur un autre appareil
     if (!perime && !window._gfLu) { window._gfLu = true; setTimeout(() => call('importGF').then(r => { if (r && r.ajouts) refresh(); }).catch(() => {}), 2500); }   // tests Google : nouvelles réponses lues à l'ouverture
     if (action === 'admin' && !window.__appInscrit) { window.__appInscrit = 1; setTimeout(inscrireAppareil, 0); }   // mot de passe mémorisé : l'appareil est aussi inscrit
     setSync('ok', '' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -1007,8 +1015,8 @@ const enEdition = () => $('posts').contains(document.activeElement);
 function renderPosts() {
   if (enEdition()) return;                                   // ne jamais effacer ce que l'on est en train d'écrire
   POSTS = S && S.postits ? S.postits.map(p => Object.assign({}, p)) : [];
-  const nx = $('nextCours'); $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
-  $('posts').prepend(nx); $('posts').querySelectorAll('textarea').forEach(auto);
+  const nx = $('nextCours'), jp = $('journalProf'); $('posts').innerHTML = !S ? '' : POSTS.map((p, i) => `<div class="pi ${COULEURS.includes(p.couleur) ? p.couleur : 'jaune'}" data-p="${i}"><textarea rows="1" aria-label="Post-it">${esc(p.texte)}</textarea><div class="pt"><button type="button" class="pc" data-pc title="Couleur" aria-label="Changer la couleur"></button><button type="button" class="pd" data-pd title="Supprimer" aria-label="Supprimer">✕</button></div></div>`).join('');
+  $('posts').prepend(nx); nx.after(jp); $('posts').querySelectorAll('textarea').forEach(auto);
 }
 function auto(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }
 function savePosts(now) { clearTimeout(postT); postT = setTimeout(() => call('postits', { postits: POSTS }), now ? 0 : 1200); }
@@ -1115,7 +1123,7 @@ $('setPane').addEventListener('click', e => {
 });
 function confirmTwice(btn, txt) { if (btn.dataset.armed) return true; btn.dataset.armed = 1; const old = btn.textContent; btn.textContent = txt; setTimeout(() => { delete btn.dataset.armed; btn.textContent = old; }, 3000); return false; }
 // RAZ du jour : 1er clic = « Confirmer ? » pendant 4 s, 2e clic = effacement
-const VERSION_PAGE = '27/11/2026 - 18h20';
+const VERSION_PAGE = '28/11/2026 - 08h30';
 let razT = 0;
 $('btnRaz').onclick = async () => {
   const b = $('btnRaz');
@@ -1912,6 +1920,34 @@ function nextCoursRender() {
   el.hidden = false;
 }
 setInterval(nextCoursRender, 5000);
+
+// ---------- Journal de l'espace enseignant (ouvert avec la carte sur un test, certificat ou DS ; tentatives ratées) ----------
+const JP_VU = 'tdb_journal_vu';
+const jpDate = ms => { const d = new Date(ms); return JOURS_FR[d.getDay()].slice(0, 3) + '. ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' ' + d.getHours() + 'h' + String(d.getMinutes()).padStart(2, '0'); };
+const jpTxt = j => j.type === 'echec' ? `⚠️ Tentative ratée sur ${j.test}` : j.type === 'ouverture' ? `🔐 Espace enseignant ouvert sur ${j.test}` : `${j.test} · ${j.detail}`;
+function jpRender() {
+  const el = $('journalProf'); if (!el) return;
+  const L = (S && S.journalProf) || [];
+  if (!L.length) { el.hidden = true; el._k = ''; }
+  else {
+    const h = `<small>🔐 Journal de l’espace enseignant<button type="button" id="jpVid" title="Vider le journal">Vider</button></small>` +
+      L.slice(0, 10).map(j => `<div class="${j.type === 'echec' ? 'ko' : j.type === 'ouverture' ? 'ouv' : ''}">${esc(jpDate(j.ms))} · ${esc(jpTxt(j))}${j.type !== 'action' && j.appareil ? ' (' + esc(j.appareil) + ')' : ''}</div>`).join('');
+    if (el._k !== h) { el.innerHTML = h; el._k = h; $('jpVid').onclick = e => { const b = e.target; if (b.dataset.ok) { call('journalVider').then(refresh); } else { b.dataset.ok = 1; b.textContent = 'Vider ?'; setTimeout(() => { b.dataset.ok = ''; b.textContent = 'Vider'; }, 3000); } }; }
+    el.hidden = false;
+  }
+  // Alerte : ouvertures et tentatives pas encore vues sur cet appareil
+  let raw = null; try { raw = localStorage.getItem(JP_VU); } catch (e) {}
+  if (raw === null) { try { localStorage.setItem(JP_VU, String(L.length ? Math.max(...L.map(x => x.ms)) : Date.now())); } catch (e) {} return; }   // premier lancement sur cet appareil : l'ancien journal n'alerte pas
+  const vu = +raw || 0, neuf = L.filter(j => j.type !== 'action' && j.ms > vu);
+  const a = $('jpAlerte');
+  if (!neuf.length) { a.hidden = true; return; }
+  const j = neuf.find(x => x.type === 'echec') || neuf[0], k = j.ms + j.type;   // une tentative ratée passe en premier
+  a.className = j.type === 'echec' ? '' : 'ouv';
+  a.innerHTML = `${esc(jpTxt(j))} · ${esc(jpDate(j.ms))}<small>${neuf.length > 1 ? neuf.length + ' événements · ' : ''}${esc(j.appareil || '')} · cliquer pour fermer</small>`;
+  a.hidden = false;
+  if (a._k !== k) { a._k = k; try { if (window.tdbBipGrave) window.tdbBipGrave(2); } catch (e) {} }
+  a.onclick = () => { try { localStorage.setItem(JP_VU, String(Math.max(...L.map(x => x.ms)))); } catch (e) {} a.hidden = true; };
+}
 
 // ---------- Carte d'AGENT INSTRUCTEUR devant le Scanner ----------
 // Verso (QR secret) : verrouille le tableau de bord (comme le cadenas) ; Recto (badge 866738) : « Merci de travailler en silence ! » 10 s, sans son
@@ -3097,5 +3133,6 @@ if (auto) startCam();                                     // caméra rallumée a
 window.tdbScan = addPayload;                              // (essais)
 })();
 </script>
+<div id="jpAlerte" hidden></div>
 </body>
 </html>
