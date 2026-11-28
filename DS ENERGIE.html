@@ -666,7 +666,7 @@ body.need-net .sheet{display:none}
     </div>
   </div>
 
-  <footer class="foot"><span>Rien ne se perd, rien ne se crée, tout se transforme !</span><span>Domstoolbox · Version du 28/11/2026 - 11h55</span></footer>
+  <footer class="foot"><span>Rien ne se perd, rien ne se crée, tout se transforme !</span><span>Domstoolbox · Version du 28/11/2026 - 12h15</span></footer>
 </div>
 
 <script>
@@ -2018,7 +2018,7 @@ new MutationObserver(() => { if (document.body.classList.contains('locked')) { s
   applyFuel();
   // Copie papier (lien caché « R » de CERTIFICATION) : liste des convertisseurs et construction hors écran
   window.PAPER = {
-    title: 'CERTIFICAT ÉNERGIE', file: 'CERTIFICAT_ENERGIE', what: 'convertisseur',
+    title: 'DS ÉNERGIE', file: 'DS_ENERGIE', what: 'convertisseur',
     list: () => FUELS.slice().sort((a, b) => a.nom.localeCompare(b.nom, 'fr')).map(F => ({id: F.id, label: F.nom.charAt(0).toUpperCase() + F.nom.slice(1)})),
     make: id => { const F = FUELS.find(x => x.id === id); const r = build(F, true); return {html: r.html, KEY: r.KEY, label: F.Le.toUpperCase(), short: F.nom}; }
   };
@@ -2630,11 +2630,7 @@ body.locked #npad{display:none!important}
   }
 
   // Liens cachés
-  const foot = document.querySelector('.foot span:last-child');
-  if (foot) foot.innerHTML = foot.innerHTML.replace('Domstoolbox', 'Domstoolbo<span id="hidCorr">x</span>');
-  const memo = document.querySelector('.memo .r');
-  if (memo) memo.innerHTML = memo.innerHTML.replace(/^D/, '<span id="hidBlank">D</span>');
-  const hc = document.getElementById('hidCorr'), hb = document.getElementById('hidBlank');
+  // Plus de liens cachés : tout passe par l'espace enseignant (« x » sous la case du code + carte)
   const prof = () => window.dsAdmin && window.dsAdmin();   // DS : liens cachés réservés au professeur
   window.pfFiche = make;   // fiches PDF : depuis l'espace enseignant (« x » de Domstoolbox + carte)
   window.dsCopie = () => make('copie');
@@ -2899,13 +2895,8 @@ body.cert-open{overflow:hidden}
   };
   window.addEventListener('resize', fit);
 
-  // Lien caché : « D » de STI2D (en haut)
-  const sti = document.querySelector('.lvl .sti .r');
-  if (sti) {
-    sti.innerHTML = sti.innerHTML.replace(/D$/, '<span id="hidCert">D</span>');
-    const d = document.getElementById('hidCert');
-    if (d) d.addEventListener('click', () => window.showCertificate(true));
-  }
+  // Aperçu du certificat : depuis l'espace enseignant
+  window.pfApercu = () => window.showCertificate(true);
 })();
 </script>
 <style>
@@ -3265,14 +3256,7 @@ body.cert-open{overflow:hidden}
   }
 
   // Lien caché : le « R » de CERTIFICATION (en haut à gauche)
-  const l1 = document.querySelector('.memo .l1');
-  if (l1 && l1.textContent.indexOf('R') > 0) {
-    const t = l1.firstChild, i = t.textContent.indexOf('R');
-    const rest = t.splitText(i); rest.textContent = rest.textContent.slice(1);
-    const h = document.createElement('span'); h.id = 'hidPaper'; h.textContent = 'R';
-    l1.insertBefore(h, rest);
-    h.addEventListener('click', () => { if (window.dsAdmin && window.dsAdmin()) openDialog(); });
-  }
+  window.pfPapier = openDialog;   // copie papier + corrigé : depuis l'espace enseignant
   window.paperMake = make;      // (tests)
 })();
 </script>
@@ -3664,7 +3648,7 @@ document.addEventListener('keydown', e => {
 })();
 </script>
 <style>
-#dtbX,.dtbX,#hidCorr{cursor:default}
+#dtbX,.dtbX{cursor:default}
 #codegate .pfcred{margin:12px 0 0;font-size:.78rem;opacity:.6;text-align:center}
 #pfOv .pfb2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 #pfOv .pfw.w2{width:min(880px,100%)}@media (min-width:960px){#pfOv .pfg.g2{grid-template-columns:repeat(2,1fr)}}
@@ -3736,7 +3720,7 @@ document.addEventListener('keydown', e => {
   const MSGOFF = () => { const m = document.getElementById(TYPE === 'test' ? 'codeMsg' : 'certCodeMsg'); if (m) m.hidden = true; };
   if (TYPE === 'test') { const cr = document.getElementById('codeCredit'); if (cr) cr.innerHTML = cr.innerHTML.replace('Domstoolbox', 'Domstoolbo<span id="dtbX" class="dtbX">x</span>'); }
   else { const g = document.getElementById('codegate'); if (g) g.insertAdjacentHTML('beforeend', '<p class="pfcred">By Domstoolbo<span class="dtbX">x</span> pour La Joliverie</p>'); }
-  const XS = [...document.querySelectorAll('.dtbX, #hidCorr')]; if (!XS.length) return;
+  const XS = [...document.querySelectorAll('.dtbX')]; if (!XS.length) return;
   let cam = null, jeton = '';
   const bip = () => { try { const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = 1150; g.gain.value = 0.25; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.09); setTimeout(() => c.close(), 300); } catch (e) {} };
   const APP = (/iPad|Tablet/i.test(navigator.userAgent) ? 'tablette' : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'téléphone' : 'ordinateur') + ' · ' + (/Edg\//.test(navigator.userAgent) ? 'Edge' : /Firefox/.test(navigator.userAgent) ? 'Firefox' : /Chrome/.test(navigator.userAgent) ? 'Chrome' : /Safari/.test(navigator.userAgent) ? 'Safari' : 'navigateur');
@@ -3868,7 +3852,7 @@ document.addEventListener('keydown', e => {
         <div class="pfb3"><button class="b l" data-essai="A" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 10 ↗</button><button class="b l" data-essai="B" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 20 ↗</button><button class="b l" data-essai="C" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 30 ↗</button></div></section>` :
       `<section class="pfc" style="--k:#2563eb"><h3>📄 Fiches et essai</h3>
         <div class="pfb2" style="margin-bottom:8px"><button class="b" data-essai="P" data-fiche="corr" title="Ouvre la page en mode enseignant dans un nouvel onglet et télécharge la fiche corrigée">Fiche corrigée ↗</button><button class="b l" data-essai="P" data-fiche="vierge" title="Ouvre la page en mode enseignant dans un nouvel onglet et télécharge la fiche à compléter">Fiche vierge ↗</button></div>
-        <div class="pfb"><button class="b l" data-essai="P" title="Mode enseignant (sécurités désactivées) dans un nouvel onglet">Essai ↗</button></div></section>`}
+        <div class="pfb2"><button class="b" data-essai="P" data-fiche="papier" title="Copie papier et son corrigé (sujet au choix), dans un nouvel onglet">Copie papier ↗</button>${TYPE === 'cert' ? '<button class="b l" data-essai="P" data-fiche="apercu" title="Aperçu du certificat délivré, dans un nouvel onglet">Aperçu ↗</button>' : ''}<button class="b l" data-essai="P" title="Mode enseignant (sécurités désactivées) dans un nouvel onglet">Essai ↗</button></div></section>`}
       ${TYPE === 'test' ? `<section class="pfc" style="--k:#ea580c"><h3>🖨️ Copie papier</h3>
         <div class="pfb3"><button class="b" data-code="${b1}ACOPIE">10 q.</button><button class="b" data-code="${b1}BCOPIE">20 q.</button><button class="b" data-code="${b1}CCOPIE">30 q.</button>
         <button class="b l" data-code="${b1}ACOPIEPAP">10 q. PAP</button><button class="b l" data-code="${b1}BCOPIEPAP">20 q. PAP</button><button class="b l" data-code="${b1}CCOPIEPAP">30 q. PAP</button></div></section>
@@ -3885,7 +3869,7 @@ document.addEventListener('keydown', e => {
     p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(grand(COURT, 0.22) + grand(PB + b.dataset.proj, 0.3)); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
     p.querySelectorAll('[data-essai]').forEach(b => b.onclick = () => {
       try { localStorage.setItem('pf_essai', JSON.stringify({ n: b.dataset.essai, f: b.dataset.fiche || '', j: jeton, t: Date.now() })); } catch (e) {}
-      journal('action', b.dataset.fiche ? (b.dataset.fiche === 'corr' ? 'Fiche corrigée PDF' : 'Fiche vierge PDF') : TYPE === 'test' ? 'Essai du test (' + NIV[b.dataset.essai] + ') dans un nouvel onglet' : 'Essai en mode enseignant dans un nouvel onglet');
+      journal('action', b.dataset.fiche ? ({ corr: 'Fiche corrigée PDF', vierge: 'Fiche vierge PDF', papier: 'Copie papier + corrigé', apercu: 'Aperçu du certificat' })[b.dataset.fiche] : TYPE === 'test' ? 'Essai du test (' + NIV[b.dataset.essai] + ') dans un nouvel onglet' : 'Essai en mode enseignant dans un nouvel onglet');
       window.open(location.href.split('#')[0] + '#essai', '_blank');
     });
     p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
@@ -3922,9 +3906,10 @@ document.addEventListener('keydown', e => {
     else if (k && (TYPE === 'test' ? /^[ABC]$/ : /^P$/).test(k.n) && Date.now() - k.t < 15000 && sha256hex('DTB-INSTRUCTEUR:' + k.j) === CARTE_H)
       window.addEventListener('load', () => setTimeout(() => {
         window.__codeInterne = TYPE === 'test' ? '#@' + k.n : '#@'; BTN().click();
-        if (k.f && TYPE !== 'test') { const sel = document.getElementById('fuel'); if (sel) { sel.disabled = false; try { sel.focus(); } catch (e) {} }   // le professeur choisit le sujet ; la fiche se télécharge aussitôt
+        if (k.f === 'papier') setTimeout(() => { if (window.pfPapier) window.pfPapier(); }, 700);
+        else if (k.f && TYPE !== 'test') { const sel = document.getElementById('fuel'); if (sel) { sel.disabled = false; try { sel.focus(); } catch (e) {} }   // le professeur choisit le sujet ; la fiche se télécharge aussitôt
           let n = 0; const t = setInterval(() => {   // fiche PDF dès que le sujet est prêt (certificat COMBUSTION : après le choix du carburant)
-          if (window.FICHE_DATA && window.pfFiche) { clearInterval(t); window.pfFiche(k.f === 'corr'); } else if (++n > 600) clearInterval(t); }, 500); }
+          if (window.FICHE_DATA && (k.f === 'apercu' ? window.pfApercu : window.pfFiche)) { clearInterval(t); if (k.f === 'apercu') window.pfApercu(); else window.pfFiche(k.f === 'corr'); } else if (++n > 600) clearInterval(t); }, 500); }
       }, 300));
   }
   // Côté élève : « Valider » sans code → le tableau de bord dit si l'accès sans code est ouvert
