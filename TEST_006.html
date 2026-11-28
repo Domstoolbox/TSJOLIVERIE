@@ -429,7 +429,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 09h00</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 09h10</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3490,7 +3490,7 @@ function generatePDF() {
 #pfOv button.b:disabled{opacity:.4;cursor:default}
 #pfBig{position:fixed;inset:0;z-index:100002;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;cursor:pointer;font-family:inherit;text-align:center;padding:3vh}
 #pfBig .pfbt{font-size:clamp(20px,4vh,44px);font-weight:800;color:#1e3a8a}#pfBig .pfcode{font-size:clamp(60px,17vw,260px);font-weight:900;letter-spacing:.04em;color:#0f172a;line-height:1}
-#pfBig .pfqr{width:min(70vh,86vw)}#pfBig .pfqr svg{width:100%;height:auto;display:block}#pfBig .pfbs{font-size:clamp(16px,3vh,32px);font-weight:700;color:#475569;margin:0}#pfBig .pfbq{position:absolute;bottom:12px;font-size:13px;color:#94a3b8;margin:0}
+#pfBig .pfqr{width:min(66vh,86vw)}#pfBig .pfqr svg{width:100%;height:auto;display:block}#pfBig .pfbs{font-size:clamp(16px,3vh,32px);font-weight:700;color:#475569;margin:0}#pfBig .pfbq{position:absolute;bottom:12px;font-size:13px;color:#94a3b8;margin:0}
 </style>
 <script>
 // ---------- Espace enseignant : clic sur le « x » de Domstoolbox → carte d'AGENT INSTRUCTEUR → panneau ----------
@@ -3556,6 +3556,8 @@ function generatePDF() {
   const NIV = { A: '10 questions', B: '20 questions', C: '30 questions' };
   const nivTxt = c => NIV[c[0]] + (c.slice(1) === 'W' ? ', Internet permis' : ', Internet coupé');
   // Grand écran à projeter (code du jour ou QR code du test) ; un clic le ferme
+  const COURT = String(NOM).replace(/^TEST\s*0*(\d+)/i, (m, n) => 'TS' + n.padStart(3, '0'));   // TEST 006 → TS006 ; certificats et DS : nom complet
+  const grand = (t, k) => `<div class="pfcode" style="font-size:${Math.min(innerHeight * k, innerWidth * 0.9 / (String(t).length * 0.72)) | 0}px">${esc(t)}</div>`;
   function projeter(html) {
     const o = document.createElement('div'); o.id = 'pfBig'; o.innerHTML = html + '<p class="pfbq">Cliquer pour fermer</p>';
     o.onclick = () => o.remove(); document.body.appendChild(o);
@@ -3565,7 +3567,7 @@ function generatePDF() {
     if (!/^https?:/.test(url)) { projeter('<div class="pfbt">Ce fichier est ouvert depuis l’ordinateur</div><p class="pfbs">Ouvrez le test depuis le site (GitHub) pour projeter son QR code.</p>'); return; }
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     const q = qrcode(0, 'M'); q.addData(url); q.make();
-    projeter(`<div class="pfbt">${esc(NOM)}</div><div class="pfqr">${q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })}</div><p class="pfbs">Scanne ce QR code pour ouvrir le test</p>`);
+    projeter(`${grand(COURT, 0.12)}<div class="pfqr">${q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })}</div><p class="pfbs">Scanne ce QR code pour ouvrir le test</p>`);
     journal('action', 'QR code du test projeté');
   }
   function noteSur20(n) { const m = /([\d.,]+)\s*\/\s*([\d.,]+)/.exec(String(n || '')); if (!m) return null; const a = +m[1].replace(',', '.'), b = +m[2].replace(',', '.'); return b ? a * 20 / b : null; }
@@ -3618,7 +3620,7 @@ function generatePDF() {
     document.getElementById('pfQr').onclick = qrTest;
     niveauMet('AW');
     p.querySelectorAll('#pfNiv button, #pfNet button').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); });
-    p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(`<div class="pfbt">${esc(NOM)} · ${nivTxt(b.dataset.proj)}</div><div class="pfcode" style="font-size:${Math.min(innerHeight * 0.3, innerWidth * 0.9 / ((b1 + b.dataset.proj).length * 0.72)) | 0}px">${b1}${b.dataset.proj}</div><p class="pfbs">Code d’accès</p>`); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
+    p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(grand(COURT, 0.22) + grand(b1 + b.dataset.proj, 0.3)); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
     p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
     p.querySelectorAll('[data-dur]').forEach(b => b.onclick = () => { const d = Date.now(); definir(d, d + b.dataset.dur * 60000); });
     p.querySelector('[data-soir]').onclick = () => { const d = Date.now(), f = new Date(); f.setHours(18, 0, 0, 0); if (f.getTime() <= d) { document.getElementById('pfM1').textContent = 'Il est déjà plus de 18h.'; return; } definir(d, f.getTime()); };
