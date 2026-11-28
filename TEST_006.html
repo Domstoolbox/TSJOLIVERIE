@@ -429,7 +429,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="res ko" id="codeMsg" hidden style="background:#fde8e6;color:#b42318;margin-top:10px;max-width:300px;margin-left:auto;margin-right:auto;">Code incorrect.</div>
   </div>
 
-  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 09h20</small></div>
+  <div id="codeCredit">By Domstoolbox pour La Joliverie<br><small>Version du 28/11/2026 - 10h40</small></div>
 
   <div id="idwarning" hidden>
     <div id="idStep"></div>
@@ -3457,8 +3457,10 @@ function generatePDF() {
 #pfOv .pfw{background:#f8fafc;border-radius:22px;width:min(1240px,100%);box-shadow:0 30px 80px rgba(0,0,0,.4);overflow:hidden}
 #pfOv .pfh{background:linear-gradient(120deg,#1e3a8a,#7c3aed);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px}
 #pfOv .pfh h2{margin:0;font-size:20px;flex:1}#pfOv .pfh small{display:block;font-size:13px;opacity:.85;font-weight:500}
-#pfOv .pfbl{border:0;border-radius:12px;padding:9px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:#dcfce7;color:#166534;margin-right:10px}
-#pfOv .pfbl.on{background:#dc2626;color:#fff;animation:pfclig 1.2s ease-in-out infinite}@keyframes pfclig{50%{opacity:.6}}
+#pfOv .pfforce{display:flex;gap:3px;background:rgba(255,255,255,.16);border-radius:12px;padding:3px;margin-right:10px}
+#pfOv .pfforce button{border:0;border-radius:9px;padding:7px 12px;margin:0;font:800 13.5px inherit;font-family:inherit;cursor:pointer;background:transparent;color:rgba(255,255,255,.85);transition:background .15s}
+#pfOv .pfforce button:hover{background:rgba(255,255,255,.14)}
+#pfOv .pfforce button.sel[data-f="bloque"]{background:#dc2626;color:#fff}#pfOv .pfforce button.sel[data-f=""]{background:#fff;color:#334155}#pfOv .pfforce button.sel[data-f="ouvert"]{background:#16a34a;color:#fff}#pfOv .pfforce button.sel[data-f="ouvert"]{background:#16a34a;color:#fff}
 #pfOv .pfx{display:flex;align-items:center;justify-content:center;padding:0;line-height:1;background:rgba(255,255,255,.18);border:0;color:#fff;width:36px;height:36px;border-radius:12px;font-size:22px;cursor:pointer}
 #pfOv .pfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;padding:12px}
 #pfOv .pfc{background:#fff;border-radius:16px;padding:10px 14px;border-top:5px solid var(--k);box-shadow:0 2px 10px rgba(15,23,42,.07)}
@@ -3479,9 +3481,17 @@ function generatePDF() {
 #pfOv .pfb3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 @media (min-width:960px){#pfOv .pfg{grid-template-columns:repeat(3,1fr)}}
 #pfOv .pfqrb{border:0;border-radius:12px;padding:9px 14px;font:800 14px inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;margin-right:10px}
-#pfOv .pfn{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}#pfOv .pfn>div{display:inline-flex;gap:2px;background:#dcfce7;border-radius:999px;padding:3px}
-#pfOv .pfn button{border:0;border-radius:999px;background:transparent;color:#166534;font:700 12.5px inherit;font-family:inherit;padding:5px 12px;margin:0;cursor:pointer;transition:background .15s}
-#pfOv .pfn button:hover{background:rgba(22,163,74,.12)}#pfOv .pfn button.sel{background:#16a34a;color:#fff;box-shadow:0 1px 4px rgba(22,101,52,.35)}
+#pfOv [hidden]{display:none!important}
+#pfOv .pfa{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#pfOv .pfsw{position:relative;width:54px;height:30px;flex:none;cursor:pointer}#pfOv .pfsw input{opacity:0;width:0;height:0;position:absolute}
+#pfOv .pfsw i{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s}#pfOv .pfsw i::after{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+#pfOv .pfsw input:checked+i{background:#16a34a}#pfOv .pfsw input:checked+i::after{left:27px}#pfOv .pfsw input:disabled+i{opacity:.4;cursor:default}
+#pfOv .pfacc .pfst{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#pfOv .pfst.ko{background:#fee2e2;color:#b91c1c}
+#pfOv .pfrow{display:flex;align-items:center;gap:8px;margin-top:7px}#pfOv .pfrow>span{width:66px;flex:none;font-size:12px;font-weight:700;color:#64748b}
+#pfOv .pfseg{display:flex;flex:1;gap:4px}
+#pfOv .pfseg button{flex:1;border:1.5px solid #e2e8f0;background:#fff;color:#334155;border-radius:9px;padding:6px 4px;margin:0;font:700 13px inherit;font-family:inherit;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+#pfOv .pfseg button:hover{border-color:var(--k)}#pfOv .pfseg button.sel{background:var(--k);border-color:var(--k);color:#fff}
+#pfOv .pfacc:not(.on) .pfseg button.sel{background:#64748b;border-color:#64748b}
 #pfOv .pfsc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}#pfOv .pfsc span{background:#ecfeff;border-radius:10px;padding:5px 4px;text-align:center;font-size:11px;color:#155e75}
 #pfOv .pfsc b{display:block;font-size:20px;color:#0e7490}#pfOv .pfsc .al{background:#fee2e2;color:#991b1b}#pfOv .pfsc .al b{color:#dc2626}
 #pfOv .pfsl{max-height:118px;overflow:auto;font-size:12.5px}#pfOv .pfsl div{display:flex;gap:5px;align-items:baseline;padding:3px 2px;border-top:1px solid #f1f5f9}
@@ -3528,29 +3538,42 @@ function generatePDF() {
       boucle();
     } catch (err) { stop(); }
   });
-  addEventListener('keydown', e => { if (e.key === 'Escape') { const g = document.getElementById('pfBig'); if (g) { g.remove(); return; } stop(); fermer(); } });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { const g = document.getElementById('pfBig'); if (g) { g.remove(); return; } stop(); } });   // Échap : seulement la caméra et le grand code
   const fermer = () => { clearInterval(SUIVI); const p = document.getElementById('pfOv'); if (p) p.remove(); };
   // Lance une action exactement comme si le code avait été tapé (le code n'est jamais affiché)
   const lancer = (code, lab, garder) => { if (lab) journal('action', lab); if (!garder) fermer(); window.__codeInterne = code; document.getElementById('accessCodeBtn').click(); };   // PDF : le panneau reste ouvert
   const dl = ms => { const d = new Date(ms - new Date(ms).getTimezoneOffset() * 60000); return d.toISOString().slice(0, 16); };
   const txt = ms => new Date(ms).toLocaleString('fr-FR', { weekday: 'long', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
+  const court = ms => { const d = new Date(ms), a = new Date(); const j = d.toDateString() === a.toDateString() ? '' : ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'][d.getDay()] + ' ' + String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' '; return j + d.getHours() + 'h' + String(d.getMinutes()).padStart(2, '0'); };
   function etatLibre(o) {
-    const e = document.getElementById('pfSt'); if (!e) return;
-    if (!o || !o.ok) { e.className = 'pfst'; e.textContent = 'Impossible de joindre le tableau de bord (Internet ?)'; return; }
-    const bl = document.getElementById('pfBl'); bl.dataset.b = o.bloque ? '1' : ''; bl.className = 'pfbl' + (o.bloque ? ' on' : ''); bl.textContent = o.bloque ? '⛔ TEST BLOQUÉ · cliquer pour autoriser' : '✅ Test autorisé · cliquer pour bloquer';
-    if (o.bloque) { e.className = 'pfst'; e.textContent = '⛔ Test bloqué : personne ne peut le faire (même avec le code)'; return; }
-    const n = o.maintenant || Date.now();
-    const nv = o.niveau || 'AW'; if (o.fin) niveauMet(nv);
-    if (o.fin && o.fin >= n && o.debut <= n) { e.className = 'pfst on'; e.textContent = '✅ OUVERT sans code jusqu’au ' + txt(o.fin) + ' · ' + nivTxt(nv); }
-    else if (o.fin && o.debut > n) { e.className = 'pfst fut'; e.textContent = '⏳ Sans code du ' + txt(o.debut) + ' au ' + txt(o.fin) + ' · ' + nivTxt(nv); }
-    else { e.className = 'pfst'; e.textContent = '🔒 Code du jour obligatoire (pas d’accès sans code)'; }
-    if (o.fin) { document.getElementById('pfDeb').value = dl(o.debut); document.getElementById('pfFin').value = dl(o.fin); }
+    const e = document.getElementById('pfSt'), sw = document.getElementById('pfOn'), c = document.getElementById('pfAcc'); if (!e) return;
+    if (!o || !o.ok) { e.className = 'pfst'; e.textContent = 'Tableau de bord injoignable'; return; }
+    if ('general' in o) GEN = !!o.general;
+    forceAff(o.force || (o.bloque ? 'bloque' : ''));
+    sw.disabled = FORCE === 'bloque';
+    if (FORCE === 'bloque') { sw.checked = false; c.classList.remove('on'); e.className = 'pfst ko'; e.textContent = '⛔ Test sur OFF'; return; }
+    const n = o.maintenant || Date.now(), nv = o.niveau || 'AW', actif = !!(o.fin && o.fin >= n);
+    if (actif) niveauMet(nv);
+    sw.checked = actif; c.classList.toggle('on', actif);
+    if (actif && o.debut <= n) { e.className = 'pfst on'; e.textContent = 'Ouvert jusqu’à ' + court(o.fin); }
+    else if (actif) { e.className = 'pfst fut'; e.textContent = 'Programmé : ' + court(o.debut) + ' → ' + court(o.fin); }
+    else { e.className = 'pfst'; e.textContent = 'Code du jour obligatoire'; }
+    if (FORCE === '' && !GEN) { e.className = 'pfst ko'; e.textContent = 'Fermé : tableau de bord sur OFF'; }
+    if (actif) { document.getElementById('pfDeb').value = dl(o.debut); document.getElementById('pfFin').value = dl(o.fin); }
   }
-  async function definir(deb, fin, bloque) {
-    const m = document.getElementById('pfM1'); m.textContent = 'Enregistrement…'; m.style.color = '#475569';
-    journal('action', bloque !== undefined ? (bloque ? 'Test bloqué' : 'Test autorisé') : fin ? 'Accès sans code (' + nivTxt(niveauSel()) + ') du ' + txt(deb) + ' au ' + txt(fin) : 'Accès sans code annulé');
-    try { const o = await idCall(Object.assign({ action: 'libreDefinir', jeton, test: NOM }, bloque === undefined ? { debut: deb, fin, niveau: niveauSel() } : { bloque })); etatLibre(o); m.textContent = o && o.ok ? 'Enregistré ✓' : 'Refusé par le tableau de bord'; m.style.color = o && o.ok ? '#166534' : '#b91c1c'; }
-    catch (e) { m.textContent = 'Pas de réponse (Internet ?)'; m.style.color = '#b91c1c'; }
+  let SEQ = 0;
+  let FORCE = '', GEN = true;
+  const forceAff = f => { FORCE = f === 'bloque' || f === 'ouvert' ? f : ''; const g = document.getElementById('pfForce'); if (!g) return;
+    g.querySelectorAll('button').forEach(b => b.classList.toggle('sel', b.dataset.f === FORCE));
+    g.querySelector('[data-f=""]').textContent = 'Auto · ' + (GEN ? 'ON' : 'OFF'); };
+  async function definir(deb, fin, force) {
+    const n = ++SEQ;
+    if (force !== undefined) { forceAff(force); const sw = document.getElementById('pfOn'); sw.disabled = force === 'bloque'; if (force === 'bloque') { sw.checked = false; document.getElementById('pfAcc').classList.remove('on'); const e = document.getElementById('pfSt'); e.className = 'pfst ko'; e.textContent = '⛔ Test sur OFF'; } }
+    const e = document.getElementById('pfSt'), err = t => { e.className = 'pfst ko'; e.textContent = t; };
+    if (force === undefined) { e.className = fin ? 'pfst on' : 'pfst'; e.textContent = fin ? (deb > Date.now() + 60000 ? 'Programmé : ' + court(deb) + ' → ' + court(fin) : 'Ouvert jusqu’à ' + court(fin)) : 'Code du jour obligatoire'; }
+    journal('action', force !== undefined ? (force === 'bloque' ? 'Test sur OFF' : force === 'ouvert' ? 'Test sur ON (même si le tableau de bord est sur OFF)' : 'Test en Auto (suit le tableau de bord)') : fin ? 'Accès sans code (' + nivTxt(niveauSel()) + ') du ' + txt(deb) + ' au ' + txt(fin) : 'Accès sans code annulé');
+    try { const o = await idCall(Object.assign({ action: 'libreDefinir', jeton, test: NOM }, force === undefined ? { debut: deb, fin, niveau: niveauSel() } : { force })); if (n !== SEQ) return; if (o && o.ok) etatLibre(o); else err('Refusé par le tableau de bord'); }
+    catch (x) { if (n === SEQ) err('Pas de réponse (Internet ?)'); }
   }
   let SUIVI = 0;
   const NIV = { A: '10 questions', B: '20 questions', C: '30 questions' };
@@ -3567,7 +3590,11 @@ function generatePDF() {
     if (!/^https?:/.test(url)) { projeter('<div class="pfbt">Ce fichier est ouvert depuis l’ordinateur</div><p class="pfbs">Ouvrez le test depuis le site (GitHub) pour projeter son QR code.</p>'); return; }
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
     const q = qrcode(0, 'M'); q.addData(url); q.make();
-    projeter(`${grand(COURT, 0.12)}<div class="pfqr">${q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })}</div><p class="pfbs">Scanne ce QR code pour ouvrir le test</p>`);
+    const w = window.open('', '_blank'); if (!w) return;
+    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>${esc(COURT)} · QR code</title><style>html,body{margin:0;height:100%;background:#fff;font-family:system-ui,Segoe UI,Arial,sans-serif}
+      body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh}h1{margin:0;font-size:12vh;font-weight:900;color:#0f172a;letter-spacing:.04em}
+      .q{width:min(72vh,90vw)}.q svg{width:100%;height:auto;display:block}</style></head><body><h1>${esc(COURT)}</h1><div class="q">${q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })}</div></body></html>`);
+    w.document.close();
     journal('action', 'QR code du test projeté');
   }
   function noteSur20(n) { const m = /([\d.,]+)\s*\/\s*([\d.,]+)/.exec(String(n || '')); if (!m) return null; const a = +m[1].replace(',', '.'), b = +m[2].replace(',', '.'); return b ? a * 20 / b : null; }
@@ -3579,7 +3606,7 @@ function generatePDF() {
     const ord = a => a.etat === 'fini' ? 2 : a.etat === 'ramassage' ? 1 : 0;
     z.innerHTML = `<div class="pfsc"><span><b>${enc.length}</b>en cours</span><span><b>${fin.length}</b>finis</span><span><b>${moy}</b>moyenne /20</span><span class="${al.length ? 'al' : ''}"><b>${al.length}</b>alarme${al.length > 1 ? 's' : ''}</span></div>` +
       `<div class="pfsl">${L.length ? L.slice().sort((a, b) => ord(a) - ord(b) || String(a.nom).localeCompare(b.nom)).map(a => `<div class="${a.etat}${a.alarmes > 0 && a.etat !== 'fini' ? ' al' : ''}"><b>${esc(a.nom)}</b> ${esc(a.prenom)} <i>${esc(a.classe)}</i><em>${a.etat === 'fini' ? '✓ ' + esc(a.note) : a.etat === 'ramassage' ? 'ramassage…' : (a.alarmes > 0 ? '⚠ ' + a.alarmes + ' · ' : '') + 'en cours'}</em></div>`).join('') : '<p>Personne n’a encore fait ce test aujourd’hui.</p>'}</div>`;
-    const r = document.getElementById('pfRam'); r.disabled = !enc.length; r.dataset.ok = ''; r.textContent = '⏹ Ramasser tout le monde' + (enc.length ? ' (' + enc.length + ')' : '');
+    const r = document.getElementById('pfRam'); r.disabled = !enc.length; r.dataset.ok = ''; r.textContent = '⏹ Tout ramasser' + (enc.length ? ' (' + enc.length + ')' : '');
   }
   const suivre = () => idCall({ action: 'suiviTest', jeton, test: NOM }).then(suiviAff).catch(() => suiviAff(null));
   function niveauSel() { const n = document.querySelector('#pfNiv .sel'), w = document.querySelector('#pfNet .sel'); return (n ? n.dataset.n : 'A') + (w && w.dataset.w === '1' ? 'W' : ''); }
@@ -3590,36 +3617,35 @@ function generatePDF() {
     fermer();
     const b1 = getExpectedCode(), b2 = getExpectedCode2(), now = Date.now(), soir = new Date(); soir.setHours(18, 0, 0, 0);
     const p = document.createElement('div'); p.id = 'pfOv';
-    p.innerHTML = `<div class="pfw"><div class="pfh"><h2>Espace enseignant<small>${esc(NOM)} · carte d’agent instructeur reconnue</small></h2><button class="pfqrb" id="pfQr" title="Projeter le QR code qui ouvre ce test">📱 QR code du test</button><button class="pfbl" id="pfBl" title="Bloquer ou autoriser ce test pour tous les élèves">…</button><button class="pfx" id="pfX" aria-label="Fermer">✕</button></div><div class="pfg">
-      <section class="pfc" style="--k:#16a34a"><h3>🔓 Accès sans code</h3><p>Les élèves touchent seulement <b>Valider</b>, sans code.</p>
-        <div class="pfst" id="pfSt">Lecture de l’état…</div>
-        <div class="pfn"><div id="pfNiv"><button data-n="A">10 q.</button><button data-n="B">20 q.</button><button data-n="C">30 q.</button></div><div id="pfNet"><button data-w="1">Internet permis</button><button data-w="0">Internet coupé</button></div></div>
-        <div class="pfb"><button class="b" data-dur="60">1 h</button><button class="b" data-dur="120">2 h</button><button class="b" data-soir>Jusqu’à 18h</button><button class="b" data-dur="10080">7 jours</button></div>
-        <div class="pfd"><span>Début</span><input type="datetime-local" id="pfDeb" value="${dl(now)}"><span>Fin</span><input type="datetime-local" id="pfFin" value="${dl(Math.max(soir.getTime(), now + 3600000))}"></div>
-        <div class="pfb"><button class="b l" id="pfPer">Ouvrir sur ces dates</button><button class="b r" id="pfOff">Annuler : code obligatoire</button></div><div class="pfm" id="pfM1"></div></section>
-      <section class="pfc" style="--k:#0891b2"><h3>📊 En direct sur ce test</h3><p>Élèves d’aujourd’hui, mis à jour toutes les 10 s.</p><div id="pfSv"><div class="pfst">Lecture…</div></div>
-        <div class="pfb" style="margin-top:8px"><button class="b r" id="pfRam" disabled>⏹ Ramasser tout le monde</button></div><div class="pfm" id="pfM2"></div></section>
+    p.innerHTML = `<div class="pfw"><div class="pfh"><h2>Espace enseignant<small>${esc(NOM)} · carte d’agent instructeur reconnue</small></h2><button class="pfqrb" id="pfQr" title="Projeter le QR code qui ouvre ce test">📱 QR code</button><div class="pfforce" id="pfForce" title="OFF : bloqué même si le tableau de bord est sur ON · Auto : suit le tableau de bord · ON : autorisé même si le tableau de bord est sur OFF"><button data-f="bloque">⛔ OFF</button><button data-f="">Auto</button><button data-f="ouvert">✅ ON</button></div><button class="pfx" id="pfX" aria-label="Fermer">✕</button></div><div class="pfg">
+      <section class="pfc pfacc" id="pfAcc" style="--k:#16a34a"><div class="pfa"><h3>🔓 Sans code</h3><label class="pfsw" title="Ouvrir ou fermer l’accès sans code"><input type="checkbox" id="pfOn"><i></i></label></div>
+        <div class="pfst" id="pfSt">…</div>
+        <div class="pfrow"><span>Questions</span><div class="pfseg" id="pfNiv"><button data-n="A">10</button><button data-n="B">20</button><button data-n="C">30</button></div></div>
+        <div class="pfrow"><span>Internet</span><div class="pfseg" id="pfNet"><button data-w="1">📶 Permis</button><button data-w="0">✈️ Coupé</button></div></div>
+        <div class="pfrow"><span>Durée</span><div class="pfseg" id="pfDur"><button data-dur="60" class="sel">1 h</button><button data-dur="120">2 h</button><button data-dur="soir">18h</button><button data-dur="10080">7 j</button><button data-dur="cust" title="Dates au choix">📅</button></div></div>
+        <div class="pfd" id="pfCust" hidden><span>Du</span><input type="datetime-local" id="pfDeb" value="${dl(now)}"><span>au</span><input type="datetime-local" id="pfFin" value="${dl(Math.max(soir.getTime(), now + 3600000))}"></div></section>
+      <section class="pfc" style="--k:#0891b2"><h3>📊 En direct</h3><div id="pfSv"><div class="pfst">Lecture…</div></div>
+        <div class="pfb" style="margin-top:8px"><button class="b r" id="pfRam" disabled>⏹ Tout ramasser</button></div><div class="pfm" id="pfM2"></div></section>
       <section class="pfc" style="--k:#475569"><h3>🔑 Codes du jour</h3>
         <div class="pfk"><div><span>Base 1</span><b>${b1}</b></div><div><span>Base 2</span><b>${b2}</b></div></div>
-        <div class="pft" style="margin:8px 0 6px">Projeter en grand le code base 1 + :</div>
-        <div class="pfb3">${['A', 'B', 'C', 'AW', 'BW', 'CW'].map(x => `<button class="b${x.length > 1 ? ' l' : ''}" data-proj="${x}" title="${nivTxt(x)}">${x}</button>`).join('')}</div>
-        <div class="pft" style="margin-top:6px"><code>A</code> <code>B</code> <code>C</code> = 10 / 20 / 30 questions, Internet coupé · <code>W</code> = Internet permis.</div></section>
-      <section class="pfc" style="--k:#2563eb"><h3>📄 Corrigé et essai</h3><p>Corrigé des 30 questions en PDF, ou essai du test dans un nouvel onglet, en mode enseignant (sécurités désactivées, pas d’identification).</p>
-        <div class="pfb" style="margin-bottom:8px"><button class="b" data-code="#@">Télécharger le corrigé</button></div>
-        <div class="pfb3"><button class="b l" data-essai="A">Essai 10 q. ↗</button><button class="b l" data-essai="B">Essai 20 q. ↗</button><button class="b l" data-essai="C">Essai 30 q. ↗</button></div></section>
-      <section class="pfc" style="--k:#ea580c"><h3>🖨️ Copie papier à imprimer</h3><p>Sujet PDF tiré au hasard, avec son QR code. PAP = 30 % de questions en moins.</p>
+        <div class="pft" style="margin:8px 0 6px">📽️ Projeter en grand :</div>
+        <div class="pfb3">${['A', 'B', 'C', 'AW', 'BW', 'CW'].map(x => `<button class="b${x.length > 1 ? ' l' : ''}" data-proj="${x}" title="${nivTxt(x)}">${x}</button>`).join('')}</div></section>
+      <section class="pfc" style="--k:#2563eb"><h3>📄 Corrigé et essai</h3>
+        <div class="pfb" style="margin-bottom:8px"><button class="b" data-code="#@">Corrigé PDF</button></div>
+        <div class="pfb3"><button class="b l" data-essai="A" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 10 ↗</button><button class="b l" data-essai="B" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 20 ↗</button><button class="b l" data-essai="C" title="Essayer le test (mode enseignant) dans un nouvel onglet">Essai 30 ↗</button></div></section>
+      <section class="pfc" style="--k:#ea580c"><h3>🖨️ Copie papier</h3>
         <div class="pfb3"><button class="b" data-code="${b1}ACOPIE">10 q.</button><button class="b" data-code="${b1}BCOPIE">20 q.</button><button class="b" data-code="${b1}CCOPIE">30 q.</button>
         <button class="b l" data-code="${b1}ACOPIEPAP">10 q. PAP</button><button class="b l" data-code="${b1}BCOPIEPAP">20 q. PAP</button><button class="b l" data-code="${b1}CCOPIEPAP">30 q. PAP</button></div></section>
-      <section class="pfc" style="--k:#0d9488"><h3>♻️ Refaire la copie d’un élève</h3><p>Collez la clé de la copie (dernière ligne du QR code, ou bouton 📋 du tableau de bord).</p>
-        <textarea id="pfCle" placeholder="Clé de la copie"></textarea><div class="pfb" style="margin-top:8px"><button class="b" id="pfRef">Refaire le PDF</button></div></section>
+      <section class="pfc" style="--k:#0d9488"><h3>♻️ Refaire une copie</h3>
+        <textarea id="pfCle" placeholder="Coller la clé de la copie de l’élève"></textarea><div class="pfb" style="margin-top:8px"><button class="b" id="pfRef">Refaire le PDF</button></div></section>
     </div></div>`;
     document.body.appendChild(p);
     const w = p.querySelector('.pfw'), h = w.offsetHeight + 36; if (h > innerHeight) w.style.zoom = Math.max(0.6, innerHeight / h).toFixed(3);   // tout à l’écran, sans défiler
-    p.onclick = e => { if (e.target === p) fermer(); };
+    // fermeture seulement par ✕ (un clic à côté, ou une sélection qui déborde, ne ferme plus rien)
     document.getElementById('pfX').onclick = fermer;
     document.getElementById('pfQr').onclick = qrTest;
     niveauMet('AW');
-    p.querySelectorAll('#pfNiv button, #pfNet button').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); });
+    p.querySelectorAll('.pfseg button').forEach(b => b.onclick = () => { b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); });
     p.querySelectorAll('[data-proj]').forEach(b => b.onclick = () => { projeter(grand(COURT, 0.22) + grand(b1 + b.dataset.proj, 0.3)); journal('action', 'Code du jour projeté (' + b.dataset.proj + ')'); });
     p.querySelectorAll('[data-essai]').forEach(b => b.onclick = () => {
       try { localStorage.setItem('pf_essai', JSON.stringify({ n: b.dataset.essai, j: jeton, t: Date.now() })); } catch (e) {}
@@ -3627,21 +3653,29 @@ function generatePDF() {
       window.open(location.href.split('#')[0] + '#essai', '_blank');
     });
     p.querySelectorAll('[data-code]').forEach(b => b.onclick = () => lancer(b.dataset.code, b.closest('section').querySelector('h3').textContent.replace(/^\S+\s/, '') + ' : ' + b.textContent, !/^#@[ABC]$/.test(b.dataset.code)));
-    p.querySelectorAll('[data-dur]').forEach(b => b.onclick = () => { const d = Date.now(); definir(d, d + b.dataset.dur * 60000); });
-    p.querySelector('[data-soir]').onclick = () => { const d = Date.now(), f = new Date(); f.setHours(18, 0, 0, 0); if (f.getTime() <= d) { document.getElementById('pfM1').textContent = 'Il est déjà plus de 18h.'; return; } definir(d, f.getTime()); };
-    document.getElementById('pfPer').onclick = () => { const d = new Date(document.getElementById('pfDeb').value).getTime(), f = new Date(document.getElementById('pfFin').value).getTime();
-      if (!(f > d)) { const m = document.getElementById('pfM1'); m.textContent = 'La fin doit être après le début.'; m.style.color = '#b91c1c'; return; } definir(d, f); };
-    document.getElementById('pfOff').onclick = () => definir(0, 0);
-    document.getElementById('pfBl').onclick = () => definir(0, 0, !document.getElementById('pfBl').dataset.b);
+    const periode = () => {   // début et fin d'après la durée choisie
+      const k = (p.querySelector('#pfDur .sel') || {}).dataset || {}, d = Date.now();
+      if (k.dur === 'cust') { const a = new Date(document.getElementById('pfDeb').value).getTime(), b = new Date(document.getElementById('pfFin').value).getTime(); return b > a && b > d ? [a, b] : null; }
+      if (k.dur === 'soir') { const f = new Date(); f.setHours(18, 0, 0, 0); return f.getTime() > d ? [d, f.getTime()] : null; }
+      return [d, d + (+k.dur || 60) * 60000];
+    };
+    const appliquer = () => { const sw = document.getElementById('pfOn'); if (!sw.checked) return; const r = periode();
+      if (!r) { const e = document.getElementById('pfSt'); e.className = 'pfst ko'; e.textContent = 'Période impossible'; return; } definir(r[0], r[1]); };
+    document.getElementById('pfOn').onchange = e => { document.getElementById('pfAcc').classList.toggle('on', e.target.checked); if (e.target.checked) appliquer(); else definir(0, 0); };
+    p.querySelectorAll('#pfDur button').forEach(b => b.addEventListener('click', () => { document.getElementById('pfCust').hidden = b.dataset.dur !== 'cust'; setTimeout(appliquer); }));
+    p.querySelectorAll('#pfNiv button, #pfNet button').forEach(b => b.addEventListener('click', () => setTimeout(appliquer)));
+    ['pfDeb', 'pfFin'].forEach(id => document.getElementById(id).addEventListener('change', appliquer));
+    p.querySelectorAll('#pfForce button').forEach(b => b.onclick = () => { if (b.dataset.f !== FORCE) definir(0, 0, b.dataset.f); });
+    forceAff(FORCE);
     document.getElementById('pfRef').onclick = () => { const k = document.getElementById('pfCle').value.trim(); if (k) lancer(k, 'Copie d’un élève refaite', true); };
     document.getElementById('pfRam').onclick = async e => {
       const b = e.currentTarget, m = document.getElementById('pfM2');
-      if (!b.dataset.ok) { b.dataset.ok = '1'; b.textContent = 'Confirmer : ramasser tout le monde ?'; setTimeout(() => { if (b.dataset.ok) suivre(); }, 4000); return; }
+      if (!b.dataset.ok) { b.dataset.ok = '1'; b.textContent = 'Confirmer ?'; setTimeout(() => { if (b.dataset.ok) suivre(); }, 4000); return; }
       b.dataset.ok = ''; b.disabled = true; m.textContent = 'Ramassage…'; m.style.color = '#475569'; journal('action', 'Ramasser tout le monde');
       try { const o = await idCall({ action: 'ramasserTest', jeton, test: NOM }); suiviAff(o); m.textContent = o && o.ok ? (o.ramasses ? o.ramasses + ' copie(s) seront validées dans les 10 s (téléphones avec Internet).' : 'Personne en cours.') : 'Refusé'; m.style.color = '#166534'; }
       catch (x) { m.textContent = 'Pas de réponse (Internet ?)'; m.style.color = '#b91c1c'; }
     };
-    idCall({ action: 'libreEtat', test: NOM }).then(etatLibre).catch(() => etatLibre(null));
+    { const n0 = SEQ; idCall({ action: 'libreEtat', test: NOM }).then(o => { if (n0 === SEQ) etatLibre(o); }).catch(() => { if (n0 === SEQ) etatLibre(null); }); }   // ignoré si un réglage a été fait entre-temps
     suivre(); clearInterval(SUIVI); SUIVI = setInterval(() => { if (!document.getElementById('pfOv')) { clearInterval(SUIVI); return; } suivre(); }, 10000);
   }
   if (location.hash === '#essai') {
@@ -3655,7 +3689,7 @@ function generatePDF() {
     showCodeMsg('Vérification…', true);
     let o = null; try { o = await idCall({ action: 'libreEtat', test: NOM }); } catch (e) {}
     if (o && o.ok && o.ouvert) { document.getElementById('codeMsg').hidden = true; window.__libre = true; window.__codeInterne = getExpectedCode2() + (/^[ABC]W?$/.test(o.niveau || '') ? o.niveau : 'AW'); document.getElementById('accessCodeBtn').click(); }
-    else showCodeMsg(o && o.bloque ? 'Ce test n’est pas ouvert pour le moment.' : o ? 'Entre le code d’accès donné par ton professeur.' : 'Entre le code d’accès (ou vérifie ta connexion Internet).', false);
+    else showCodeMsg(o && o.ok && o.acces === false ? 'Ce test n’est pas ouvert pour le moment.' : o ? 'Entre le code d’accès donné par ton professeur.' : 'Entre le code d’accès (ou vérifie ta connexion Internet).', false);
   };
 })();
 </script>
